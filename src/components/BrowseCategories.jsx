@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { BASE_URL } from '../config/constants';
 import TrackCard from './TrackCard';
 import cacheService from '../services/cacheService';
 import './BrowseCategories.css';
@@ -42,13 +43,7 @@ const BrowseCategories = memo(function BrowseCategories() {
     setIsLoading(true);
     setError(null);
     try {
-      const getApiBase = () => {
-        if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-        if (import.meta.env.PROD) return "https://aurevon.onrender.com";
-        return 'http://localhost:5001/api';
-      };
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/youtube/search?q=${encodeURIComponent(category.query)}`);
+      const response = await fetch(`${BASE_URL}/youtube/search?q=${encodeURIComponent(category.query)}`);
       if (!response.ok) throw new Error('Failed to fetch category tracks');
       
       const data = await response.json();

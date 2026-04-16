@@ -3,6 +3,7 @@ import axios from 'axios';
 import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
 import { searchTracks, getArtistFullData, searchArtists } from '../services/spotifyService';
+import { BASE_URL } from '../config/constants';
 
 export const PlayerContext = createContext(null);
 
@@ -98,13 +99,7 @@ function computeSessionMood(listeningHistory, recentTracks) {
   };
 }
 
-const getApiBase = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (import.meta.env.PROD) return "https://aurevon.onrender.com";
-  return 'http://localhost:5001/api';
-};
-
-const API_BASE = getApiBase();
+const API_BASE = BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
