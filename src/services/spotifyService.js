@@ -1,7 +1,7 @@
 import { mapITunesTrack, mapITunesArtist } from '../utils/mappers';
 import cacheService from './cacheService';
 import { searchVideoId } from './youtubeService';
-import { BASE_URL } from '../config/constants';
+import { API } from '../config/api';
 
 const YT_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YT_API_KEYS = [
@@ -68,10 +68,9 @@ export async function searchTracks(query, signal) {
     const params = new URLSearchParams({ term: query, entity: 'song', limit: '20' });
     const isProd = import.meta.env.PROD;
     const searchUrl = isProd 
-      ? `${BASE_URL}/search/itunes?${params}` 
+      ? API(`/search/itunes?${params}`) 
       : `https://itunes.apple.com/search?${params}`;
     
-    console.log(`[SpotifyService] Fetching from: ${searchUrl}`);
     const response = await fetch(searchUrl, { signal });
 
     if (!response.ok) throw new Error('iTunes search error');
@@ -100,10 +99,9 @@ export async function searchArtists(query) {
     const params = new URLSearchParams({ term: query, entity: 'musicArtist', limit: '5' });
     const isProd = import.meta.env.PROD;
     const searchUrl = isProd 
-      ? `${BASE_URL}/search/itunes?${params}` 
+      ? API(`/search/itunes?${params}`) 
       : `https://itunes.apple.com/search?${params}`;
 
-    console.log(`[SpotifyService] Artist search: ${searchUrl}`);
     const response = await fetch(searchUrl);
     if (!response.ok) return [];
 

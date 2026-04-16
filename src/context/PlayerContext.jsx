@@ -3,7 +3,7 @@ import axios from 'axios';
 import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
 import { searchTracks, getArtistFullData, searchArtists } from '../services/spotifyService';
-import { BASE_URL } from '../config/constants';
+import { API } from '../config/api';
 
 export const PlayerContext = createContext(null);
 
@@ -99,7 +99,7 @@ function computeSessionMood(listeningHistory, recentTracks) {
   };
 }
 
-const API_BASE = BASE_URL;
+const API_BASE = API('');
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
@@ -438,6 +438,7 @@ export function PlayerProvider({ children }) {
     };
 
     try {
+      console.log(`🚀 [API Request]: PATCH ${API_BASE}/user/update`);
       await axiosInstance.patch('/user/update', update);
       dispatch({ type: 'CLEAR_SYNC_QUEUE' });
     } catch (err) {
@@ -473,6 +474,7 @@ export function PlayerProvider({ children }) {
   const loginWithGoogle = async (idToken) => {
     dispatch({ type: 'SET_MAGIC_LOADING', payload: true });
     try {
+      console.log(`🚀 [API Request]: POST ${API_BASE}/auth/google`);
       const res = await axiosInstance.post('/auth/google', { idToken });
       const { token, user } = res.data;
 
@@ -484,7 +486,8 @@ export function PlayerProvider({ children }) {
       };
 
       // Perform initial sync/merge
-      const mergeRes = await axios.post(`${API_BASE}/user/sync`, localData, {
+      const mergeUrl = API('/user/sync');
+      const mergeRes = await axios.post(mergeUrl, localData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

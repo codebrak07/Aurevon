@@ -1,5 +1,5 @@
 import cacheService from './cacheService';
-import { BASE_URL } from '../config/constants';
+import { API } from '../config/api';
 
 /**
  * ═══════════════════════════════════════════════
@@ -66,10 +66,9 @@ async function fetchGenreFromITunes(title, artist) {
     const isProd = import.meta.env.PROD;
     const term = `${title} ${artist}`;
     const searchUrl = isProd 
-      ? `${BASE_URL}/search/itunes?term=${encodeURIComponent(term)}&entity=song&limit=1`
+      ? API(`/search/itunes?term=${encodeURIComponent(term)}&entity=song&limit=1`)
       : `${ITUNES_URL}?term=${encodeURIComponent(term)}&entity=song&limit=1`;
 
-    console.log(`[MoodService] Genre check: ${searchUrl}`);
     const response = await fetch(searchUrl);
     if (!response.ok) return null;
     

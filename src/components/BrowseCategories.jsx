@@ -1,5 +1,5 @@
 import { memo, useState, useCallback } from 'react';
-import { BASE_URL } from '../config/constants';
+import { API } from '../config/api';
 import TrackCard from './TrackCard';
 import cacheService from '../services/cacheService';
 import './BrowseCategories.css';
@@ -43,7 +43,7 @@ const BrowseCategories = memo(function BrowseCategories() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/youtube/search?q=${encodeURIComponent(category.query)}`);
+      const response = await fetch(API(`/youtube/search?q=${encodeURIComponent(category.query)}`));
       if (!response.ok) throw new Error('Failed to fetch category tracks');
       
       const data = await response.json();
