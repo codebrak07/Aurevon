@@ -65,7 +65,7 @@ async function fetchGenreFromITunes(title, artist) {
     const isProd = import.meta.env.PROD;
     const term = `${title} ${artist}`;
     const searchUrl = isProd 
-      ? `/api/search/itunes?term=${encodeURIComponent(term)}&entity=song&limit=1`
+      ? `/_/backend/search/itunes?term=${encodeURIComponent(term)}&entity=song&limit=1`
       : `${ITUNES_URL}?term=${encodeURIComponent(term)}&entity=song&limit=1`;
 
     const response = await fetch(searchUrl);

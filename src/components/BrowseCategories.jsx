@@ -44,7 +44,7 @@ const BrowseCategories = memo(function BrowseCategories() {
     try {
       const getApiBase = () => {
         if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-        if (import.meta.env.PROD) return window.location.origin + '/api';
+        if (import.meta.env.PROD) return window.location.origin + '/_/backend';
         return 'http://localhost:5001/api';
       };
       const apiBase = getApiBase();
