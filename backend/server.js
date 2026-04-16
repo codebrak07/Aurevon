@@ -10,7 +10,11 @@ const itunesRoutes = require('./routes/itunesRoutes');
 const axios = require('axios');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
 // Middleware
 app.use(cors());
@@ -61,11 +65,5 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
-
-if (process.env.NODE_ENV !== 'production' && require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
 
 module.exports = app;
