@@ -3,7 +3,14 @@ import cacheService from './cacheService';
 
 const KEYS = [
   import.meta.env.VITE_YOUTUBE_API_KEY,
-  import.meta.env.VITE_YOUTUBE_API_KEY_SECONDARY
+  import.meta.env.VITE_YOUTUBE_API_KEY_SECONDARY,
+  import.meta.env.VITE_YOUTUBE_API_KEY_TERTIARY,
+  'AIzaSyBLtcDAT4wpIe_ODk1-zSFZ1fwA7MPbBhg',
+  'AIzaSyB6--uI0LWEa6HffY5deuEQYAh0zMb43U8',
+  'AIzaSyDtCPom_faX1xCRmZKkLUNFl7ZIxTDUI9c',
+  'AIzaSyBaaxUKASbag5JPfVHM1-xWHxy22IQAxuw',
+  'AIzaSyBXSobYOzARRP0D3oHq7hQp3MYI-E8uBkA',
+  'AIzaSyCzBf-MrhnFudqtE44QXZOCrwI9CZY5l2E'
 ].filter(Boolean);
 
 let currentKeyIndex = 0;
