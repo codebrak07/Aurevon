@@ -100,7 +100,7 @@ function computeSessionMood(listeningHistory, recentTracks) {
 
 const getApiBase = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (import.meta.env.PROD) return window.location.origin + '/_/backend';
+  if (import.meta.env.PROD) return "https://aurevon.onrender.com";
   return 'http://localhost:5001/api';
 };
 

@@ -67,7 +67,7 @@ export async function searchTracks(query, signal) {
     const params = new URLSearchParams({ term: query, entity: 'song', limit: '20' });
     const isProd = import.meta.env.PROD;
     const searchUrl = isProd 
-      ? `/_/backend/search/itunes?${params}` 
+      ? `https://aurevon.onrender.com/search/itunes?${params}` 
       : `https://itunes.apple.com/search?${params}`;
     
     const response = await fetch(searchUrl, { signal });
