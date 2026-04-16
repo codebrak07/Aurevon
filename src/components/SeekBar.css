@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════
+   SEEK BAR (Stitch: Green progress, refined)
+   ═══════════════════════════════════════════════ */
+
+.seek-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4) 0;
+}
+
+.seek-bar__time {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: center;
+  user-select: none;
+}
+
+.seek-bar__track {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  position: relative;
+}
+
+.seek-bar__track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--surface-container-highest);
+  border-radius: var(--radius-full);
+  transition: height var(--duration-fast);
+}
+
+.seek-bar__track:hover::before {
+  height: 5px;
+}
+
+.seek-bar__fill {
+  height: 4px;
+  background: var(--accent-green);
+  border-radius: var(--radius-full);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: width 0.1s linear, height var(--duration-fast);
+}
+
+.seek-bar__thumb {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+  transform: translateX(50%);
+  opacity: 0;
+  transition: opacity var(--duration-fast), transform var(--duration-fast);
+}
+
+.seek-bar__track:hover .seek-bar__thumb,
+.seek-bar__track:active .seek-bar__thumb {
+  opacity: 1;
+}
+
+.seek-bar__track:hover .seek-bar__fill,
+.seek-bar__track:active .seek-bar__fill {
+  height: 5px;
+}

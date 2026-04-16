@@ -1,0 +1,301 @@
+/* ═══════════════════════════════════════════════
+   NEW RELEASES — Bento Grid (Stitch Home)
+   ═══════════════════════════════════════════════ */
+
+.new-releases {
+  margin-top: var(--space-6);
+}
+
+.new-releases__header {
+  padding: 0 var(--space-1) var(--space-4);
+}
+
+.new-releases__heading {
+  font-family: var(--font-headline);
+  font-size: var(--font-xl);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.3px;
+}
+
+/* ── Featured Album Bento Card ── */
+.featured-album {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.featured-album:hover {
+  transform: scale(1.01);
+}
+
+.featured-album:active {
+  transform: scale(0.99);
+}
+
+.featured-album__art {
+  position: absolute;
+  inset: 0;
+}
+
+.featured-album__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.featured-album:hover .featured-album__art img {
+  transform: scale(1.05);
+}
+
+.featured-album__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+}
+
+.featured-album__content {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-6);
+}
+
+.featured-album__label {
+  font-size: var(--font-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-green);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.featured-album__title {
+  font-family: var(--font-headline);
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  color: white;
+  margin-bottom: var(--space-2);
+  letter-spacing: -0.5px;
+}
+
+.featured-album__desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-5);
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+.featured-album__play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--accent-green);
+  color: #005f26;
+  font-family: var(--font-headline);
+  font-size: var(--font-sm);
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 16px rgba(114, 254, 143, 0.3);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.featured-album__play-btn:hover {
+  box-shadow: 0 6px 24px rgba(114, 254, 143, 0.45);
+  transform: translateY(-1px);
+}
+
+.featured-album__play-btn:active {
+  transform: scale(0.96);
+}
+
+.featured-album__play-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* ── Trending Singles ── */
+.new-releases__trending {
+  margin-top: var(--space-6);
+}
+
+.new-releases__trending-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 var(--space-1) var(--space-3);
+}
+
+.trending-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.trending-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.trending-item:hover {
+  background: var(--surface-container-low);
+}
+
+.trending-item:active {
+  background: var(--surface-container);
+}
+
+.trending-item__rank {
+  width: 24px;
+  font-family: var(--font-headline);
+  font-size: var(--font-lg);
+  font-weight: 800;
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.trending-item__art {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.trending-item__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trending-item__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trending-item__title {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trending-item__artist {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trending-item__more {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.trending-item:hover .trending-item__more {
+  opacity: 1;
+}
+
+.trending-item__more:hover {
+  color: white;
+  background: var(--surface-container-high);
+}
+
+.trending-item__more span {
+  font-size: 20px;
+}
+
+/* ── Shimmer & Dynamic Tags ── */
+.new-releases__tag {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.is-loading {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-light) !important;
+}
+
+.is-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.featured-album.is-loading .featured-album__art,
+.featured-album.is-loading .featured-album__content {
+  visibility: hidden;
+}
+
+.trending-item.is-loading {
+  pointer-events: none;
+}
+
+.trending-item.is-loading .trending-item__art,
+.trending-item.is-loading .trending-item__rank,
+.trending-item.is-loading .trending-item__info {
+  background: var(--surface-light);
+  border-radius: 4px;
+  color: transparent !important;
+}
+
+.trending-item.is-loading .trending-item__art {
+  width: 48px;
+  height: 48px;
+}
+

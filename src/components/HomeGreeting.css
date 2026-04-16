@@ -1,0 +1,103 @@
+/* ═══════════════════════════════════════════════
+   HOME GREETING — Hero Grid (Stitch Home)
+   ═══════════════════════════════════════════════ */
+
+.home-greeting {
+  margin-bottom: var(--space-8);
+}
+
+.home-greeting__title {
+  font-family: var(--font-headline);
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.5px;
+  margin-bottom: var(--space-6);
+  padding: 0 var(--space-1);
+}
+
+.home-greeting__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* ── Quick Card ── */
+.quick-card {
+  display: flex;
+  align-items: center;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: background var(--duration-normal) var(--ease-out), transform var(--duration-fast);
+}
+
+.quick-card:hover {
+  background: var(--surface-container-highest);
+}
+
+.quick-card:active {
+  transform: scale(0.98);
+}
+
+.quick-card__art {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.quick-card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.quick-card__body {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  min-width: 0;
+}
+
+.quick-card__name {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-card__play {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-green);
+  color: #005f26;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow: 0 4px 12px rgba(114, 254, 143, 0.3);
+  flex-shrink: 0;
+}
+
+.quick-card__play span {
+  font-size: 18px;
+}
+
+.quick-card:hover .quick-card__play {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 360px) {
+  .home-greeting__grid {
+    grid-template-columns: 1fr;
+  }
+}

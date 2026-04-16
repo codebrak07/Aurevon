@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════
+   PLAYER BAR (Stitch: Glass Mini-Player)
+   ═══════════════════════════════════════════════ */
+
+.player-dock-wrapper {
+  position: fixed;
+  bottom: 56px; /* Height of bottom nav */
+  left: 0;
+  right: 0;
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + var(--safe-bottom));
+  display: flex;
+  justify-content: center;
+  z-index: 210; /* Above bottom nav (200) */
+  transform: translateY(120%);
+  transition: transform var(--duration-slow) var(--ease-spring);
+  pointer-events: none;
+}
+
+.player-dock-wrapper.is-visible {
+  transform: translateY(0);
+}
+
+.player-dock {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(32, 32, 31, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.player-dock:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ── Progress Bar ── */
+.player-dock__progress {
+  height: 2px;
+  width: 100%;
+}
+
+.player-dock__main {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-4);
+}
+
+/* ── Track Info ── */
+.player-dock__track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1.2;
+  cursor: pointer;
+}
+
+.player-dock__art-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-container-low);
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.player-dock__art-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-dock__art-wrapper .material-symbols-outlined {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.player-dock__playing-icon {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.player-dock__playing-icon span {
+  width: 3px;
+  background: var(--accent-green);
+  border-radius: 2px;
+  animation: equalize 0.8s ease-in-out infinite;
+}
+
+.player-dock__playing-icon span:nth-child(2) { animation-delay: 0.1s; animation-duration: 0.6s; }
+.player-dock__playing-icon span:nth-child(3) { animation-delay: 0.2s; animation-duration: 1s; }
+
+@keyframes equalize {
+  0%, 100% { height: 4px; }
+  50% { height: 12px; }
+}
+
+.player-dock__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-dock__title {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.player-dock__artist {
+  font-size: var(--font-xs);
+  color: var(--accent-green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* ── Controls ── */
+.player-dock__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0.8;
+}
+
+/* ── Actions ── */
+.player-dock__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.player-dock__btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+  border-radius: 50%;
+}
+
+.player-dock__btn:hover {
+  color: white;
+}
+
+.player-dock__btn:active {
+  transform: scale(0.85);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.player-dock__btn.is-active {
+  color: var(--accent-green);
+  text-shadow: 0 0 10px rgba(114, 254, 143, 0.3);
+}
+
+.player-dock__btn.is-liked {
+  color: var(--accent-green);
+}
+
+.player-dock__btn span {
+  font-size: 22px;
+}

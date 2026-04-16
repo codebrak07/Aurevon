@@ -1,0 +1,394 @@
+/* ═══════════════════════════════════════════════
+   NOW PLAYING MODAL (Stitch: Full Screen Player)
+   ═══════════════════════════════════════════════ */
+
+/* ── Container — force parent to full viewport ── */
+.np-container {
+  height: 100vh !important;
+  height: 100dvh !important;
+}
+
+/* ── Main Layout — force full viewport height ── */
+.np-main {
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height (respects mobile URL bars) */
+  display: flex;
+  flex-direction: column;
+}
+
+.np-artwork-section {
+  flex: 1 1 0%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.np-bottom-group {
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   LEGACY CSS (kept for fallback)
+   ═══════════════════════════════════════════════ */
+
+.now-playing__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 290;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) ease;
+}
+
+.now-playing__overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.now-playing {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top center, rgba(114, 254, 143, 0.12) 0%, var(--bg-primary) 70%);
+  z-index: 300;
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--ease-spring);
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top, 24px) 0 env(safe-area-inset-bottom, 24px);
+  will-change: transform;
+}
+
+.now-playing--open {
+  transform: translateY(0);
+}
+
+/* Header & Tabs */
+.now-playing__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  flex-shrink: 0;
+}
+
+.now-playing__close {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--text-primary);
+  opacity: 0.8;
+  transition: opacity var(--duration-fast);
+}
+
+.now-playing__close:hover {
+  opacity: 1;
+}
+
+.now-playing__close:active {
+  transform: scale(0.9);
+}
+
+.now-playing__close svg {
+  width: 28px;
+  height: 28px;
+}
+
+.now-playing__tabs {
+  display: flex;
+  gap: var(--space-2);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 99px;
+}
+
+.now-playing__tab {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 99px;
+  transition: all var(--duration-fast);
+}
+
+.now-playing__tab:hover {
+  color: white;
+}
+
+.now-playing__tab--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* View Area */
+.now-playing__view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Stage & Artwork */
+.now-playing__artwork-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.now-playing__artwork {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-album);
+  transition: transform 0.7s var(--ease-out);
+}
+
+.now-playing__artwork:hover {
+  transform: scale(1.02);
+}
+
+/* Bottom Controls Section */
+.now-playing__bottom-section {
+  padding: var(--space-4) var(--space-8) var(--space-6);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.now-playing__info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.now-playing__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.now-playing__title {
+  font-family: var(--font-headline);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.now-playing__artist {
+  font-size: var(--font-lg);
+  color: var(--accent-green);
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+}
+
+.now-playing__like-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-container-high);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.now-playing__like-btn:hover {
+  background: var(--surface-container-highest);
+  transform: scale(1.1);
+}
+
+.now-playing__like-btn:active {
+  transform: scale(0.9);
+}
+
+.now-playing__like-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.now-playing__like-btn--liked {
+  color: var(--accent-green);
+}
+
+.now-playing__controls-wrapper {
+  transform: scale(1.1);
+  transform-origin: center;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════
+   DESKTOP — Centered Modal
+   ═══════════════════════════════════════ */
+@media (min-width: 768px) {
+  .now-playing {
+    border-radius: var(--radius-xl);
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 80vh;
+    padding: var(--space-4) 0;
+    max-height: 850px;
+    bottom: auto;
+    right: auto;
+    transform: translate(-50%, 50%) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .now-playing--open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE 393×873 — Specific Layout
+   Max width ~430px, height ~900px
+   ═══════════════════════════════════════ */
+@media (max-width: 430px) and (max-height: 900px) {
+  .np-main {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .np-artwork-section {
+    flex: 1 1 0%;
+    min-height: 0;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .np-track-info {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .np-title {
+    font-size: 20px !important;
+  }
+
+  .np-artist {
+    font-size: 13px !important;
+  }
+
+  .np-scrubber {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-top: 8px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .np-controls {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .np-play-btn {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .np-footer {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    padding-bottom: 20px !important;
+  }
+}
+
+/* ═══════════════════════════════════════
+   GENERAL MOBILE — All phones up to 480px
+   ═══════════════════════════════════════ */
+@media (max-width: 480px) {
+  .np-main {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .np-artwork-section {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .np-bottom-group {
+    flex-shrink: 0;
+  }
+}
+
+/* ═══════════════════════════════════════
+   VERY SHORT SCREENS (< 700px height)
+   Compact everything for small phones
+   ═══════════════════════════════════════ */
+@media (max-height: 700px) {
+  .np-artwork-section {
+    padding: 8px !important;
+  }
+
+  .np-track-info {
+    padding-top: 4px !important;
+    padding-bottom: 0 !important;
+  }
+
+  .np-title {
+    font-size: 18px !important;
+  }
+
+  .np-scrubber {
+    margin-top: 4px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .np-controls {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .np-play-btn {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .np-footer {
+    padding-bottom: 12px !important;
+  }
+}

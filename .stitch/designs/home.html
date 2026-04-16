@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wavify - Discovery Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;900&amp;family=Manrope:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary-container": "#dbdaf5",
+                "background": "#0e0e13",
+                "on-secondary-container": "#e4ffe1",
+                "error-dim": "#d73357",
+                "on-primary-fixed-variant": "#470071",
+                "tertiary-fixed": "#dbdaf5",
+                "on-tertiary-fixed-variant": "#55566c",
+                "outline-variant": "#48474d",
+                "surface": "#0e0e13",
+                "on-tertiary-container": "#4c4d62",
+                "primary-fixed-dim": "#c26bff",
+                "on-surface-variant": "#acaab1",
+                "surface-container-highest": "#25252c",
+                "on-secondary-fixed": "#004a1c",
+                "error": "#ff6e84",
+                "outline": "#76747b",
+                "surface-container-lowest": "#000000",
+                "surface-container-low": "#131318",
+                "on-error-container": "#ffb2b9",
+                "surface-variant": "#25252c",
+                "surface-bright": "#2c2b33",
+                "inverse-surface": "#fcf8ff",
+                "tertiary-fixed-dim": "#cdcde6",
+                "secondary-dim": "#63ef82",
+                "tertiary-dim": "#cdcde6",
+                "surface-container": "#19191f",
+                "tertiary": "#eae9ff",
+                "secondary": "#72fe8f",
+                "on-primary-fixed": "#000000",
+                "primary-container": "#cb80ff",
+                "surface-container-high": "#1f1f25",
+                "inverse-primary": "#9100e0",
+                "primary-dim": "#aa30fa",
+                "secondary-container": "#006e2d",
+                "on-secondary": "#005f26",
+                "secondary-fixed-dim": "#63ef82",
+                "on-primary-container": "#39005c",
+                "on-surface": "#f0ecf4",
+                "inverse-on-surface": "#55545a",
+                "on-secondary-fixed-variant": "#006a2b",
+                "on-tertiary-fixed": "#393a4e",
+                "on-tertiary": "#54556a",
+                "primary-fixed": "#cb80ff",
+                "surface-dim": "#0e0e13",
+                "on-error": "#490013",
+                "on-background": "#f0ecf4",
+                "error-container": "#a70138",
+                "on-primary": "#4a0076",
+                "surface-tint": "#d394ff",
+                "secondary-fixed": "#72fe8f",
+                "primary": "#d394ff"
+              },
+              fontFamily: {
+                "headline": ["Epilogue"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e13;
+            color: #f0ecf4;
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+        .glow-purple {
+            box-shadow: 0 0 40px rgba(211, 148, 255, 0.1);
+        }
+        .glow-green {
+            box-shadow: 0 0 40px rgba(114, 254, 143, 0.1);
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background selection:bg-primary selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 z-40 bg-[#0e0e13] flex justify-between items-center w-full px-8 py-10">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#d394ff] hover:opacity-80 transition-opacity active:scale-95 duration-300 cursor-pointer" data-icon="menu">menu</span>
+<h1 class="text-4xl font-black text-white px-8 py-10 font-['Epilogue'] tracking-tighter uppercase">Wavify</h1>
+</div>
+<div class="active:scale-95 duration-300 cursor-pointer">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant/20 hover:opacity-80 transition-opacity">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a stylish young woman with neon lighting reflecting on her face against a dark urban background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADzlT1DCEiwXUlfh1G-QOpQwDJSK0zzyJKl2DCFRcpFXzpmARRihlTxEcLt20AsPnt5la-jtqlr-OekLRe182D50hj08_CMi27nXufpJYDwdrWgHKUzEUNTL6u8Au6lgwL_XWsWM_pyPOWsxpf42-dcTwzRcgepFd7lIePxZYUSMeWKS31jWdwS7DDwYuNFQ71ISvzBiIwHwrKCd97E2clPOW3wQOxRbcGGU2YHyvmM5q3Q_Vumapdbk6ULBpZ0Iv72DS-kXzPBugW"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-8 pb-40">
+<!-- Search Hero Section -->
+<section class="mt-8">
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative flex items-center bg-white/5 backdrop-blur-3xl rounded-full p-5 border border-white/5 shadow-2xl">
+<span class="material-symbols-outlined ml-4 text-primary text-3xl" data-icon="search">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-xl font-body px-6 text-on-surface placeholder:text-on-surface-variant/50" placeholder="Search for songs, artists..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Magic Vibe AI (Hero Card) -->
+<section class="mt-16">
+<div class="relative rounded-xl overflow-hidden group">
+<!-- Background Image for the Card -->
+<div class="absolute inset-0">
+<img alt="Abstract Motion" class="w-full h-full object-cover opacity-40 scale-105 group-hover:scale-100 transition-transform duration-700" data-alt="Fluid abstract 3D ribbons in neon purple and acid green swirling through a dark misty void with ethereal glowing particles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAdUf3Xo-BSxl2b-eiuE7ThV5BgfuulgbCKQr4AeLPptY5sTj86LV41HZD3aqPgn21Vhhoy2Z1OZfb2Z6wc7pagk7x-WUAKog3RabAG8e54BSMhGoRC1E5sxPJl5jC6NoCUuCMWdIrSH3RYpT5hANrBsqrsdYbc5SVLXYMWRbQw6u-Qx_KV4RgXB2e2-iU_1GK_qoFYtEirKPTRjgMoXp6xC1paU2IbNOgJ2b2CETA0mW6-6KhgRRRXQ-CqmJFXtUNRUTdvjSEsTiB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+</div>
+<!-- Card Content -->
+<div class="relative p-12 lg:p-20 flex flex-col justify-end min-h-[500px] border border-white/5 rounded-xl glass-card glow-purple">
+<div class="flex items-center gap-4 mb-6">
+<div class="p-4 rounded-full bg-primary/20 backdrop-blur-xl border border-primary/30">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<span class="font-label uppercase tracking-widest text-primary font-bold">Intelligent Curation</span>
+</div>
+<h2 class="font-headline text-6xl md:text-8xl font-black text-white leading-none mb-8 tracking-tighter">
+                        Magic <br/>Vibe AI
+                    </h2>
+<p class="font-body text-2xl text-on-surface-variant max-w-2xl mb-12 leading-relaxed">
+                        Describe your mood to generate a playlist. <span class="text-white">"Late night drive through a neon city in the rain"</span>
+</p>
+<div class="flex items-center gap-6">
+<button class="bg-gradient-to-br from-primary to-primary-dim text-on-primary font-bold px-10 py-5 rounded-full text-lg active:scale-95 transition-all shadow-[0_0_30px_rgba(211,148,255,0.3)]">
+                            Generate Vibe
+                        </button>
+<button class="glass-card text-white font-bold px-10 py-5 rounded-full text-lg border border-white/10 hover:bg-white/10 transition-all active:scale-95">
+                            Recent Vibes
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Library Section -->
+<section class="mt-20">
+<h3 class="font-headline text-4xl font-bold mb-10 tracking-tight text-white px-2">Your Library</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Liked Songs Tile -->
+<div class="group relative rounded-xl overflow-hidden glass-card p-8 border border-white/5 hover:border-primary/30 transition-all cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="p-5 rounded-2xl bg-primary-container/20 border border-primary-container/20">
+<span class="material-symbols-outlined text-primary text-5xl" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="text-right">
+<p class="text-4xl font-headline font-bold text-white">1,248</p>
+<p class="font-label text-on-surface-variant uppercase tracking-wider text-xs">Tracks</p>
+</div>
+</div>
+<div class="mt-12">
+<h4 class="text-3xl font-headline font-bold text-white mb-2">Liked Songs</h4>
+<p class="font-body text-on-surface-variant">All your favorite tracks in one place.</p>
+</div>
+<div class="absolute bottom-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<!-- Playlists Tile -->
+<div class="group relative rounded-xl overflow-hidden glass-card p-8 border border-white/5 hover:border-secondary/30 transition-all cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="p-5 rounded-2xl bg-secondary-container/20 border border-secondary-container/20">
+<span class="material-symbols-outlined text-secondary text-5xl" data-icon="library_music" style="font-variation-settings: 'FILL' 1;">library_music</span>
+</div>
+<div class="text-right">
+<p class="text-4xl font-headline font-bold text-white">24</p>
+<p class="font-label text-on-surface-variant uppercase tracking-wider text-xs">Collections</p>
+</div>
+</div>
+<div class="mt-12">
+<h4 class="text-3xl font-headline font-bold text-white mb-2">Playlists</h4>
+<p class="font-body text-on-surface-variant">Curated sets for every occasion.</p>
+</div>
+<div class="absolute bottom-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary text-4xl" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State Section -->
+<section class="mt-32 pb-20 flex flex-col items-center justify-center text-center">
+<div class="relative mb-12">
+<div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+<span class="material-symbols-outlined text-9xl text-on-surface-variant/20 relative" data-icon="music_note">music_note</span>
+</div>
+<h3 class="font-headline text-5xl font-black text-white mb-6">Your music universe</h3>
+<p class="font-body text-on-surface-variant text-xl max-w-lg">
+                Explore the gallery, discover new sounds, and let the AI curate your next favorite memory.
+            </p>
+<div class="mt-12 w-1 h-24 bg-gradient-to-b from-primary/40 to-transparent"></div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only & Navigation Anchor) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-6 pb-10 bg-white/10 backdrop-blur-3xl md:hidden">
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] rounded-full mb-4 bg-white/10 backdrop-blur-3xl flex justify-around items-center p-2 shadow-[0px_20px_50px_rgba(211,148,255,0.04)]">
+<a class="flex items-center justify-center bg-gradient-to-br from-[#d394ff] to-[#72fe8f] text-white rounded-full p-4 scale-110 shadow-[0_0_20px_rgba(211,148,255,0.4)] transition-transform active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+</a>
+<a class="flex items-center justify-center text-[#9898b0] p-4 hover:text-white transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</a>
+<a class="flex items-center justify-center text-[#9898b0] p-4 hover:text-white transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="library_music">library_music</span>
+</a>
+<a class="flex items-center justify-center text-[#9898b0] p-4 hover:text-white transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</a>
+</div>
+</nav>
+<!-- Floating Action Button (Only on Home) -->
+<div class="fixed bottom-12 right-8 z-50 md:flex hidden">
+<button class="flex items-center gap-4 bg-gradient-to-br from-secondary to-on-secondary-fixed-variant text-on-secondary-container font-bold py-4 px-8 rounded-full shadow-2xl active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="headphones">headphones</span>
+<span>Now Playing</span>
+</button>
+</div>
+</body></html>

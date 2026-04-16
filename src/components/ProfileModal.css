@@ -1,0 +1,119 @@
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  z-index: 400;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.profile-modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 401;
+  width: 90%;
+  max-width: 440px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-modal-main {
+  background: #12121a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 48px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 32px 128px rgba(0, 0, 0, 0.8);
+  animation: fadeInUp 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile General ── */
+@media (max-width: 768px) {
+  .profile-modal-main {
+    padding: 32px 24px;
+    border-radius: 40px;
+  }
+  
+  .profile-modal-identity-avatar {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* ── Device Specific: CMF2 Pro (393x873) ── */
+@media (width: 393px) and (height: 873px) {
+  .profile-modal-container {
+    width: 92%;
+    max-height: 48vh;
+  }
+
+  .profile-modal-main {
+    padding: 12px 10px;
+    border-radius: 24px;
+    min-height: 380px;
+  }
+
+  .profile-modal-identity-avatar {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+  }
+
+  .profile-modal-title {
+    font-size: 1.15rem;
+  }
+
+  .profile-modal-email {
+    font-size: 0.65rem;
+    margin-bottom: 12px;
+  }
+
+  .profile-modal-stats {
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+
+  .profile-modal-stats span:first-child {
+    font-size: 1.125rem;
+  }
+
+  .profile-modal-stats span:last-child {
+    font-size: 7.5px;
+    letter-spacing: 0.15em;
+    margin-top: 1px;
+  }
+
+  .profile-modal-close {
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .profile-modal-actions {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .profile-modal-action-btn {
+    padding: 10px 8px;
+    font-size: 8px;
+    border-radius: 10px;
+  }
+}

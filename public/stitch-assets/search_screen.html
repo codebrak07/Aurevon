@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#00492b",
+                    "on-surface": "#ffffff",
+                    "primary-dim": "#63ef82",
+                    "error": "#ff7351",
+                    "inverse-on-surface": "#565555",
+                    "tertiary-dim": "#00d4ee",
+                    "on-secondary-fixed-variant": "#006940",
+                    "on-secondary-container": "#e2ffe9",
+                    "surface-container-lowest": "#000000",
+                    "secondary-fixed": "#7cfbb5",
+                    "surface-tint": "#72fe8f",
+                    "on-tertiary": "#005762",
+                    "on-tertiary-container": "#004d58",
+                    "surface-bright": "#2c2c2c",
+                    "on-primary-fixed": "#004a1c",
+                    "on-secondary": "#005e39",
+                    "on-error-container": "#ffd2c8",
+                    "tertiary": "#88ebff",
+                    "inverse-primary": "#006e2d",
+                    "surface-container-highest": "#262626",
+                    "outline": "#767575",
+                    "tertiary-fixed": "#0fe3ff",
+                    "error-container": "#b92902",
+                    "secondary-dim": "#6deca8",
+                    "tertiary-container": "#0fe3ff",
+                    "primary-container": "#1cb853",
+                    "surface": "#0e0e0e",
+                    "secondary-fixed-dim": "#6deca8",
+                    "on-primary-container": "#002a0c",
+                    "secondary": "#7cfbb5",
+                    "primary": "#72fe8f",
+                    "surface-variant": "#262626",
+                    "inverse-surface": "#fcf9f8",
+                    "on-error": "#450900",
+                    "secondary-container": "#006d42",
+                    "on-primary-fixed-variant": "#006a2b",
+                    "outline-variant": "#484847",
+                    "on-tertiary-fixed": "#003840",
+                    "surface-container-high": "#20201f",
+                    "on-surface-variant": "#adaaaa",
+                    "primary-fixed-dim": "#63ef82",
+                    "primary-fixed": "#72fe8f",
+                    "on-background": "#ffffff",
+                    "on-primary": "#005f26",
+                    "surface-container": "#1a1a1a",
+                    "on-tertiary-fixed-variant": "#005763",
+                    "tertiary-fixed-dim": "#00d4ee",
+                    "error-dim": "#d53d18",
+                    "surface-dim": "#0e0e0e",
+                    "surface-container-low": "#131313",
+                    "background": "#0e0e0e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-player {
+            background: rgba(32, 32, 31, 0.8);
+            backdrop-filter: blur(24px);
+        }
+        .genre-card-rotate {
+            transform: rotate(25deg) translate(18%, 8%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-transparent backdrop-blur-md">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3 scale-95 active:opacity-80 transition-transform cursor-pointer">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Professional headshot of a young man with a friendly expression in a modern studio with soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqmigKRs2TCIvULL8wzavkanj-jlDPmY4taSnHMFbds2nbFB9WSBrJtF45vEbxJeBI-uoOq5oeBGjOspoR00eKCk_RX1HH2Bui9phdQMVG3Uj-nbrur9im_PaMn73P5v8jZCD0L3h_MRNTLv5ASPEkXJYFZW57kN68nG_t84N9qt4AByj1r7PBvVEXHQI9r57CJD0skoei2rLdymWjZ_93E4D9U60npn0pJXpC4gl5BRVxPY_3gif47DsU1J0bEqh9qWpb_rZTFF2R"/>
+</div>
+<h1 class="font-['Manrope'] font-bold tracking-tight text-white text-xl">Search</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#adaaaa] hover:text-white transition-colors scale-95 active:opacity-80 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="px-6 space-y-10 max-w-7xl mx-auto">
+<!-- Search Hero Section -->
+<section class="mt-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+</div>
+<input class="w-full bg-surface-container-low border-none rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant focus:ring-0 focus:bg-surface-container-high transition-all font-medium" placeholder="What do you want to listen to?" type="text"/>
+</div>
+</section>
+<!-- Trending Now: Asymmetric Layout -->
+<section>
+<div class="flex items-baseline justify-between mb-6">
+<h2 class="font-headline font-extrabold text-2xl tracking-tight">Trending Now</h2>
+<button class="text-primary text-sm font-bold hover:underline">See All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 h-[400px] md:h-[450px]">
+<!-- Hero Feature -->
+<div class="md:col-span-7 relative group overflow-hidden rounded-xl bg-surface-container-highest cursor-pointer">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" data-alt="Electronic music producer in a dark studio filled with neon green and purple ambient lights and professional gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxOmeM7W2JKcBudm7Kn0hGYxy-cSfZR9F33IEoDNEJoexS4iFaZ8hRa_FA7e3KyfJ-g9bHR4iFB6Jl3smRODMHSGjGlNSfWvO5Vca3Gsg3GnWU-SFmmjdG5pteBVVwQoV_N508jFUk58kbDI5JcYYJ7QKO1kfLxyK4_7TyuSz4Jje-ocYhSapnMapOQ0bmWgcJNGzWCNqpq0pi5xXG6jP47grJiLaLCk0o-CikX2ExsTmcgFkDNgw4eN0thn1DTWdzTrx6xTfnYCV1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<span class="inline-block px-3 py-1 mb-3 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider backdrop-blur-sm">New Release</span>
+<h3 class="font-headline text-4xl font-black text-white mb-2 leading-none">After Hours Selection</h3>
+<p class="text-on-surface-variant font-medium">Curated deep house for the late night soul.</p>
+</div>
+</div>
+<!-- Secondary Features Stack -->
+<div class="md:col-span-5 grid grid-rows-2 gap-4">
+<div class="relative group overflow-hidden rounded-xl bg-secondary-container cursor-pointer">
+<img class="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="Vibrant nightclub scene with a crowd dancing under intense colorful laser lights and stage smoke" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmmoSbQXyFKaYxxPhJ02kRiLhDecTaN8T9D_0j0F4D3WZ3qBeadF19-gn506WOSMAmjYzC9i6iedyF9HTr8OUfd69plFB3lVgZLmgzL2eWmMObQyI4WoHbtHXPgWlhwvELz1-jJb3GurnqgXeE8VLD5hvkArWMLBXq3xwu_hmXT363j4SIdsO4LwOsmpo9nIZ7Lyw0PpogzdZ0wAyPF8lEvG7jg5GyDbl9C_Jp9HPKFyqKCvwTz7KdIStc6exl1a6vdg7mzcbOXB0J"/>
+<div class="absolute inset-0 flex items-center px-6">
+<h3 class="font-headline text-2xl font-bold text-white">Global Top 50</h3>
+</div>
+</div>
+<div class="relative group overflow-hidden rounded-xl bg-tertiary-container/20 cursor-pointer">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary-container/40 to-surface-container-highest"></div>
+<img class="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" data-alt="Abstract colorful neon light patterns reflecting on a wet surface at night creating a liquid visual effect" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqw2-4utDG2NI3KuXB-hp_RA5GMnohJEV7dIlJnCpmmTFU8xFZqe8M8k9A-sp0WkYrp-4oqbFdc-GZRnMP-FGhFMvsmIB7tkoKDtBvQS5wcWHAAVWU2-rtMX_OmB2xHB6U2QpNPHpDTYRPyfi4iNoJ8Yjo9ivubpr4TinwF2HXgRepQPX07w_bX_TRUFNVTJrhBRRS_hVZaeZjHZ78JvdgBLi3H4cwCtOq2Dj4veDmhD5PIeuF5WnXyRnh2QhmEWOZQYx_IYHUGxiH"/>
+<div class="absolute inset-0 flex items-center px-6">
+<h3 class="font-headline text-2xl font-bold text-white">Viral Hits</h3>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Browse All: Bento Grid style -->
+<section>
+<h2 class="font-headline font-extrabold text-2xl tracking-tight mb-6">Browse Categories</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<!-- Pop -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#E13300] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg group">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Pop</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="A brightly lit stage with colorful pop aesthetics and a microphone in the foreground" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDJGS8fc2LU_vlF_X6IozPgOzaeQPAMDHghy4ZEAbuAPLpM1W_2pUdX-0ifm1Xc0uxvYKCc9iwPZfkCZoaN58SqhGepoxtvc80byCbASEGWGO51TVMYZXW3tKQWGA8na_9-euu1g3PklnMINuJCn-Mi4537npnGPtX2d6NtWAeR62UnPmRIImTG_oYGZajJyWJb4xaI9pNtD9fkkyex1oFNDID_ud2g1iqapqmuhbm0kpfQ83zo_XDVGvFXeqc0u-BwCSwl5IA4HEo"/>
+</div>
+<!-- Hip-Hop -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#BC59FF] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Hip-Hop</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="A pair of stylish urban sneakers hanging from a wire against a graffiti wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfNHoNeKTQQ1M_yv82jZYaI6zIzN2tVVL1IZnthKjOcowqXC9gBFs_NfZ4kmePfFbETUCxjtF6WFlhRv6y0z9ncNtOtnqtwnZl5G5eSHvjOuTirUSzMgSwnnmcF2y4AjBQw8FYMJ1vV0luhn3-wUwoPakVXssTrjmweLK6vcE4lh9E4nLiwWEVQowwc04KgXOunOgvykuW868IMFIVvebsxMCZKR7GFRbDSsYrhZRCVHem-ioG_0mSiN-AbbwXNaipmFdUAvIYJV_B"/>
+</div>
+<!-- Rock -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#E91429] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Rock</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Close up of an electric guitar fretboard with dramatic red lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Zb8APZpVSv9zjWZ8UbclKXm598pha2V2mPp0ZOWUppw-9gSdunZm5e01DLhU8i7ELuR_gTD4eywLOSAxlH3-3C-rwrpB7eppTjkS7YJ7sdUK6GjSSL3HDi0zIbtBOU2txhuckj9ePVyH4jjSfOHMxoVyWrXTQ7HHDFkKgex4oC8x6JrCUn4cqJCT85OVgcfNHAxH9I7AhcLfNq0MtnUzeNBvPcumv_76AELjbiqib74ouYzbsp-O7kgpam5G_CRPwX0XsOwiM54E"/>
+</div>
+<!-- Chill -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#D31D74] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Chill</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="A cozy indoor scene with a warm cup of coffee and headphones on a wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABwENwK2KKF6YQj0JmL-Bmeq78GxpHoa5dnTF4-BdgEhEVWX4GdNuHoo2El4d4CIrmPb80dj66lW9xFIRq8zFtyl-Afa6K8R-oRDzOk0r3RggZcjhJ2gYDnj3NkjSVBjPvHX1wLwUOgspNP0aTP7rYng6j72USUiRPmC0pA9BAUEqvsW7GtoXlYMRZfM1o3cGf4oPzIqaGrdp7to8RaX7xTAMWFuPBIk5jietGMJ4isA_MIv9uNNua6_g51EmZisAjUMlUrKAdRjTM"/>
+</div>
+<!-- Dance/EDM -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#1E3264] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Dance</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Abstract light trails and bokeh in deep blue and purple tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo4kloJMFbA2_1x5ql0G7fr504LMpF_pi4eubFVjSAk3gp02itdVnPUJD-PFrMFKgvJEZDAK7qa8NsFPf-GAfmWP1FLxOa_Xay7YbyKN6jVnjwVwTOIBgAHTn3g7jRwifdnU2ZCjxR528fzqd1fMs8PSx-lr2cj-iO8BY7nnAchQ3AHSWMWMhA8eDxf4C5Rf9iZIZ99Gq1ge6byEkyFttnLcO5Lm4PDS7tXD_qMhbShDu6rlZJgJUbK23-G68SZp7JllK43Ah7RFhY"/>
+</div>
+<!-- R&B -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#DC148C] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">R&amp;B</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Moody pink and purple neon lighting in a jazz club setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrDugSN_7gBPyadKoqTwX7OantqnFY11MfU0jZ3tp-Ae4z6W7uLVkmFhgL05LFoASKWw0r73TP_qEv49cYeVUaKmBpNjXEylPt-4L8QLwi7s0zDKeWaM83-zmwteVpEbk_AIOBerf_Ggb9Kmkksn5uF4Iv5cOnYFov1t71qGmq7pnceeoZPievyGPC9iEzJrsMtnHWcg37QUecVffPhni4vKDTOHThg6dLXHXpkXflTAwMI43Zx8JjLb6GwZnPOgxnoSIJSEnmLFEl"/>
+</div>
+<!-- Indie -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#608108] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Indie</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="A vintage record player with an aesthetic vinyl spinning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWvojnTNlqXLaX-wAqCCyJF_M3J27VRjdhYPL4yf164LAG3qgUypQznhUrW78-iqZFwr_Znn70MDOMFO8rSc0M1FCGHGB4cGYf6_ZvmS2ApJr11t18hw0iSunbqqJFL98YoqhSpoaAF1suQcGlPKb3cP6ie9qpuXEIwXZ8qaWvetvMDi4Wd_sUV7IYRTQSq7A610h8Ug_vdVCPVQ58lxmDbNr4mJThCB4vaCiCDEeg0-Rc1ZaeEPrxiKKBJwtahcDsMZonZtnsbZ4-"/>
+</div>
+<!-- Latin -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#E1118C] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Latin</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Vibrant street festival with colorful flags and energy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCcpmuifI1_-OH5D96IqVijthV5HnnaCLHacEgQibBdhJNsxy5MdCoFSnPeoffr5camXiWs811NLrcFoSBY5h_fY9vB5OF7dvlEurHOLFc9e8P1qHguqRrKIaQBccdrB6Zq9bG8cJqT7z1Q3lDFIw4hdkDzRzQvvI2eu9gS-jwfGhtf7VKpNHKOkbjaWrHq7ZHu9mwF2Y4WJJ4Q6T0EJ7ocMR_0e-o3ZCF36zXZNQ2CgcbYqrDnJ7rKb0i0JA0akSBR4EAtaWzwBSf"/>
+</div>
+<!-- Sleep -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#1E3264] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Sleep</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Soft moon light illuminating a calm night sky with scattered stars" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQbn-IPSvx-lUecE4yrJyRovq_ewTxvbUkTFjGY57tY-hw95Si9n76UX5IzwYgDX5k18TyspvoDM1jfn5hfe1kcn5BapaxSd-CQmCNRozSHuJVfIaZP8I37odvN65NfalPv8Ha3Vg4d3MChFywBI0BLpfM7eGhyDYa4Cc0NnaXn34ywAJNB8ojZtMa2v1p_YvCeYFjdUoyjhsnEnAuTik3I2Ni0ZErTMcfXWNOmYLh_bf1IUkOtmsi2tHXIaIj7zkHl2v-bNHRsOO_"/>
+</div>
+<!-- Workout -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#777777] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Workout</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Weights in a gym with intense contrast and focused lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACU-UgDSNpS3P1B971-2XWjLwe7sWbqVrVXXwW1ftM31ASqt_kn7WlQq2RiObQFfPoA3cKsUHa-gvgnWZJGJn7zGGZMQZI-1h56NsHCVg-8o9bUIC9SMa_3w9bgPg1c7S_UJldskAYrIaiLzMhC4Hhx0X2Uz6UibKKLNB26vVGkEaZzb4_1Pr9GCoRktIPVaitdbURrfHv6inyUAHOMOuPSo3MSJeH9iykxy7Qc57ZzPqTqsIAda9Mv12Tc7z5z3VxvkG8M127eO6b"/>
+</div>
+<!-- Jazz -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#148A08] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Jazz</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="A saxophone in a dimly lit bar with golden warm highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVPVE19TNpsgQNYAIKPTz00NVxWQKQ044R40EtJJZXhU-bFUcbZtbfDWn0abjKqyYVqab8jzTDEAZV4o2BNJYLhPgmxtuHn5TzQ2vasChU78X3CYoxrV-W2JoEgEWUxWf_pra3Ju5lMu29dAVVUOU3ZY9N-ypMiwdmpOTB5AzsVmf6LV-Vb-SicElTVeJ9GrDx6fnHjo8IDqCbMUYSK5GaQGokvD1LtYhXA1bbCT0fWyuzdDdTX93YjrGGSCdkOarkLDAHl0OcqTR1"/>
+</div>
+<!-- Metal -->
+<div class="relative h-44 rounded-xl overflow-hidden bg-[#503750] cursor-pointer hover:scale-[1.02] transition-transform shadow-lg">
+<span class="absolute top-4 left-4 font-headline text-xl font-extrabold text-white">Metal</span>
+<img class="absolute bottom-0 right-0 w-24 h-24 genre-card-rotate shadow-2xl" data-alt="Dramatic concert lighting hitting a drum kit on stage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_0gOEB_p-EFvWROwp5MWOezi9HBSxnE9hD1Q-kADeEMAmfCOGX2zeNPvGy_K6WAeQ1F6SHjwNlG1NQRZWz_EJYlRMc8D0fjBO5zh_m1gkMOUFbw7S0PdrbbBuV9l7u65eK0PnD4-esQVzl6XVfL2FBq4c7Mg7wWY9xmDcdxQHO90GdO-ThMWjdcg-h2UIzdB6BYAVZGpKU_ovn4IF-rKuxwUpCCGj_7XN27D-t6xEh6pDCL4e4q-VPej2QJqBUn7LbHLipZInYSkN"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Mini Player (Signature Component) -->
+<div class="fixed bottom-24 left-4 right-4 z-40">
+<div class="glass-player p-3 rounded-xl flex items-center justify-between shadow-2xl">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Current song artwork" class="w-full h-full object-cover" data-alt="Album cover art featuring abstract liquid metal shapes in iridescent colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkALJeyFA2BealO8P8OnDAV008tVPMkPqKOhZ5w8DOGNirtxKeIG1QwYJQ2aoL5hT8ZeG2nH5DXn7RWl7mtEcLA-dqDsLx5r_hJJSZ3UcRxkg7J2nxMcr8q5q7AUyFCDe-p4jnT8h4CPs25GwEbWVc-1UuDmOn_Vh6_cOg-PC_IrRGoVAuiVHi89_u76TmG98wFv-V70TuQUFhkzS9GQqh-MzGgR_gQGi7gDHUkFGrRhRvPTjU3C_qv-VJsE7gEd2wFIGim7EQmL3e"/>
+</div>
+<div>
+<p class="font-bold text-sm text-white line-clamp-1">Neon Genesis</p>
+<p class="text-xs text-on-surface-variant font-medium">Synthwave Collective</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-2">
+<button class="text-white">
+<span class="material-symbols-outlined" data-icon="devices">devices</span>
+</button>
+<button class="text-white bg-white/10 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="w-[calc(100%-24px)] mx-auto h-[2px] bg-white/10 mt-[-2px] relative z-50 rounded-full overflow-hidden">
+<div class="absolute inset-y-0 left-0 bg-primary w-1/3"></div>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-[#121212]/60 backdrop-blur-3xl shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex justify-around items-center pt-3 pb-8 px-4">
+<a class="flex flex-col items-center justify-center text-[#adaaaa] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="home">home</span>
+<span class="font-['Inter'] text-[11px] font-medium mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white font-bold duration-300 scale-110" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="search" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="font-['Inter'] text-[11px] font-medium mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#adaaaa] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="library_music">library_music</span>
+<span class="font-['Inter'] text-[11px] font-medium mt-1">Library</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#adaaaa] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="workspace_premium">workspace_premium</span>
+<span class="font-['Inter'] text-[11px] font-medium mt-1">Premium</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Sonic Gallery - Now Playing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#262626",
+            "surface-container": "#1a1a1a",
+            "on-tertiary": "#005762",
+            "secondary": "#7cfbb5",
+            "on-primary": "#005f26",
+            "on-surface": "#ffffff",
+            "tertiary": "#88ebff",
+            "surface-container-lowest": "#000000",
+            "outline-variant": "#484847",
+            "error-dim": "#d53d18",
+            "on-primary-container": "#002a0c",
+            "primary-fixed": "#72fe8f",
+            "on-background": "#ffffff",
+            "secondary-container": "#006d42",
+            "on-tertiary-fixed-variant": "#005763",
+            "surface-container-high": "#20201f",
+            "on-primary-fixed-variant": "#006a2b",
+            "surface-tint": "#72fe8f",
+            "on-tertiary-fixed": "#003840",
+            "on-primary-fixed": "#004a1c",
+            "tertiary-fixed": "#0fe3ff",
+            "primary": "#72fe8f",
+            "outline": "#767575",
+            "on-secondary": "#005e39",
+            "on-error-container": "#ffd2c8",
+            "primary-dim": "#63ef82",
+            "on-secondary-container": "#e2ffe9",
+            "secondary-fixed-dim": "#6deca8",
+            "surface": "#0e0e0e",
+            "surface-dim": "#0e0e0e",
+            "primary-container": "#1cb853",
+            "tertiary-container": "#0fe3ff",
+            "tertiary-dim": "#00d4ee",
+            "secondary-dim": "#6deca8",
+            "surface-container-highest": "#262626",
+            "primary-fixed-dim": "#63ef82",
+            "on-error": "#450900",
+            "inverse-on-surface": "#565555",
+            "on-secondary-fixed-variant": "#006940",
+            "background": "#0e0e0e",
+            "inverse-surface": "#fcf9f8",
+            "error-container": "#b92902",
+            "inverse-primary": "#006e2d",
+            "secondary-fixed": "#7cfbb5",
+            "surface-bright": "#2c2c2c",
+            "on-surface-variant": "#adaaaa",
+            "tertiary-fixed-dim": "#00d4ee",
+            "on-tertiary-container": "#004d58",
+            "error": "#ff7351",
+            "on-secondary-fixed": "#00492b",
+            "surface-container-low": "#131313"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass {
+      backdrop-filter: blur(24px);
+    }
+    .neon-glow {
+      box-shadow: 0 0 40px rgba(114, 254, 143, 0.15);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body overflow-hidden h-screen select-none">
+<!-- Ambient Background Halo -->
+<div class="fixed inset-0 z-0">
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[140%] h-[140%] bg-primary-container/10 blur-[120px] rounded-full"></div>
+<div class="absolute inset-0 bg-background/60"></div>
+</div>
+<!-- Main Content Layer -->
+<main class="relative z-10 flex flex-col h-full max-w-lg mx-auto overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-transparent backdrop-blur-3xl docked full-width top-0">
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#72fe8f]">expand_more</span>
+</button>
+<span class="font-['Inter'] text-[12px] uppercase tracking-widest font-bold text-on-surface-variant">Now Playing from Queue</span>
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#72fe8f]">more_vert</span>
+</button>
+</header>
+<!-- Hero Section: Album Art -->
+<section class="flex-grow flex items-center justify-center px-6 mt-4">
+<div class="relative group aspect-square w-full">
+<!-- Underglow -->
+<div class="absolute inset-0 bg-primary-container/30 blur-3xl rounded-xl -z-10 group-hover:bg-primary-container/40 transition-all duration-700"></div>
+<!-- Artwork -->
+<img alt="Album Art" class="w-full h-full object-cover rounded-xl shadow-2xl" data-alt="Stunning cinematic portrait of futuristic neon geometry floating in a dark liquid void, vibrant green lighting, high-end 3D render style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCUjTU-vf3SRjMh16YC4Y4UDRA2iyoPOW6vXgmFAoM1MqQ8slnPfZpBhz2dI6e5r7s78QyMSV0KfaWWFOGeYn3eWpX-NLRfF3q55DoBQgrTPjNLSF0MXWEnwbqnGLjgFk4igoJq6nU1ZKonPk18E_zL-FXn_rx07g-H1NOPKK_e-IgjaWmfVo5rHQXmHw_Mp0m81egyy4FblAjyTCL2ztoEQJh1lOzxcvHteDpA07Ik9SWzWbZgCD-ZkGZlYMOUGfGtfBwTkB2q1eU"/>
+</div>
+</section>
+<!-- Track Info & Like -->
+<section class="px-8 mt-12 flex items-center justify-between">
+<div class="flex flex-col">
+<h1 class="text-3xl font-black tracking-tight leading-none mb-2">Emerald Echo</h1>
+<p class="text-on-surface-variant font-medium tracking-wide">Synthesized Reality</p>
+</div>
+<button class="text-primary-fixed hover:scale-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</section>
+<!-- Scrubber / Progress Bar -->
+<section class="px-8 mt-10">
+<div class="relative w-full h-1 bg-surface-container-highest rounded-full group cursor-pointer">
+<div class="absolute left-0 top-0 h-full w-[38%] bg-primary rounded-full group-hover:h-2 group-hover:-top-0.5 transition-all">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<div class="flex justify-between mt-3">
+<span class="text-[10px] font-bold text-on-surface-variant tracking-widest">1:24</span>
+<span class="text-[10px] font-bold text-on-surface-variant tracking-widest">3:45</span>
+</div>
+</section>
+<!-- Playback Controls -->
+<section class="px-8 mt-8 flex items-center justify-between mb-8">
+<button class="text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">shuffle</span>
+</button>
+<div class="flex items-center gap-8">
+<button class="text-on-surface hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">skip_previous</span>
+</button>
+<button class="bg-primary text-on-primary-container w-20 h-20 rounded-full flex items-center justify-center neon-glow active:scale-95 transition-all">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<button class="text-on-surface hover:text-primary transition-colors active:scale-90">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">skip_next</span>
+</button>
+</div>
+<button class="text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">repeat</span>
+</button>
+</section>
+<!-- Volume & Device Control Footer -->
+<footer class="px-8 pb-10 flex items-center justify-between">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">devices</span>
+</button>
+<div class="flex-grow mx-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">volume_down</span>
+<div class="flex-grow h-[3px] bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-[70%] h-full bg-on-surface-variant/50"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">volume_up</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</footer>
+</main>
+<!-- BottomNavBar Suppression Rule: Hidden because this is a focused playback journey -->
+</body></html>

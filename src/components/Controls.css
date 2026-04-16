@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════
+   CONTROLS — Play/Pause/Next/Prev/Shuffle/Loop
+   (Stitch: Green accent, premium feel)
+   ═══════════════════════════════════════════════ */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.controls__btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.controls__btn:hover {
+  color: var(--text-primary);
+}
+
+.controls__btn:active {
+  transform: scale(0.85);
+}
+
+.controls__btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.controls__btn--play {
+  width: 42px;
+  height: 42px;
+  background: var(--grad-neon);
+  color: #005f26;
+  box-shadow: 0 4px 16px var(--accent-glow), 0 0 20px rgba(114, 254, 143, 0.15);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.controls__btn--play:hover {
+  box-shadow: 0 6px 24px var(--accent-glow), 0 0 30px rgba(114, 254, 143, 0.2);
+  transform: scale(1.05);
+}
+
+.controls__btn--play svg {
+  width: 20px;
+  height: 20px;
+}
+
+.controls__btn--play:active {
+  transform: scale(0.9);
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.controls__btn--active {
+  color: var(--accent-green);
+}
+
+.controls__btn--shuffle,
+.controls__btn--loop {
+  display: flex;
+}
+
+.controls__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.controls__spacer {
+  display: none;
+}

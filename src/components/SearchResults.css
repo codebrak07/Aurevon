@@ -1,0 +1,55 @@
+/* ═══════════════════════════════════════════════
+   SEARCH RESULTS (Stitch Refined)
+   ═══════════════════════════════════════════════ */
+
+.search-results {
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.search-results__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-results__loading {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--space-4);
+}
+
+.search-results__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-4) var(--space-5);
+  background: rgba(255, 115, 81, 0.06);
+  border: 1px solid rgba(255, 115, 81, 0.15);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  font-size: var(--font-sm);
+}
+
+.search-results__error svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--error);
+}
+
+.search-results__section {
+  margin-bottom: 40px;
+}
+
+.search-results__artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .search-results__artists-grid {
+    grid-template-columns: 1fr;
+  }
+}

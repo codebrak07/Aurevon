@@ -1,0 +1,326 @@
+.settings-view {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
+  box-shadow: 0 16px 64px -16px rgba(0, 0, 0, 0.6);
+  color: #fff;
+  animation: slide-up 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.settings-header {
+  margin-bottom: 32px;
+}
+
+.settings-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.settings-subtitle {
+  font-size: 0.938rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.settings-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 0.813rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+/* Experience Card */
+.setting-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.setting-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.setting-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.setting-icon {
+  font-size: 28px;
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.setting-label {
+  font-size: 1.063rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.setting-desc {
+  font-size: 0.813rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 4px 0 0;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 56px; /* Increased slightly */
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* Prevent handle from popping out */
+}
+
+.toggle-switch--active {
+  background: var(--primary);
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
+}
+
+.toggle-handle {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Smoother overshoot */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch--active .toggle-handle {
+  transform: translateX(28px); /* Adjusted for wider switch */
+}
+
+/* Form Styling */
+.input-group {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-row {
+  display: flex;
+  gap: 20px;
+}
+
+label {
+  font-size: 0.813rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 4px;
+}
+
+input, select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 18px;
+  color: #fff;
+  font-size: 0.938rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+option {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+/* Footer & Buttons */
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-msg {
+  font-size: 0.875rem;
+  font-weight: 600;
+  animation: fade-in 0.3s ease;
+}
+
+.status-msg--success { color: #4ade80; }
+.status-msg--error { color: #f87171; }
+
+.save-btn {
+  padding: 14px 40px;
+  background: var(--primary);
+  color: #000;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 8px 32px rgba(var(--primary-rgb), 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(var(--primary-rgb), 0.4);
+}
+
+.save-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.settings-login-teaser {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(var(--primary-rgb), 0.05);
+  border-radius: 16px;
+  border: 1px dashed rgba(var(--primary-rgb), 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.813rem;
+}
+
+.settings-login-teaser span {
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .settings-view {
+    padding: 16px;
+    border-radius: 24px;
+    border: none;
+    background: transparent;
+    margin-bottom: 80px; /* Space for bottom nav */
+  }
+  
+  .settings-title {
+    font-size: 1.75rem;
+  }
+  
+  .input-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .settings-footer {
+    flex-direction: column-reverse;
+    justify-content: stretch;
+    padding-bottom: 24px;
+  }
+  
+  .save-btn {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
+/* ── Device Specific: CMF2 Pro (393x873) ── */
+@media (width: 393px) and (height: 873px) {
+  .settings-view {
+    padding: 12px;
+    width: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    background: var(--bg-dark) !important;
+    animation: slideUpMobile 0.5s var(--ease-out) !important;
+  }
+  
+  .setting-card {
+    padding: 16px;
+  }
+  
+  .input-group {
+    margin-bottom: 16px;
+  }
+  
+  input, select {
+    padding: 12px 14px;
+  }
+
+  .settings-header {
+    margin-bottom: 24px;
+  }
+
+  /* Specific Toggle Refinement for 393x873 */
+  .toggle-switch {
+    width: 50px;
+    height: 26px;
+    padding: 3px;
+  }
+
+  .toggle-handle {
+    width: 18px;
+    height: 18px;
+  }
+
+  .toggle-switch--active .toggle-handle {
+    transform: translateX(24px);
+  }
+}

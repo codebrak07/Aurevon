@@ -1,0 +1,61 @@
+.fav-releases {
+  margin-top: 40px;
+  padding: 0 var(--space-4);
+  animation: fadeIn 0.8s ease-out;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.release-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fav-releases__scroll-container {
+  overflow-x: auto;
+  padding-bottom: 16px;
+  margin: 0 calc(-1 * var(--space-4));
+  padding-left: var(--space-4);
+}
+
+.fav-releases__grid {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+}
+
+.skeleton-track-card {
+  width: 160px;
+  height: 220px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-lg);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 0.1; }
+}
+
+/* ── Device Specific: CMF2 Pro (393x873) ── */
+@media (width: 393px) and (height: 873px) {
+  .fav-releases {
+    margin-top: 24px;
+  }
+  
+  .section-header {
+    margin-bottom: 16px;
+  }
+}

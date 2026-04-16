@@ -1,0 +1,13 @@
+{
+  "name": "projects/15552035163596578547",
+  "projectId": "15552035163596578547",
+  "title": "Wavify Mobile Player",
+  "deviceType": "MOBILE",
+  "designTheme": {
+      "colorMode": "DARK",
+      "font": "INTER",
+      "roundness": "ROUND_EIGHT",
+      "customColor": "#1db954",
+      "saturation": 3
+  }
+}
