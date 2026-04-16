@@ -42,7 +42,12 @@ const BrowseCategories = memo(function BrowseCategories() {
     setIsLoading(true);
     setError(null);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      const getApiBase = () => {
+        if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+        if (import.meta.env.PROD) return window.location.origin + '/api';
+        return 'http://localhost:5001/api';
+      };
+      const apiBase = getApiBase();
       const response = await fetch(`${apiBase}/youtube/search?q=${encodeURIComponent(category.query)}`);
       if (!response.ok) throw new Error('Failed to fetch category tracks');
       

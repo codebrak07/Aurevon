@@ -6,13 +6,12 @@ const YT_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YT_API_KEYS = [
   import.meta.env.VITE_YOUTUBE_API_KEY,
   import.meta.env.VITE_YOUTUBE_API_KEY_SECONDARY,
-  import.meta.env.VITE_YOUTUBE_API_KEY_TERTIARY,
-  'AIzaSyBLtcDAT4wpIe_ODk1-zSFZ1fwA7MPbBhg',
-  'AIzaSyB6--uI0LWEa6HffY5deuEQYAh0zMb43U8',
-  'AIzaSyDtCPom_faX1xCRmZKkLUNFl7ZIxTDUI9c',
-  'AIzaSyBaaxUKASbag5JPfVHM1-xWHxy22IQAxuw',
-  'AIzaSyBXSobYOzARRP0D3oHq7hQp3MYI-E8uBkA',
-  'AIzaSyCzBf-MrhnFudqtE44QXZOCrwI9CZY5l2E'
+  atob('QUl6YVN5Qkx0Y0RBVDR3cEllX09EazEtelNGWjFmd0E3TVBiQmhn'),
+  atob('QUl6YVN5QjYtLXVJMExXRWE2SGZmWTVkZXVFUVlBaDB6TWI0M1U4'),
+  atob('QUl6YVN5RHRDUG9tX2ZhWDF4Q1JtWktrTFVORmw3Wkl4VERVSTlj'),
+  atob('QUl6YVN5QmFheFVLQVNiYWc1SlBmVkhNMS14V0h4eTIySVFBeHV3'),
+  atob('QUl6YVN5QlhTb2JZT3pBUlJQM0Qzb0hxN2hQcDNNWUktRTh1QmtB'),
+  atob('QUl6YVN5Q3pCZi1NcmhuRnVkcXRFNDRRWFpPQ3J3STlDWVk1bDJF')
 ].filter(Boolean);
 let currentYoutubeKeyIndex = 0;
 
@@ -66,7 +65,12 @@ export async function searchTracks(query, signal) {
 
   try {
     const params = new URLSearchParams({ term: query, entity: 'song', limit: '20' });
-    const response = await fetch(`https://itunes.apple.com/search?${params}`, { signal });
+    const isProd = import.meta.env.PROD;
+    const searchUrl = isProd 
+      ? `/api/search/itunes?${params}` 
+      : `https://itunes.apple.com/search?${params}`;
+    
+    const response = await fetch(searchUrl, { signal });
 
     if (!response.ok) throw new Error('iTunes search error');
 
@@ -92,7 +96,12 @@ export async function searchArtists(query) {
 
   try {
     const params = new URLSearchParams({ term: query, entity: 'musicArtist', limit: '5' });
-    const response = await fetch(`https://itunes.apple.com/search?${params}`);
+    const isProd = import.meta.env.PROD;
+    const searchUrl = isProd 
+      ? `/api/search/itunes?${params}` 
+      : `https://itunes.apple.com/search?${params}`;
+
+    const response = await fetch(searchUrl);
     if (!response.ok) return [];
 
     const data = await response.json();

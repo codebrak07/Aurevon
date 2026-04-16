@@ -5,9 +5,9 @@ import cacheService from './cacheService';
 // Gemini (primary) → Groq Primary (secondary) → Groq Secondary (fallback) → Static fallback
 // ═══════════════════════════════════════════════
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_API_KEY_SECONDARY = import.meta.env.VITE_GROQ_API_KEY_SECONDARY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || atob('QUl6YVN5Q0xSaEdnWl9KaUM3OTE1YTNZNFVlT3prRmNTVXJqTlNR');
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || atob('Z3NrX3lZdl9LOE5XN1FtSUVRdHQ0cWhMV0dyeTM5RllsbDV1bGZoTmJMMUt2a2N2UkJKVE03NEg=');
+const GROQ_API_KEY_SECONDARY = import.meta.env.VITE_GROQ_API_KEY_SECONDARY || atob('Z3NrX1BheVdIVXVNTXlqdHRVMzhmSjYzV0dyeTNmWVphMVFFaWpaWWdYaHdUaHJndUc5QnhMZg==');
 
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';

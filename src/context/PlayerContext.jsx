@@ -98,7 +98,13 @@ function computeSessionMood(listeningHistory, recentTracks) {
   };
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (import.meta.env.PROD) return window.location.origin + '/api';
+  return 'http://localhost:5001/api';
+};
+
+const API_BASE = getApiBase();
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,

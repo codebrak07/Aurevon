@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 const itunesRoutes = require('./routes/itunesRoutes');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -28,6 +29,20 @@ app.use('/api/user', userRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/itunes', itunesRoutes);
+
+// iTunes Search Proxy (Helper)
+app.get('/api/search/itunes', async (req, res) => {
+  try {
+    const { term, entity, limit } = req.query;
+    const response = await axios.get('https://itunes.apple.com/search', {
+      params: { term, entity, limit }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('iTunes Proxy Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch from iTunes' });
+  }
+});
 
 // Root endpoint
 app.get('/', (req, res) => {

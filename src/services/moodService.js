@@ -62,8 +62,13 @@ async function fetchGenreFromITunes(title, artist) {
   if (cached) return cached;
 
   try {
-    const term = encodeURIComponent(`${title} ${artist}`);
-    const response = await fetch(`${ITUNES_URL}?term=${term}&entity=song&limit=1`);
+    const isProd = import.meta.env.PROD;
+    const term = `${title} ${artist}`;
+    const searchUrl = isProd 
+      ? `/api/search/itunes?term=${encodeURIComponent(term)}&entity=song&limit=1`
+      : `${ITUNES_URL}?term=${encodeURIComponent(term)}&entity=song&limit=1`;
+
+    const response = await fetch(searchUrl);
     if (!response.ok) return null;
     
     const data = await response.json();
