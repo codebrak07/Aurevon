@@ -22,6 +22,7 @@ import Library from './components/Library';
 import YouTubePlayer from './components/YouTubePlayer';
 import Settings from './components/Settings';
 import ArtistProfileModal from './components/ArtistProfileModal';
+import MakeSong from './components/MakeSong';
 import './App.css';
 import './index.css';
 
@@ -202,6 +203,10 @@ function AppContent() {
 
               {activeNavTab === 'settings' && (
                 <Settings />
+              )}
+              
+              {activeNavTab === 'make-song' && (
+                <MakeSong />
               )}
               
               {activeNavTab === 'library' && (

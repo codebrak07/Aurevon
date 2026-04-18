@@ -7,6 +7,7 @@ const userRoutes = require('./routes/userRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 const itunesRoutes = require('./routes/itunesRoutes');
+const sunoRoutes = require('./routes/sunoRoutes');
 const axios = require('axios');
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/itunes', itunesRoutes);
+app.use('/api/suno', sunoRoutes);
 
 // iTunes Search Proxy (Helper)
 app.get('/api/search/itunes', async (req, res) => {
