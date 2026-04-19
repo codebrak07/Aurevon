@@ -1,4 +1,175 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "961c6930-f38b-43e7-9e9b-1db8a263a34f",
+      "googleId": "103647575163142314629",
+      "username": "Aalekh Maheshwari",
+      "email": "aalekhforapple@gmail.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocLb6JGmyf1od39jyjxmNlYC47hO2oDGqLo9KCTPMFufI2zL8A=s96-c",
+      "followedArtists": [],
+      "likedSongs": [
+        {
+          "id": "1743852427",
+          "title": "Love Me Not",
+          "artist": "Ravyn Lenae",
+          "artistId": "1044417443",
+          "album": "Bird's Eye",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+          "duration": 213467,
+          "spotifyId": "1743852427",
+          "genres": [
+            "R&B/Soul"
+          ]
+        }
+      ],
+      "playlists": [
+        {
+          "id": "1",
+          "name": "My Favorites",
+          "tracks": []
+        },
+        {
+          "id": "1775207693418",
+          "name": "h",
+          "tracks": [
+            {
+              "id": "1743852427",
+              "title": "Love Me Not",
+              "artist": "Ravyn Lenae",
+              "artistId": "1044417443",
+              "album": "Bird's Eye",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+              "duration": 213467,
+              "spotifyId": "1743852427",
+              "genres": [
+                "R&B/Soul"
+              ]
+            }
+          ]
+        }
+      ],
+      "recentlyPlayed": [],
+      "preferences": {}
+    },
+    {
+      "id": "8cba29e7-03cc-4ac8-8c13-9f4c269cfd83",
+      "googleId": "104866884352816507376",
+      "username": "Aalekh Maheshwari",
+      "email": "aalekhmaheshwari@gmail.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocKvN3H5DY2fxt3n7ijNBgLU4LzaiNEyjHCA9xypQI0Y84NUs1A=s96-c",
+      "followedArtists": [
+        "Arijit Singh",
+        "The Weeknd"
+      ],
+      "likedSongs": [
+        {
+          "id": "1111703146",
+          "title": "Raat Bhar",
+          "artist": "Arijit Singh & Shreya Ghoshal",
+          "artistId": "484568188",
+          "album": "Heropanti (Original Motion Picture Soundtrack)",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+          "duration": 325582,
+          "spotifyId": "1111703146",
+          "genres": [
+            "Bollywood"
+          ]
+        },
+        {
+          "id": "1743852427",
+          "title": "Love Me Not",
+          "artist": "Ravyn Lenae",
+          "artistId": "1044417443",
+          "album": "Bird's Eye",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+          "duration": 213467,
+          "spotifyId": "1743852427",
+          "genres": [
+            "R&B/Soul"
+          ]
+        },
+        {
+          "id": "1731057886",
+          "title": "If We Being Rëal",
+          "artist": "Yeat",
+          "artistId": "1318094493",
+          "album": "2093",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/300x300bb.jpg",
+          "duration": 172500,
+          "spotifyId": "1731057886",
+          "genres": [
+            "Hip-Hop/Rap"
+          ]
+        }
+      ],
+      "playlists": [
+        {
+          "id": "1",
+          "name": "My Favorites",
+          "tracks": []
+        },
+        {
+          "id": "1775134805195",
+          "name": "hi",
+          "tracks": [
+            {
+              "id": "1111703146",
+              "title": "Raat Bhar",
+              "artist": "Arijit Singh & Shreya Ghoshal",
+              "artistId": "484568188",
+              "album": "Heropanti (Original Motion Picture Soundtrack)",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+              "duration": 325582,
+              "spotifyId": "1111703146",
+              "genres": [
+                "Bollywood"
+              ]
+            }
+          ]
+        }
+      ],
+      "recentlyPlayed": [],
+      "preferences": {}
+    },
+    {
+      "id": "fc7c802c-3a87-442d-9163-4b5b7e621374",
+      "googleId": "101703993633826131625",
+      "username": "Aalekh Maheshwari",
+      "email": "ofcaalekhmaheshwari@gmail.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocLoz5rf6XrqtTyIt9exydMwqECGWtb-qS8_3wxk6VPq0H4fpPA=s96-c",
+      "followedArtists": [],
+      "likedSongs": [
+        {
+          "id": "1111703146",
+          "title": "Raat Bhar",
+          "artist": "Arijit Singh & Shreya Ghoshal",
+          "artistId": "484568188",
+          "album": "Heropanti (Original Motion Picture Soundtrack)",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+          "duration": 325582,
+          "spotifyId": "1111703146",
+          "genres": [
+            "Bollywood"
+          ]
+        }
+      ],
+      "playlists": [
+        {
+          "id": "1",
+          "name": "My Favorites",
+          "tracks": []
+        }
+      ],
+      "recentlyPlayed": [],
+      "preferences": {}
+    }
+  ],
   "playlists": []
 }

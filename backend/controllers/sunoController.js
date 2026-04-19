@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const SUNO_BASE_URL = 'https://api.aimlapi.com/v1/suno';
+const SUNO_BASE_URL = 'https://api.aimlapi.com/v1';
 
 /**
  * Helper to call AIMLAPI with primary/secondary key fallback
@@ -24,9 +24,10 @@ async function callSunoAPI(method, endpoint, data = null) {
   try {
     return await makeRequest(primaryKey);
   } catch (error) {
+    console.warn(`[SUNO PROXY] Request failed for endpoint ${endpoint}:`, error.response?.status, error.response?.data);
     // If primary fails with Auth or Quota errors, try secondary
-    if ((error.response?.status === 401 || error.response?.status === 429 || error.response?.status === 403) && secondaryKey) {
-      console.log('[SUNO PROXY] Primary key failed, trying fallback...');
+    if ((error.response?.status === 401 || error.response?.status === 429 || error.response?.status === 403 || error.response?.status === 404) && secondaryKey) {
+      console.log('[SUNO PROXY] Trying fallback key...');
       return await makeRequest(secondaryKey);
     }
     throw error;
@@ -37,7 +38,8 @@ const generate = async (req, res) => {
   try {
     const { prompt, tags, title, make_instrumental } = req.body;
     
-    const response = await callSunoAPI('post', '/submit/music', {
+    // We try the standard suno submit path first
+    const response = await callSunoAPI('post', '/suno/submit/music', {
       mv: 'chirp-v3-5',
       prompt,
       tags,
@@ -60,7 +62,7 @@ const generate = async (req, res) => {
 const getFeed = async (req, res) => {
   try {
     const { ids } = req.params;
-    const response = await callSunoAPI('get', `/feed/${ids}`);
+    const response = await callSunoAPI('get', `/suno/feed/${ids}`);
     res.json(response.data);
   } catch (error) {
     console.error('[SUNO PROXY] Feed error:', error.response?.data || error.message);

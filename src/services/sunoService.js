@@ -1,93 +1,105 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import axios from 'axios';
+
+const SUNO_BASE_URL = 'https://api.sunoapi.org';
 
 /**
- * Uses Groq to refine a simple prompt into a Suno-optimized prompt with style and lyrics.
- * (Keeping this on frontend as it uses the Groq key which is already present for other features, 
- * but we could move it to backend later if needed).
+ * Helper to call sunoapi.org with primary/secondary key fallback
  */
-export async function refinePrompt(userInput) {
-  if (!GROQ_API_KEY) throw new Error('Groq API Key missing');
+async function callSunoAPI(method, endpoint, params = {}, data = null) {
+  const primaryKey = import.meta.env.VITE_SUNO_API_KEY;
+  const secondaryKey = import.meta.env.VITE_SUNO_API_KEY_SECONDARY;
 
-  const systemContent = `You are a professional music producer and lyricist. 
-Your task is to take a simple song idea and turn it into a detailed prompt for Suno AI.
-Suno needs:
-1. "tags": A string of style descriptions (e.g., "90s west coast hip hop, melancholic, soulful piano").
-2. "prompt": A detailed description of the song or full lyrics.
-3. "title": A catchy title.
+  const makeRequest = async (key) => {
+    return axios({
+      method,
+      url: `${SUNO_BASE_URL}${endpoint}`,
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      params,
+      data
+    });
+  };
 
-Respond ONLY with a JSON object:
-{
-  "title": "Song Title",
-  "tags": "style tags",
-  "prompt": "full lyrics or detailed description"
-}`;
-
-  const userContent = `Refine this song idea: "${userInput}"`;
-
-  const response = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      messages: [
-        { role: 'system', content: systemContent },
-        { role: 'user', content: userContent }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    })
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Refinement failed');
+  try {
+    const response = await makeRequest(primaryKey);
+    // Some providers return errors as 200 OK with a code field
+    if (response.data?.code && response.data.code !== 200 && secondaryKey) {
+      console.warn(`[Sunoapi.org] Primary key returned business error ${response.data.code}, trying fallback...`);
+      return await makeRequest(secondaryKey);
+    }
+    return response;
+  } catch (error) {
+    const status = error.response?.status;
+    console.warn(`[Sunoapi.org] Primary key failed for ${endpoint}:`, status);
+    if ((status === 401 || status === 429 || status === 403) && secondaryKey) {
+      console.log('[Sunoapi.org] Trying fallback key...');
+      return await makeRequest(secondaryKey);
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  return JSON.parse(data.choices[0].message.content);
 }
 
 /**
- * Submits a music generation request to the BACKEND proxy.
+ * Submits a music generation request to sunoapi.org.
  */
 export async function submitMusic({ title, tags, prompt, make_instrumental = false }) {
-  const response = await fetch(`${API_URL}/suno/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      prompt,
-      tags,
-      title,
-      make_instrumental
-    })
+  // sunoapi.org expects customMode: true if title/tags are provided
+  const hasCustomData = !!(title || tags);
+  
+  const response = await callSunoAPI('post', '/api/v1/generate', {}, {
+      prompt: prompt,
+      customMode: hasCustomData,
+      instrumental: !!make_instrumental,
+      style: tags || '',
+      title: title || 'Untitled',
+      model: 'V3_5', 
+      callBackUrl: 'https://webhook.site/placeholder' // Mandatory: Must be non-empty
   });
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error('[Suno Service] Submit failed:', errorBody);
-    throw new Error('Suno submission failed. Please check backend logs.');
+  // sunoapi.org returns { code: 200, data: { task_id: '...' }, ... }
+  if (response.data?.code === 200) {
+    return {
+      task_id: response.data.data.task_id,
+      status: 'queued'
+    };
   }
-
-  return await response.json();
+  
+  throw new Error(response.data?.msg || 'Failed to submit music generation task');
 }
 
 /**
- * Gets the status/feed for specific clip IDs via BACKEND proxy.
+ * Gets the status/record info for task IDs from sunoapi.org.
  */
-export async function getFeed(clipIds) {
-  const ids = Array.isArray(clipIds) ? clipIds.join(',') : clipIds;
-  const response = await fetch(`${API_URL}/suno/feed/${ids}`);
+export async function getFeed(taskIds) {
+  const ids = Array.isArray(taskIds) ? taskIds : [taskIds];
+  let allClips = [];
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch Suno feed from backend');
+  for (const taskId of ids) {
+    try {
+      const response = await callSunoAPI('get', '/api/v1/generate/record-info', {
+        taskId: taskId
+      });
+
+      if (response.data?.code === 200) {
+        const taskData = response.data.data;
+        const clips = (taskData.response_data || []).map(clip => ({
+          id: clip.id || taskData.task_id,
+          status: taskData.status === 'SUCCESS' ? 'complete' : taskData.status.toLowerCase(),
+          audio_url: clip.audio_url,
+          image_url: clip.image_url,
+          title: clip.title,
+          duration: clip.duration
+        }));
+        allClips = [...allClips, ...clips];
+      } else if (response.data?.code === 400) {
+        console.warn(`[Suno] Task ${taskId} returned 400: ${response.data.msg || 'Invalid task ID'}`);
+      }
+    } catch (error) {
+      console.error(`[Suno] Polling error for task ${taskId}:`, error.response?.data || error.message);
+    }
   }
-
-  return await response.json();
+  
+  return allClips;
 }

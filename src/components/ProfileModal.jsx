@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
 import usePlayer from '../hooks/usePlayer';
 import { searchArtists } from '../services/spotifyService';
 import './ProfileModal.css';
@@ -17,13 +16,73 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
   } = usePlayer();
   
   const [activeView, setActiveView] = useState('main'); // 'main' or 'following'
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
   const [artistMetadata, setArtistMetadata] = useState({}); // { [artistName]: artistObj }
-  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [loginError, setLoginError] = useState(null);
   
   const fileInputRef = useRef(null);
+  const gsiInitialized = useRef(false);
+
+  // Manual Google Login Integration (GIS)
+  useEffect(() => {
+    if (isOpen && authStatus !== 'authenticated') {
+      const initGoogle = () => {
+        if (window.google) {
+          try {
+            // Only initialize once per session to avoid GIS warnings
+            if (!gsiInitialized.current) {
+              window.google.accounts.id.initialize({
+                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                callback: async (res) => {
+                  if (res.credential) {
+                    setLoginError(null);
+                    try {
+                      await loginWithGoogle(res.credential);
+                    } catch (err) {
+                      setLoginError(err.response?.data?.message || 'Login failed. Please try again.');
+                    }
+                  }
+                }
+              });
+              gsiInitialized.current = true;
+            }
+            
+            const parent = document.getElementById('google-signin-btn');
+            if (parent) {
+              // Ensure button is rendered
+              window.google.accounts.id.renderButton(parent, {
+                theme: 'filled_black',
+                size: 'large',
+                shape: 'circle',
+                width: 280
+              });
+            }
+          } catch (err) {
+            console.error('GIS Error:', err);
+          }
+        }
+      };
+
+      // Wait for GIS script to load if it hasn't already
+      if (!window.google) {
+        const interval = setInterval(() => {
+          if (window.google) {
+            initGoogle();
+            clearInterval(interval);
+          }
+        }, 100);
+        return () => clearInterval(interval);
+      } else {
+        // Small timeout to allow the modal animation and container rendering to finish
+        const timeout = setTimeout(initGoogle, 200);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [isOpen, authStatus, loginWithGoogle]);
 
   useEffect(() => {
-    if (isOpen && activeView === 'following' && followedArtists.length > 0) {
+    if (isOpen && activeView === 'following' && (followedArtists?.length || 0) > 0) {
       const fetchMetadata = async () => {
         setIsLoadingMetadata(true);
         const newMetadata = { ...artistMetadata };
@@ -53,14 +112,16 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
 
   if (!isOpen) return null;
 
-  const displayName = userProfile?.fullName || userProfile?.name || user?.username || 'Guest Listener';
+  // Defensive data access
+  const userStats = followedArtists || [];
+  const displayName = userProfile?.fullName || userProfile?.name || user?.username || user?.name || 'Guest Listener';
+  const displayEmail = user?.email || userProfile?.email || (authStatus === 'authenticated' ? '' : 'Guest Mode');
   const displayImage = userProfile?.image || user?.avatarUrl || null;
 
   const handleOpenSettings = () => {
     onClose();
     onOpenSettings();
   };
-
   const handleArtistClick = async (artistName) => {
     let meta = artistMetadata[artistName];
     
@@ -76,6 +137,38 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
       onArtistSelect(meta);
       onClose(); // Close profile modal when opening artist modal
     }
+  };
+
+  const handleAvatarClick = () => {
+    if (authStatus === 'authenticated') {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+    }
+
+    // Limit file size (approx 2MB for base64 storage)
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Image is too large. Please select a file under 2MB.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const base64String = event.target?.result;
+        if (base64String) {
+            updateUserProfile({ image: base64String });
+        }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -101,20 +194,60 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
             {activeView === 'main' ? (
                 <div className="relative z-10 w-full flex flex-col items-center">
                     {/* Identity Plate */}
-                    <div className="profile-modal-identity-avatar relative w-36 h-36 mb-6 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#d394ff] to-[#72fe8f]">
-                        <div className="w-full h-full rounded-full bg-[#12121a] p-1">
+                    <div 
+                        className={`profile-modal-identity-avatar relative w-36 h-36 mb-6 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#d394ff] to-[#72fe8f] ${authStatus === 'authenticated' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+                        onClick={handleAvatarClick}
+                    >
+                        <div className="w-full h-full rounded-full bg-[#12121a] p-1 relative overflow-hidden group">
                             {displayImage ? (
-                                <img src={displayImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                                <img 
+                                    src={displayImage} 
+                                    alt="" 
+                                    className="w-full h-full object-cover rounded-full" 
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = ''; // Fallback to placeholder logic
+                                        e.target.parentElement.innerHTML = '<div class="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]"><span class="material-symbols-outlined text-6xl">person</span></div>';
+                                    }}
+                                />
                             ) : (
                                 <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]">
                                     <span className="material-symbols-outlined text-6xl">person</span>
                                 </div>
                             )}
+
+                            {/* Camera Overlay */}
+                            {authStatus === 'authenticated' && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/*" 
+                        className="hidden" 
+                    />
+
                     <h2 className="profile-modal-title text-3xl font-black text-white mb-1 font-['Epilogue'] tracking-tight">{displayName}</h2>
-                    <p className="profile-modal-email text-sm text-[#acaab1] mb-10 font-['Manrope'] font-medium opacity-60">{user?.email || 'Guest Mode'}</p>
+                    <p className="profile-modal-username text-sm text-[#d394ff] mb-6 font-['Manrope'] font-bold opacity-80 letter-spacing-tight">
+                        {user?.username ? `@${user.username}` : (authStatus === 'authenticated' ? '@no_handle' : 'Guest Mode')}
+                    </p>
+
+                    {/* Username Action */}
+                    {!user?.username && authStatus === 'authenticated' && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onOpenSettings(); }}
+                            className="mb-10 px-6 py-2 rounded-full bg-[#d394ff]/10 border border-[#d394ff]/30 text-[#d394ff] text-[10px] font-black uppercase tracking-widest hover:bg-[#d394ff] hover:text-black transition-all"
+                        >
+                            Set a Unique Username
+                        </button>
+                    )}
 
                     {/* Stats Interaction */}
                     <div className="profile-modal-stats flex gap-16 mb-12 w-full justify-center">
@@ -162,12 +295,12 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                         ) : (
                             <div className="pt-6 flex flex-col items-center gap-6">
                                 <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                <GoogleLogin 
-                                    onSuccess={(res) => loginWithGoogle(res.credential)}
-                                    onError={() => console.error('Login Failed')}
-                                    theme="filled_black"
-                                    shape="circle"
-                                />
+                                {loginError && (
+                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20 mb-2">
+                                        {loginError}
+                                    </div>
+                                )}
+                                <div id="google-signin-btn" className="min-h-[44px]"></div>
                             </div>
                         )}
                     </div>
@@ -193,14 +326,14 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                     </header>
 
                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                        {followedArtists.length === 0 ? (
+                        {(followedArtists?.length || 0) === 0 ? (
                             <div className="flex flex-col items-center justify-center h-48 text-[#acaab1] opacity-50">
                                 <span className="material-symbols-outlined text-5xl mb-4">group</span>
                                 <p className="text-sm font-bold uppercase tracking-widest">Choose some favorites!</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {followedArtists.map((artistName) => {
+                                {followedArtists && followedArtists.map((artistName) => {
                                   const metadata = artistMetadata[artistName];
                                   return (
                                     <div 
@@ -248,7 +381,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
 
                     <div className="mt-8 pt-6 border-t border-white/5 text-center">
                         <p className="text-[9px] text-[#acaab1] uppercase tracking-widest font-bold opacity-40">
-                            Discover more from your {followedArtists.length} favorites
+                            Discover more from your {followedArtists?.length || 0} favorites
                         </p>
                     </div>
                 </div>

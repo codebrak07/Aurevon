@@ -6,12 +6,13 @@ export default function Settings() {
   const { userProfile, updateUserProfile, user, token } = usePlayer();
   
   const [formData, setFormData] = useState({
-    name: userProfile.name || '',
-    fullName: userProfile.fullName || '',
-    email: userProfile.email || '',
-    dob: userProfile.dob || '',
-    gender: userProfile.gender || '',
-    queuingMode: userProfile.preferences?.queuingMode || 'ai'
+    name: userProfile?.name || user?.name || '',
+    fullName: userProfile?.fullName || user?.name || '',
+    email: userProfile?.email || user?.email || '',
+    dob: userProfile?.dob || '',
+    gender: userProfile?.gender || '',
+    queuingMode: userProfile?.preferences?.queuingMode || 'ai',
+    username: user?.username || ''
   });
 
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
@@ -41,7 +42,8 @@ export default function Settings() {
       preferences: {
         ...userProfile.preferences,
         queuingMode: formData.queuingMode
-      }
+      },
+      username: formData.username
     };
 
     try {
@@ -96,7 +98,19 @@ export default function Settings() {
               name="name" 
               value={formData.name} 
               onChange={handleChange}
-              placeholder="How we should call you"
+              placeholder={user?.name || "How we should call you"}
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="username">Personalized Username (@)</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              value={formData.username} 
+              onChange={handleChange}
+              placeholder="unique_handle"
             />
           </div>
 

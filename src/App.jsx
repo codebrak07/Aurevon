@@ -129,7 +129,7 @@ function AppContent() {
         <div className="active:scale-95 duration-300 cursor-pointer" onClick={() => setProfileOpen(true)}>
           {(user?.avatarUrl || userProfile?.image) ? (
             <img 
-               src={user?.avatarUrl || userProfile.image} 
+               src={user?.avatarUrl || userProfile?.image} 
                alt="Profile" 
                className="w-9 h-9 rounded-full object-cover border border-white/10 shadow-lg" 
             />

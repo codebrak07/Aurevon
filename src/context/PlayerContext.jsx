@@ -4,6 +4,7 @@ import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
 import { searchTracks, getArtistFullData, searchArtists } from '../services/spotifyService';
 import { API } from '../config/api';
+import SILENT_MP3 from '../utils/silent';
 
 export const PlayerContext = createContext(null);
 
@@ -14,7 +15,7 @@ const AI_QUEUE_THRESHOLD = 2; // Trigger AI when queue has ≤2 remaining tracks
 function loadListeningHistory() {
   try {
     const saved = localStorage.getItem('wavify_listening_history');
-    return saved ? JSON.parse(saved) : [];
+    return (saved && saved !== 'null') ? JSON.parse(saved) : [];
   } catch {
     return [];
   }
@@ -23,7 +24,7 @@ function loadListeningHistory() {
 function loadPlaylists() {
   try {
     const saved = localStorage.getItem('wavify_playlists');
-    return saved ? JSON.parse(saved) : [{ id: '1', name: 'My Favorites', tracks: [] }];
+    return (saved && saved !== 'null') ? JSON.parse(saved) : [{ id: '1', name: 'My Favorites', tracks: [] }];
   } catch {
     return [{ id: '1', name: 'My Favorites', tracks: [] }];
   }
@@ -33,9 +34,19 @@ function loadPlaylists() {
 function loadLikedSongs() {
   try {
     const saved = localStorage.getItem('wavify_liked_songs');
-    return saved ? JSON.parse(saved) : [];
+    return (saved && saved !== 'null') ? JSON.parse(saved) : [];
   } catch {
     return [];
+  }
+}
+
+// Load user from localStorage
+function loadUser() {
+  try {
+    const saved = localStorage.getItem('wavify_user');
+    return (saved && saved !== 'null') ? JSON.parse(saved) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -43,15 +54,8 @@ function loadLikedSongs() {
 function loadUserProfile() {
   try {
     const saved = localStorage.getItem('wavify_user_profile');
-    return saved ? JSON.parse(saved) : { 
-      name: '', 
-      fullName: '', 
-      image: null, 
-      email: '', 
-      dob: '', 
-      gender: '',
-      preferences: { queuingMode: 'ai' }
-    };
+    if (!saved || saved === 'null') throw new Error();
+    return JSON.parse(saved);
   } catch {
     return { 
       name: '', 
@@ -69,7 +73,7 @@ function loadUserProfile() {
 function loadFollowedArtists() {
   try {
     const saved = localStorage.getItem('wavify_followed_artists');
-    return saved ? JSON.parse(saved) : [];
+    return (saved && saved !== 'null') ? JSON.parse(saved) : [];
   } catch {
     return [];
   }
@@ -99,7 +103,9 @@ function computeSessionMood(listeningHistory, recentTracks) {
   };
 }
 
-const API_BASE = API('');
+// API Path Normalization
+const rawBase = (typeof API === 'function') ? API('') : '';
+const API_BASE = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
@@ -150,7 +156,7 @@ const initialState = {
   playlists: loadPlaylists(),
   userProfile: loadUserProfile(),
   followedArtists: loadFollowedArtists(),
-  user: null,
+  user: loadUser(),
   token: loadToken(),
   isSyncing: false,
   syncQueue: loadSyncQueue(),
@@ -320,14 +326,24 @@ function reducer(state, action) {
       return { ...state, followedArtists };
     }
     case 'AUTH_SUCCESS':
+      const authenticatedUser = action.payload.user;
+      if (authenticatedUser) {
+        localStorage.setItem('wavify_user', JSON.stringify(authenticatedUser));
+      }
       return { 
         ...state, 
-        user: action.payload.user, 
+        user: authenticatedUser, 
         token: action.payload.token,
-        likedSongs: action.payload.user.likedSongs || state.likedSongs,
-        followedArtists: action.payload.user.followedArtists || state.followedArtists,
-        playlists: action.payload.user.playlists || state.playlists,
-        recentlyPlayed: action.payload.user.recentlyPlayed || state.recentlyPlayed
+        userProfile: {
+          ...state.userProfile,
+          name: authenticatedUser.username || state.userProfile.name,
+          email: authenticatedUser.email || state.userProfile.email,
+          image: authenticatedUser.avatarUrl || state.userProfile.image
+        },
+        likedSongs: authenticatedUser.likedSongs || state.likedSongs,
+        followedArtists: authenticatedUser.followedArtists || state.followedArtists,
+        playlists: authenticatedUser.playlists || state.playlists,
+        recentlyPlayed: authenticatedUser.recentlyPlayed || state.recentlyPlayed
       };
     case 'AUTH_LOGOUT':
       return { 
@@ -364,6 +380,7 @@ function reducer(state, action) {
 export function PlayerProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const playerRef = useRef(null);
+  const silentAudioRef = useRef(null);
   const timeUpdateRef = useRef(null);
   const prefetchedRef = useRef(null);
   const stateRef = useRef(state);
@@ -429,12 +446,19 @@ export function PlayerProvider({ children }) {
     dispatch({ type: 'SET_SYNCING', payload: true });
     const queue = [...state.syncQueue];
     
-    // Simple strategy: consolidate into a single update of the latest state
+    // Simplified Strategy: Consolidate user state into a single sync payload
     const update = {
       likedSongs: state.likedSongs,
       followedArtists: state.followedArtists,
       playlists: state.playlists,
       recentlyPlayed: state.recentlyPlayed,
+      username: state.userProfile.name, // Mapping profile name to backend username for consistency
+      avatarUrl: state.userProfile.image, // Mapping profile image to backend avatarUrl
+      email: state.userProfile.email,
+      fullName: state.userProfile.fullName,
+      dob: state.userProfile.dob,
+      gender: state.userProfile.gender,
+      preferences: state.userProfile.preferences
     };
 
     try {
@@ -454,14 +478,16 @@ export function PlayerProvider({ children }) {
     }
   }, []);
 
-  // Fetch profile on mount if token exists
+  // Fetch profile on mount if token exists — ensure it doesn't block UI if backend is down
   useEffect(() => {
     if (state.token) {
       const fetchProfile = async () => {
         try {
+          if (!API_BASE) return;
           const res = await axiosInstance.get('/user/profile');
           dispatch({ type: 'AUTH_SUCCESS', payload: { user: res.data, token: state.token } });
         } catch (err) {
+          console.warn('[Backend] Profile fetch failed or backend unreachable.');
           if (err.response?.status === 401) {
             dispatch({ type: 'AUTH_LOGOUT' });
           }
@@ -501,6 +527,18 @@ export function PlayerProvider({ children }) {
   };
 
   const logout = () => {
+    localStorage.removeItem('wavify_user');
+    localStorage.removeItem('wavify_token');
+    
+    // Disable auto-select so user can switch accounts next time
+    if (window.google) {
+      try {
+        window.google.accounts.id.disableAutoSelect();
+      } catch (err) {
+        console.warn('Failed to disable Google auto-select:', err);
+      }
+    }
+    
     dispatch({ type: 'AUTH_LOGOUT' });
   };
 
@@ -737,6 +775,14 @@ export function PlayerProvider({ children }) {
           const dur = playerRef.current.getDuration();
           if (time != null) dispatch({ type: 'SET_CURRENT_TIME', payload: time });
           if (dur != null && dur > 0) dispatch({ type: 'SET_DURATION', payload: dur });
+
+          if ('mediaSession' in navigator && time != null && dur != null && dur > 0) {
+            navigator.mediaSession.setPositionState({
+              duration: dur,
+              playbackRate: 1,
+              position: time,
+            });
+          }
         } catch { /* ignore */ }
       }, 100);
     }
@@ -1066,6 +1112,10 @@ export function PlayerProvider({ children }) {
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: profileData });
   }, []);
 
+  const setPlaying = useCallback((isPlaying) => {
+    dispatch({ type: 'SET_PLAYING', payload: isPlaying });
+  }, []);
+
   const value = {
     ...state,
     playTrack,
@@ -1083,6 +1133,7 @@ export function PlayerProvider({ children }) {
     setPlayerRef,
     setUserInteracted,
     setPlayerReady,
+    setPlaying,
     playerRef,
     toggleLike,
     isLiked,
@@ -1104,5 +1155,78 @@ export function PlayerProvider({ children }) {
     isSyncing: state.isSyncing,
   };
 
-  return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
+  // ── Media Session API (Background Streaming & Controls) ──
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    const { currentTrack, isPlaying } = state;
+
+    if (currentTrack) {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album || 'Aurevon Music',
+        artwork: [
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '96x96', type: 'image/jpeg' },
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '128x128', type: 'image/jpeg' },
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '192x192', type: 'image/jpeg' },
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '256x256', type: 'image/jpeg' },
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '384x384', type: 'image/jpeg' },
+          { src: currentTrack.albumArt || '/aurevon.jpg', sizes: '512x512', type: 'image/jpeg' },
+        ],
+      });
+    }
+
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+    // Update silent audio element to keep background session alive on mobile
+    if (silentAudioRef.current) {
+      if (isPlaying) {
+        silentAudioRef.current.play().catch(() => {});
+      } else {
+        silentAudioRef.current.pause();
+      }
+    }
+
+    const actionHandlers = [
+      ['play', togglePlay],
+      ['pause', togglePlay],
+      ['previoustrack', prevTrack],
+      ['nexttrack', nextTrack],
+      ['seekbackward', (details) => seekTo(Math.max(stateRef.current.currentTime - (details.seekOffset || 10), 0))],
+      ['seekforward', (details) => seekTo(Math.min(stateRef.current.currentTime + (details.seekOffset || 10), stateRef.current.duration))],
+      ['seekto', (details) => seekTo(details.seekTime)],
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (error) {
+        // console.warn(`The media session action "${action}" is not supported yet.`);
+      }
+    }
+
+    return () => {
+      for (const [action] of actionHandlers) {
+        try {
+          navigator.mediaSession.setActionHandler(action, null);
+        } catch (error) {}
+      }
+    };
+  }, [state.currentTrack, state.isPlaying, togglePlay, nextTrack, prevTrack, seekTo]);
+
+  return (
+    <PlayerContext.Provider value={value}>
+      {children}
+      {/* Hidden silent audio element to trick mobile browsers into keeping the audio process alive in background */}
+      <audio
+        ref={silentAudioRef}
+        src={SILENT_MP3}
+        loop
+        muted={false}
+        style={{ display: 'none' }}
+        preload="auto"
+      />
+    </PlayerContext.Provider>
+  );
 }

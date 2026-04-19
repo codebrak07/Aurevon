@@ -7,10 +7,8 @@ const { readData, writeData } = require('../data/db');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ── AUTHORED EMAILS ONLY ──
-// Only emails in this list are allowed to sign in via Google.
-const WHITELIST_EMAILS = [
-  'brak@example.com', // Placeholder: Update this with your actual email!
-];
+// Removed restriction to allow any Google account for development.
+const WHITELIST_EMAILS = []; 
 
 const signup = async (req, res) => {
   try {
@@ -93,13 +91,7 @@ const googleLogin = async (req, res) => {
     const payload = ticket.getPayload();
     const { sub: googleId, email, name, picture: avatarUrl } = payload;
 
-    // Check Whitelist
-    if (!WHITELIST_EMAILS.includes(email)) {
-      console.warn(`[AUTH] Blocked unauthorized login attempt from: ${email}`);
-      return res.status(403).json({ 
-        message: 'Access Denied: Your email is not whitelisted. Please contact the administrator.' 
-      });
-    }
+    // Whitelist check removed for development
 
     const data = await readData();
     let user = data.users.find(u => u.email === email || u.googleId === googleId);

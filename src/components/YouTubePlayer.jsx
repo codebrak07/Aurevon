@@ -2,7 +2,7 @@ import { useEffect, useRef, memo } from 'react';
 import usePlayer from '../hooks/usePlayer';
 
 const YouTubePlayer = memo(function YouTubePlayer() {
-  const { videoId, setPlayerRef, onTrackEnd, setPlayerReady, setUserInteracted, volume } =
+  const { videoId, setPlayerRef, onTrackEnd, setPlayerReady, setUserInteracted, volume, setPlaying } =
     usePlayer();
   const containerRef = useRef(null);
   const playerInstanceRef = useRef(null);
@@ -63,6 +63,10 @@ const YouTubePlayer = memo(function YouTubePlayer() {
             }
             if (event.data === window.YT.PlayerState.PLAYING) {
               setUserInteracted();
+              setPlaying(true);
+            }
+            if (event.data === window.YT.PlayerState.PAUSED) {
+              setPlaying(false);
             }
           },
           onError: (event) => {
