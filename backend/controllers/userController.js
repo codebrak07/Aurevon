@@ -20,7 +20,7 @@ const getProfile = async (req, res) => {
  */
 const syncData = async (req, res) => {
   try {
-    const { likedSongs, followedArtists, playlists, recentlyPlayed } = req.body;
+    const { likedSongs, followedArtists, playlists, recentlyPlayed, lastPlaybackState } = req.body;
     const data = await readData();
     const userIndex = data.users.findIndex(u => u.id === req.userId);
     if (userIndex === -1) return res.status(404).json({ message: 'User not found' });
@@ -31,6 +31,11 @@ const syncData = async (req, res) => {
     user.likedSongs = Array.from(new Set([...(user.likedSongs || []), ...(likedSongs || [])].map(s => JSON.stringify(s)))).map(s => JSON.parse(s));
     user.followedArtists = Array.from(new Set([...(user.followedArtists || []), ...(followedArtists || [])]));
     user.recentlyPlayed = (recentlyPlayed || []).slice(0, 20); // Keep only latest 20
+    
+    // Playback state merge (prefer incoming if local is empty/null)
+    if (lastPlaybackState) {
+        user.lastPlaybackState = lastPlaybackState;
+    }
 
     // Merge playlists by name
     const existingPlaylistNames = (user.playlists || []).map(p => p.name);
@@ -60,7 +65,7 @@ const updateProfile = async (req, res) => {
     if (userIndex === -1) return res.status(404).json({ message: 'User not found' });
 
     // Apply allowed updates only
-    const allowedFields = ['likedSongs', 'followedArtists', 'playlists', 'recentlyPlayed', 'preferences', 'username', 'avatarUrl', 'email', 'dob', 'fullName', 'gender'];
+    const allowedFields = ['likedSongs', 'followedArtists', 'playlists', 'recentlyPlayed', 'preferences', 'username', 'avatarUrl', 'email', 'dob', 'fullName', 'gender', 'lastPlaybackState'];
     Object.keys(updates).forEach(field => {
       if (allowedFields.includes(field)) {
         data.users[userIndex][field] = updates[field];

@@ -2,12 +2,15 @@ import { useEffect, useRef, memo } from 'react';
 import usePlayer from '../hooks/usePlayer';
 
 const YouTubePlayer = memo(function YouTubePlayer() {
-  const { videoId, setPlayerRef, onTrackEnd, setPlayerReady, setUserInteracted, volume, setPlaying } =
+  const { videoId, currentTime, setPlayerRef, onTrackEnd, setPlayerReady, setUserInteracted, volume, setPlaying } =
     usePlayer();
   const containerRef = useRef(null);
   const playerInstanceRef = useRef(null);
   const isInitializedRef = useRef(false);
   const onTrackEndRef = useRef(onTrackEnd);
+  // Using refs for initial sync values to avoid stale closures in the 1-time initPlayer effect
+  const initialVideoIdRef = useRef(videoId);
+  const initialTimeRef = useRef(currentTime);
 
   // Keep callback ref current without re-creating player
   useEffect(() => {
@@ -40,7 +43,7 @@ const YouTubePlayer = memo(function YouTubePlayer() {
         height: '0',
         width: '0',
         playerVars: {
-          autoplay: 1,
+          autoplay: 0, // Control manually based on session state
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -56,21 +59,47 @@ const YouTubePlayer = memo(function YouTubePlayer() {
             setPlayerRef(event.target);
             setPlayerReady();
             event.target.setVolume(volume);
+            
+            // Session Resumption Logic using the values captured at mount
+            if (initialVideoIdRef.current) {
+              // 'Cue' ensures we don't violate autoplay policies on page load
+              event.target.cueVideoById({
+                videoId: initialVideoIdRef.current,
+                startSeconds: initialTimeRef.current || 0
+              });
+            }
           },
           onStateChange: (event) => {
-            if (event.data === window.YT.PlayerState.ENDED) {
+            const state = event.data;
+            if (state === window.YT.PlayerState.ENDED) {
               onTrackEndRef.current();
             }
-            if (event.data === window.YT.PlayerState.PLAYING) {
+            if (state === window.YT.PlayerState.PLAYING) {
               setUserInteracted();
               setPlaying(true);
             }
-            if (event.data === window.YT.PlayerState.PAUSED) {
-              setPlaying(false);
+            if (state === window.YT.PlayerState.PAUSED || state === window.YT.PlayerState.BUFFERING) {
+              setPlaying(state === window.YT.PlayerState.PLAYING);
+            }
+            if (state === window.YT.PlayerState.PAUSED) {
+                setPlaying(false);
             }
           },
           onError: (event) => {
-            console.error('YouTube Player Error:', event.data);
+            const errorCodes = {
+                2: 'Invalid parameter',
+                5: 'HTML5 player error',
+                100: 'Video not found/removed',
+                101: 'Embedded playback restricted',
+                150: 'Embedded playback restricted'
+            };
+            console.error(`[Aurevon Player] Error ${event.data}: ${errorCodes[event.data] || 'Unknown error'}`);
+            
+            // High-Resilience: Auto-skip on failure
+            if ([100, 101, 150].includes(event.data)) {
+                console.warn('[Aurevon Player] Auto-skipping unplayable content...');
+                onTrackEndRef.current();
+            }
           },
         },
       });

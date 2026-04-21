@@ -103,6 +103,29 @@ export default function Sidebar({ isOpen, onClose, onSelectTab, onOpenCreatePlay
                     ))}
                 </ul>
             </div>
+
+            {/* Admin Section (Hidden for normal users) */}
+            {['aalekhforapple@gmail.com', 'aalekhmaheshwari@gmail.com'].includes(userProfile?.email?.toLowerCase()?.trim()) && (
+                <div>
+                    <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-4 mb-4 font-['Manrope']">Management</h3>
+                    <ul className="space-y-2">
+                        <li>
+                            <button 
+                                onClick={() => handleSelect('admin')}
+                                className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-all group text-left"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-105 transition-transform">
+                                    <span className="material-symbols-outlined text-primary text-xl">admin_panel_settings</span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="font-['Epilogue'] font-bold text-white text-lg group-hover:text-primary transition-colors">Admin Panel</p>
+                                    <p className="font-['Manrope'] text-xs text-[#acaab1]">User Database & Stats</p>
+                                </div>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            )}
         </div>
 
         {/* Footer */}

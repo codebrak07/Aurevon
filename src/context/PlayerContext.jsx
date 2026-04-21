@@ -4,6 +4,7 @@ import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
 import { searchTracks, getArtistFullData, searchArtists } from '../services/spotifyService';
 import { API } from '../config/api';
+import playbackPersistence from '../services/playbackPersistence';
 import SILENT_MP3 from '../utils/silent';
 
 export const PlayerContext = createContext(null);
@@ -124,14 +125,19 @@ function loadSyncQueue() {
   }
 }
 
+const savedPlayback = playbackPersistence.load();
+
 const initialState = {
-  currentTrack: null,
-  videoId: null,
-  isPlaying: false,
-  queue: [],
-  currentIndex: -1,
-  loopEnabled: false,
-  volume: 80,
+  currentTrack: savedPlayback.currentTrack,
+  videoId: savedPlayback.videoId,
+  isPlaying: false, // Always start paused on load due to browser policies
+  queue: savedPlayback.queue,
+  currentIndex: savedPlayback.currentIndex,
+  loopEnabled: savedPlayback.loopEnabled,
+  volume: savedPlayback.volume,
+  currentTime: savedPlayback.currentTime,
+  shuffleEnabled: savedPlayback.shuffleEnabled,
+  shuffledIndices: savedPlayback.shuffledIndices,
   recommendations: [],
   recsUiText: '',
   recsMood: '',
@@ -142,13 +148,10 @@ const initialState = {
   repeatTrack: null,
   repeatCount: 0,
   duration: 0,
-  currentTime: 0,
   isLoading: false,
   recsLoading: false,
   userInteracted: false,
   playerReady: false,
-  shuffleEnabled: false,
-  shuffledIndices: [],
   likedSongs: loadLikedSongs(),
   magicLoading: false,
   magicError: null,
@@ -343,7 +346,15 @@ function reducer(state, action) {
         likedSongs: authenticatedUser.likedSongs || state.likedSongs,
         followedArtists: authenticatedUser.followedArtists || state.followedArtists,
         playlists: authenticatedUser.playlists || state.playlists,
-        recentlyPlayed: authenticatedUser.recentlyPlayed || state.recentlyPlayed
+        recentlyPlayed: authenticatedUser.recentlyPlayed || state.recentlyPlayed,
+        // Cloud Playback Hydration: Prefer cloud state on login
+        ...(authenticatedUser.lastPlaybackState && {
+          currentTrack: authenticatedUser.lastPlaybackState.currentTrack,
+          videoId: authenticatedUser.lastPlaybackState.videoId,
+          queue: authenticatedUser.lastPlaybackState.queue,
+          currentIndex: authenticatedUser.lastPlaybackState.currentIndex,
+          currentTime: authenticatedUser.lastPlaybackState.currentTime || 0,
+        })
       };
     case 'AUTH_LOGOUT':
       return { 
@@ -435,6 +446,48 @@ export function PlayerProvider({ children }) {
     localStorage.setItem('wavify_sync_queue', JSON.stringify(state.syncQueue));
   }, [state.syncQueue]);
 
+  // ── True Playback State Persistence (Synchronized with localStorage) ──
+  // Throttled to prevent excessive disk writes from 100ms time updates
+  useEffect(() => {
+    // Only persist critical state changes immediately
+    playbackPersistence.save({
+      currentTrack: state.currentTrack,
+      videoId: state.videoId,
+      queue: state.queue,
+      currentIndex: state.currentIndex,
+      volume: state.volume,
+      currentTime: state.currentTime,
+      shuffleEnabled: state.shuffleEnabled,
+      shuffledIndices: state.shuffledIndices,
+      loopEnabled: state.loopEnabled
+    });
+  }, [
+    state.currentTrack, 
+    state.videoId, 
+    state.queue, 
+    state.currentIndex, 
+    state.volume, 
+    // currentTime is removed from the dependency array to avoid 100ms writes
+    state.shuffleEnabled, 
+    state.loopEnabled
+  ]);
+
+  // Separate effect to persist currentTime every 5 seconds or on pause
+  useEffect(() => {
+    if (!state.isPlaying) {
+      playbackPersistence.save(stateRef.current);
+    }
+    
+    // Save every 5 seconds during playback
+    const interval = setInterval(() => {
+        if (stateRef.current.isPlaying) {
+            playbackPersistence.save(stateRef.current);
+        }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [state.isPlaying]);
+
   // Background Sync Processor
   useEffect(() => {
     if (state.token && state.syncQueue.length > 0 && !state.isSyncing) {
@@ -458,7 +511,14 @@ export function PlayerProvider({ children }) {
       fullName: state.userProfile.fullName,
       dob: state.userProfile.dob,
       gender: state.userProfile.gender,
-      preferences: state.userProfile.preferences
+      preferences: state.userProfile.preferences,
+      lastPlaybackState: {
+        currentTrack: stateRef.current.currentTrack,
+        videoId: stateRef.current.videoId,
+        queue: stateRef.current.queue,
+        currentIndex: stateRef.current.currentIndex,
+        currentTime: stateRef.current.currentTime
+      }
     };
 
     try {
@@ -513,7 +573,16 @@ export function PlayerProvider({ children }) {
 
       // Perform initial sync/merge
       const mergeUrl = API('/user/sync');
-      const mergeRes = await axios.post(mergeUrl, localData, {
+      const mergeRes = await axios.post(mergeUrl, {
+        ...localData,
+        lastPlaybackState: {
+          currentTrack: stateRef.current.currentTrack,
+          videoId: stateRef.current.videoId,
+          queue: stateRef.current.queue,
+          currentIndex: stateRef.current.currentIndex,
+          currentTime: stateRef.current.currentTime
+        }
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -683,10 +752,29 @@ export function PlayerProvider({ children }) {
     }
 
     try {
-      const vid = await searchVideoId(track.title, track.artist, track.id);
+      // Step 1: Pre-match optimization — check if we have a prefetched ID
+      let vid = null;
+      if (prefetchedRef.current === track.id) {
+        // We probably triggered a search earlier, wait for it or try to get from cache
+        vid = await searchVideoId(track.title, track.artist, track.id);
+      } else {
+        vid = await searchVideoId(track.title, track.artist, track.id);
+      }
+
       if (!vid) throw new Error('Could not find audio for this track.');
+      
       dispatch({ type: 'SET_TRACK', payload: { track, videoId: vid } });
       dispatch({ type: 'TRACK_PLAYED', payload: track });
+
+      // Step 2: Trigger Pre-fetch for the NEXT track immediately after starting this one
+      const { currentIndex, queue, shuffleEnabled, shuffledIndices } = stateRef.current;
+      const nextIndex = getNextTrackIndex(currentIndex, queue.length, shuffleEnabled, shuffledIndices);
+      if (nextIndex !== -1) {
+        const next = queue[nextIndex];
+        // Fetch ahead in background (YouTube Data API quota safe because it's only 1 call per song)
+        searchVideoId(next.title, next.artist, next.id).catch(() => {});
+      }
+
     } catch (err) {
       console.error('Playback error:', err);
       dispatch({
@@ -1015,16 +1103,35 @@ export function PlayerProvider({ children }) {
   }, [syncToBackend]);
 
   // ── Magic Vibe: AI-generated playlist from mood prompt ──
-  const startMagicVibe = useCallback(async (prompt) => {
+  const startMagicVibe = useCallback(async (params) => {
     dispatch({ type: 'SET_MAGIC_LOADING', payload: true });
     dispatch({ type: 'SET_MAGIC_ERROR', payload: null });
 
     try {
-      const { likedSongs } = stateRef.current;
-      const seeds = await generateMagicSeeds(prompt, likedSongs);
+      const isV2 = typeof params === 'object';
+      const endpoint = isV2 ? '/ai/magic-vibe-v2' : '/ai/magic-seeds';
+      const payload = isV2 ? params : { prompt: params };
+
+      console.log(`🚀 [AI Request]: POST ${endpoint}`, payload);
+      
+      const config = {};
+      if (state.token) {
+        config.headers = { Authorization: `Bearer ${state.token}` };
+      }
+
+      const res = await axios.post(API(endpoint), payload, config);
+      
+      // V2 returns [{title, artist}], V1 returns ["Artist - Title"]
+      const seeds = isV2 ? res.data : res.data.map(s => {
+        const [artist, title] = s.split(' - ');
+        return { artist, title };
+      });
 
       const results = [];
-      for (const seed of seeds) {
+      // Resolve top 5-8 seeds for faster start
+      const resolutionTargets = seeds.slice(0, 10);
+      
+      for (const seed of resolutionTargets) {
         try {
           const tracks = await searchTracks(`${seed.title} ${seed.artist}`);
           if (tracks.length > 0) results.push(tracks[0]);
@@ -1042,7 +1149,8 @@ export function PlayerProvider({ children }) {
         dispatch({ type: 'ADD_MULTIPLE_TO_QUEUE', payload: rest });
       }
     } catch (err) {
-      dispatch({ type: 'SET_MAGIC_ERROR', payload: err.message });
+      console.error('[MagicVibe] Error:', err);
+      dispatch({ type: 'SET_MAGIC_ERROR', payload: err.response?.data?.message || err.message });
     } finally {
       dispatch({ type: 'SET_MAGIC_LOADING', payload: false });
     }

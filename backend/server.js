@@ -10,6 +10,7 @@ const itunesRoutes = require('./routes/itunesRoutes');
 const sunoRoutes = require('./routes/sunoRoutes');
 const loudlyRoutes = require('./routes/loudlyRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const axios = require('axios');
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/itunes', itunesRoutes);
 app.use('/api/suno', sunoRoutes);
 app.use('/api/loudly', loudlyRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/admin', adminRoutes);
 
 // iTunes Search Proxy (Helper)
 app.get('/api/search/itunes', async (req, res) => {

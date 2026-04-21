@@ -23,6 +23,8 @@ import YouTubePlayer from './components/YouTubePlayer';
 import Settings from './components/Settings';
 import ArtistProfileModal from './components/ArtistProfileModal';
 import MakeSong from './components/MakeSong';
+import ResumeSessionOverlay from './components/ResumeSessionOverlay';
+import AdminPanel from './components/AdminPanel';
 import './App.css';
 import './index.css';
 
@@ -89,6 +91,10 @@ function AppContent() {
     if (tab === 'library') {
       openLibrary('index');
     }
+    if (tab === 'admin' || tab === 'settings' || tab === 'make-song') {
+      setHasSearched(false);
+      setSearchResults({ tracks: [], artists: [] });
+    }
     if (tab === 'search') {
       // Focus on search — scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -102,6 +108,9 @@ function AppContent() {
 
   return (
     <div className={`min-h-[100dvh] flex flex-col relative selection:bg-primary/30 selection:text-on-primary ${currentTrack ? 'has-player' : ''}`}>
+      {/* Session Resume UI */}
+      <ResumeSessionOverlay />
+
       {/* Hidden YouTube player */}
       <YouTubePlayer />
 
@@ -145,7 +154,7 @@ function AppContent() {
       <main className="flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 pb-[140px] px-5 md:px-0">
         
         {/* Global Search */}
-        {activeNavTab !== 'settings' && (
+        {activeNavTab !== 'settings' && activeNavTab !== 'admin' && (
           <div className="mb-8">
             <SearchBar
               onResults={handleResults}
@@ -208,6 +217,10 @@ function AppContent() {
               {activeNavTab === 'make-song' && (
                 <MakeSong />
               )}
+
+              {activeNavTab === 'admin' && (
+                <AdminPanel />
+              )}
               
               {activeNavTab === 'library' && (
                 <Library 
@@ -257,7 +270,13 @@ function AppContent() {
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        onSelectTab={openLibrary} 
+        onSelectTab={(tab) => {
+          if (tab === 'admin') {
+            handleNavChange('admin');
+          } else {
+            openLibrary(tab);
+          }
+        }} 
         onOpenCreatePlaylist={() => openCreatePlaylistModal(null)}
       />
       <ProfileModal 

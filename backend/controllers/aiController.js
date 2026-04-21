@@ -1,10 +1,31 @@
 const axios = require('axios');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_API_KEY_SECONDARY = process.env.GROQ_API_KEY_SECONDARY;
+// Load multiple keys for rotation (Failover)
+const GEMINI_KEYS = [
+  process.env.GEMINI_API_KEY,
+  process.env.GEMINI_API_KEY_SECONDARY,
+].filter(Boolean);
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GROQ_KEYS = [
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_API_KEY_SECONDARY,
+].filter(Boolean);
+
+let geminiCounter = 0;
+let groqCounter = 0;
+
+function getGeminiUrl() {
+  const key = GEMINI_KEYS[geminiCounter % GEMINI_KEYS.length];
+  geminiCounter++;
+  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+}
+
+function getGroqKey() {
+  const key = GROQ_KEYS[groqCounter % GROQ_KEYS.length];
+  groqCounter++;
+  return key;
+}
+
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
 
@@ -29,8 +50,9 @@ function cleanJSON(text) {
 }
 
 async function callGemini(prompt) {
-  if (!GEMINI_API_KEY) return null;
-  const response = await axios.post(GEMINI_URL, {
+  if (GEMINI_KEYS.length === 0) throw new Error('No Gemini API keys available');
+  const url = getGeminiUrl();
+  const response = await axios.post(url, {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.9, maxOutputTokens: 1024 }
   });
@@ -38,8 +60,9 @@ async function callGemini(prompt) {
   return cleanJSON(text);
 }
 
-async function callGroq(prompt, systemContent = 'You are an AI assistant. Return JSON.', apiKey = GROQ_API_KEY) {
-  if (!apiKey) return null;
+async function callGroq(prompt, systemContent = 'You are an AI assistant. Return JSON.') {
+  if (GROQ_KEYS.length === 0) throw new Error('No Groq API keys available');
+  const apiKey = getGroqKey();
   const response = await axios.post(GROQ_URL, {
     model: GROQ_MODEL,
     messages: [
@@ -64,14 +87,7 @@ const refinePrompt = async (req, res) => {
 Take a simple idea and turn it into a Suno AI prompt.
 Respond with ONLY JSON: { "title": "...", "tags": "...", "prompt": "..." }`;
     
-    let result = null;
-    try {
-      result = await callGroq(`Refine this song idea: "${idea}"`, systemPrompt);
-    } catch (e) {
-      console.warn('[AI PROXY] Groq primary failed, trying secondary...');
-      result = await callGroq(`Refine this song idea: "${idea}"`, systemPrompt, GROQ_API_KEY_SECONDARY);
-    }
-
+    let result = await callGroq(`Refine this song idea: "${idea}"`, systemPrompt);
     res.json(result);
   } catch (error) {
     console.error('[AI PROXY] Refine error:', error.message);
@@ -79,42 +95,69 @@ Respond with ONLY JSON: { "title": "...", "tags": "...", "prompt": "..." }`;
   }
 };
 
-const getRecommendations = async (req, res) => {
+/**
+ * Magic Vibe v2: Structured playlist generation
+ */
+const magicVibeV2 = async (req, res) => {
   try {
-    const { prompt, systemPrompt } = req.body;
+    const { mood, genre, language, referenceSongs } = req.body;
     
-    let result = null;
-    try {
-      result = await callGemini(`${systemPrompt}\n\n${prompt}`);
-    } catch (e) {
-      console.warn('[AI PROXY] Gemini failed for recs, trying Groq...');
-      result = await callGroq(prompt, systemPrompt);
-    }
+    const prompt = `Act as a world-class AI DJ with real-time access to global musical trends and internet search knowledge.
+    Create a highly personalized "vibe" playlist based on these criteria:
+    - Target Mood: ${mood || 'Any'}
+    - Target Genre: ${genre || 'Any'}
+    - Preferred Language: ${language || 'Any (English/Hindi)'}
+    - Aesthetic Reference: ${referenceSongs || 'Modern trending tracks'}
 
-    if (!result) {
-      result = await callGroq(prompt, systemPrompt, GROQ_API_KEY_SECONDARY);
+    You must return a curated list of exactly 15 songs that perfectly match this vibe. 
+    Mix some well-known hits with recent trending masterpieces.
+    
+    Respond with ONLY a JSON array of objects: 
+    [ { "title": "Song Name", "artist": "Artist Name" }, ... ]`;
+
+    let result;
+    try {
+      result = await callGemini(prompt);
+    } catch (e) {
+      console.warn('[AI] Gemini failed for MagicVibeV2, falling back to Groq...');
+      result = await callGroq(prompt, "You are a professional Music Vibe DJ. Respond with JSON array.");
     }
 
     res.json(result);
   } catch (error) {
-    console.error('[AI PROXY] Recommendation error:', error.message);
+    console.error('[AI] MagicVibeV2 error:', error.message);
+    res.status(500).json({ message: 'Failed to generate vibe playlist' });
+  }
+};
+
+const getRecommendations = async (req, res) => {
+  try {
+    const { prompt, systemPrompt } = req.body;
+    let result;
+    try {
+      result = await callGemini(`${systemPrompt}\n\n${prompt}`);
+    } catch (e) {
+      result = await callGroq(prompt, systemPrompt);
+    }
+    res.json(result);
+  } catch (error) {
     res.status(500).json({ message: 'AI recommendations failed' });
   }
 };
 
 const smartShuffle = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    let result;
     try {
-      const { prompt } = req.body;
-      let result = null;
-      try {
-        result = await callGemini(prompt);
-      } catch (e) {
-        result = await callGroq(prompt);
-      }
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: 'Smart shuffle failed' });
+      result = await callGemini(prompt);
+    } catch (e) {
+      result = await callGroq(prompt);
     }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Smart shuffle failed' });
+  }
 }
 
 const magicSeeds = async (req, res) => {
@@ -122,7 +165,7 @@ const magicSeeds = async (req, res) => {
     const { prompt } = req.body;
     const systemPrompt = "You are a musical vibe expert. Given a mood or memory, provide 5 specific song queries (Artist - Title) that represent that feeling. Return ONLY a JSON array of strings.";
     
-    let result = null;
+    let result;
     try {
       result = await callGemini(`${systemPrompt}\n\n${prompt}`);
     } catch (e) {
@@ -130,7 +173,6 @@ const magicSeeds = async (req, res) => {
     }
     res.json(result);
   } catch (error) {
-    console.error('[AI PROXY] Magic seeds error:', error.message);
     res.status(500).json({ message: 'Magic seeds generation failed' });
   }
 }
@@ -139,5 +181,6 @@ module.exports = {
   refinePrompt,
   getRecommendations,
   smartShuffle,
-  magicSeeds
+  magicSeeds,
+  magicVibeV2
 };
