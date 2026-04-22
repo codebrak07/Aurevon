@@ -118,14 +118,64 @@
   --primary-rgb: 114, 254, 143;
 }
 
-/* ── Device Specific: CMF2 Pro (393x873) ── */
-@media (width: 393px) and (height: 873px) {
+@media (max-width: 450px) {
   :root {
     --font-base: 0.875rem;
     --space-6: 20px;
     --player-height: 72px;
   }
   
+  main {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .app-container {
+    padding: 0 !important;
+  }
+
+  /* ── Dedicated CMF2 Pro optimization (393x873) ── */
+  @media (width: 393px) and (height: 873px) {
+    :root {
+      --space-8: 16px;
+      --font-base: 0.75rem;
+      --font-2xl: 1.15rem;
+    }
+    
+    .global-hero {
+      height: 200px !important;
+    }
+
+    .track-card__art-wrapper, 
+    .track-card__art {
+      width: 42px !important;
+      height: 42px !important;
+    }
+
+    .track-card__title {
+      font-size: 0.8125rem !important;
+    }
+
+    .track-card__artist {
+      font-size: 0.7rem !important;
+    }
+
+    .dashboard-section {
+      gap: 12px !important;
+    }
+    
+    .px-4, .px-5, 
+    .fav-releases, 
+    .global-dashboard {
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+
+    .app__header {
+      padding: 12px 14px !important;
+    }
+  }
+
   /* Profile Modal Scaling & Animation Fix */
   .fixed.top-1\/2 {
     top: 0 !important;
@@ -136,37 +186,11 @@
   }
 
   .profile-modal-main {
-    padding: 24px !important;
+    padding: 16px !important;
     min-height: 100dvh !important;
     height: 100dvh !important;
     border-radius: 0 !important;
     animation: slideUpMobile 0.5s var(--ease-out) !important;
-  }
-
-  .profile-modal-main .w-36 {
-    width: 7rem !important;
-    height: 7rem !important;
-  }
-
-  .profile-modal-main .text-3xl {
-    font-size: 1.5rem !important;
-  }
-
-  .profile-modal-main .mb-10 {
-    margin-bottom: 2rem !important;
-  }
-
-  .profile-modal-main .gap-16 {
-    gap: 2rem !important;
-  }
-
-  .profile-modal-main .py-5 {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-  }
-
-  .profile-modal-main .mb-12 {
-    margin-bottom: 2rem !important;
   }
 }
 

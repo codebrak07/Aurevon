@@ -16,7 +16,7 @@ const getAllUsers = async (req, res) => {
       avatarUrl: user.avatarUrl || user.image,
       likedSongsCount: (user.likedSongs || []).length,
       playlistsCount: (user.playlists || []).length,
-      joinedAt: user.id.includes('-') ? 'Unknown' : new Date(parseInt(user.id)).toLocaleDateString() // Fallback for ID-based joined date
+      joinedAt: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : (user.id.includes('-') ? 'Legacy Account' : new Date(parseInt(user.id)).toLocaleDateString())
     }));
 
     res.json({

@@ -48,6 +48,27 @@ export default function Sidebar({ isOpen, onClose, onSelectTab, onOpenCreatePlay
         {/* Scrollable Nav Items */}
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
             
+            {/* Discovery Section */}
+            <div>
+                <h3 className="text-xs font-bold text-[#686880] uppercase tracking-widest px-4 mb-4 font-['Manrope']">Discovery</h3>
+                <ul className="space-y-2">
+                    <li>
+                        <button 
+                            onClick={() => handleSelect('global-dashboard')}
+                            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group text-left border border-white/5 hover:border-primary/30"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-[#4a00e0]/20 flex items-center justify-center border border-primary/20 shadow-[0_0_20px_rgba(114,254,143,0.15)] group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-primary text-xl">public</span>
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-['Epilogue'] font-bold text-white text-lg group-hover:text-primary transition-colors">Global Charts</p>
+                                <p className="font-['Manrope'] text-xs text-[#acaab1]">Gen Z Viral Vibes</p>
+                            </div>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
             {/* Library Section */}
             <div>
                 <h3 className="text-xs font-bold text-[#686880] uppercase tracking-widest px-4 mb-4 font-['Manrope']">Your Library</h3>
@@ -105,7 +126,7 @@ export default function Sidebar({ isOpen, onClose, onSelectTab, onOpenCreatePlay
             </div>
 
             {/* Admin Section (Hidden for normal users) */}
-            {['aalekhforapple@gmail.com', 'aalekhmaheshwari@gmail.com'].includes(userProfile?.email?.toLowerCase()?.trim()) && (
+            {['aalekhforapple@gmail.com', 'aalekhmaheshwari@gmail.com', 'ofcaalekhmaheshwari@gmail.com'].includes(userProfile?.email?.toLowerCase()?.trim()) && (
                 <div>
                     <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-4 mb-4 font-['Manrope']">Management</h3>
                     <ul className="space-y-2">

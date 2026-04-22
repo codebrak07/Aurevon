@@ -3,7 +3,8 @@
    ═══════════════════════════════════════════════ */
 
 .home-greeting {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
+  padding: 0 16px;
 }
 
 .home-greeting__title {

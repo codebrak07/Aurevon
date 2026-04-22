@@ -86,6 +86,9 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && handlePlay()}
     >
+      {track.rank && (
+        <span className="track-card__rank">{track.rank}</span>
+      )}
       <div 
         className="track-card__art-wrapper" 
         onClick={handleArtClick}
@@ -111,10 +114,22 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
             <span /><span /><span />
           </div>
         )}
+        {track.vibe && (
+          <div className={`track-card__vibe-badge vibe--${track.vibe.replace(/\s+/g, '-')}`}>
+            {track.vibe}
+          </div>
+        )}
       </div>
 
       <div className="track-card__info">
-        <span className="track-card__title font-hero">{track.title}</span>
+        <div className="track-card__title-row">
+          <span className="track-card__title font-hero">{track.title}</span>
+          {track.countries && track.countries.length > 0 && (
+            <div className="track-card__flags">
+              {track.countries.map(flag => <span key={flag} className="track-card__flag">{flag}</span>)}
+            </div>
+          )}
+        </div>
         <div className="track-card__artist-row">
           <span 
             className="track-card__artist hover:text-primary active:scale-95 transition-all cursor-pointer"

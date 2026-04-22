@@ -30,7 +30,8 @@ const signup = async (req, res) => {
       likedSongs: [],
       playlists: [],
       recentlyPlayed: [],
-      preferences: {}
+      preferences: {},
+      createdAt: new Date().toISOString()
     };
 
     data.users.push(newUser);
@@ -94,7 +95,8 @@ const googleLogin = async (req, res) => {
     // Whitelist check removed for development
 
     const data = await readData();
-    let user = data.users.find(u => u.email === email || u.googleId === googleId);
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = data.users.find(u => u.email.toLowerCase().trim() === normalizedEmail || u.googleId === googleId);
 
     if (!user) {
       // Create new user if not exists
@@ -102,21 +104,29 @@ const googleLogin = async (req, res) => {
         id: uuidv4(),
         googleId,
         username: name,
-        email,
+        email: normalizedEmail,
         avatarUrl,
         followedArtists: [],
         likedSongs: [],
         playlists: [],
         recentlyPlayed: [],
-        preferences: {}
+        preferences: {},
+        createdAt: new Date().toISOString()
       };
       data.users.push(user);
       await writeData(data);
-    } else if (!user.googleId) {
-      // Link existing email account with Google
-      user.googleId = googleId;
-      user.avatarUrl = avatarUrl;
-      await writeData(data);
+    } else {
+      // Periodic sync: Always update username and avatar on Google login if they exist
+      // This ensures if they change their Google name, it reflects in our DB
+      let changed = false;
+      if (user.username !== name) { user.username = name; changed = true; }
+      if (user.avatarUrl !== avatarUrl) { user.avatarUrl = avatarUrl; changed = true; }
+      if (!user.googleId) { user.googleId = googleId; changed = true; }
+      if (!user.createdAt) { user.createdAt = new Date().toISOString(); changed = true; }
+      
+      if (changed) {
+        await writeData(data);
+      }
     }
 
     const token = jwt.sign(

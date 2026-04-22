@@ -25,6 +25,7 @@ import ArtistProfileModal from './components/ArtistProfileModal';
 import MakeSong from './components/MakeSong';
 import ResumeSessionOverlay from './components/ResumeSessionOverlay';
 import AdminPanel from './components/AdminPanel';
+import GlobalDashboard from './components/GlobalDashboard';
 import './App.css';
 import './index.css';
 
@@ -122,8 +123,8 @@ function AppContent() {
       </div>
 
       {/* Header (Layer 100) */}
-      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-center px-6 py-4 bg-[#0e0e0e]/70 backdrop-blur-2xl border-b border-white/[0.06]">
-        <div className="flex items-center gap-3">
+      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-center px-4 py-4 bg-[#0e0e0e]/70 backdrop-blur-2xl border-b border-white/[0.06]">
+        <div className="flex items-center gap-3 px-4">
           <span 
             className="material-symbols-outlined text-white/50 hover:text-primary active:scale-95 transition-all cursor-pointer text-2xl"
             onClick={() => setSidebarOpen(true)}
@@ -151,7 +152,7 @@ function AppContent() {
       </header>
 
       {/* Main Content (Layer 1) */}
-      <main className="flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 pb-[140px] px-5 md:px-0">
+      <main className="flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 pb-[140px] px-0 md:px-0">
         
         {/* Global Search */}
         {activeNavTab !== 'settings' && activeNavTab !== 'admin' && (
@@ -206,7 +207,7 @@ function AppContent() {
               {activeNavTab === 'search' && (
                 <>
                   {/* Browse & Explore */}
-                  <BrowseCategories />
+                  <BrowseCategories onTabChange={handleNavChange} />
                 </>
               )}
 
@@ -220,6 +221,10 @@ function AppContent() {
 
               {activeNavTab === 'admin' && (
                 <AdminPanel />
+              )}
+
+              {activeNavTab === 'global-dashboard' && (
+                <GlobalDashboard />
               )}
               
               {activeNavTab === 'library' && (

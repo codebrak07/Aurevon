@@ -4,6 +4,7 @@
 
 .browse-section {
   margin-top: var(--space-6);
+  padding: 0 16px;
 }
 
 .browse-section__heading {
@@ -43,56 +44,63 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  scroll-snap-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s var(--ease-out);
 }
 
 .trending-hero:hover {
-  transform: scale(1.01);
-}
-
-.trending-hero:active {
-  transform: scale(0.99);
+  transform: scale(1.02);
 }
 
 .trending-hero img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--duration-slow) var(--ease-out);
-}
-
-.trending-hero:hover img {
-  transform: scale(1.05);
 }
 
 .trending-hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
 }
 
 .trending-hero__content {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: var(--space-6);
+  bottom: var(--space-5);
+  left: var(--space-5);
+  right: var(--space-5);
+  z-index: 2;
 }
 
 .trending-hero__title {
-  font-family: var(--font-headline);
-  font-size: var(--font-2xl);
+  font-size: var(--font-xl);
   font-weight: 800;
   color: white;
-  margin-bottom: var(--space-1);
-  letter-spacing: -0.5px;
+  margin-bottom: 2px;
 }
 
 .trending-hero__subtitle {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  margin: 0;
+  font-size: var(--font-xs);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* See All Button */
+.browse-section__see-all {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: var(--font-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.browse-section__see-all:hover {
+  text-decoration: underline;
+  opacity: 0.8;
 }
 
 /* ── Category Grid ── */

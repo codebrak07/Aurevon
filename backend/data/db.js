@@ -5,10 +5,26 @@ const DB_PATH = path.join(__dirname, 'db.json');
 
 const readData = async () => {
   try {
+    // Ensure file exists with base structure if missing
+    try {
+      await fs.access(DB_PATH);
+    } catch {
+      const initialData = { users: [], playlists: [] };
+      await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2));
+      return initialData;
+    }
+
     const data = await fs.readFile(DB_PATH, 'utf-8');
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    
+    // Safety check: ensure users and playlists arrays exist
+    if (!parsed.users) parsed.users = [];
+    if (!parsed.playlists) parsed.playlists = [];
+    
+    return parsed;
   } catch (error) {
-    console.error('Error reading data:', error);
+    console.error('CRITICAL: Error reading database:', error);
+    // Return empty but don't wipe if possible
     return { users: [], playlists: [] };
   }
 };

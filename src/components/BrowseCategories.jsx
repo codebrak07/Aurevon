@@ -19,13 +19,24 @@ const categories = [
   { name: 'Metal', query: 'heavy metal essentials', subtitle: 'Metal • Pure power', color: 'linear-gradient(135deg, #212121 0%, #424242 100%)', icon: 'bolt' },
 ];
 
-const trendingHero = {
-  title: 'Global Top 50',
-  subtitle: 'The most played tracks right now',
-  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC3cLmyfbZyTDmgDCJR9jZT0ABqIq8doePBKXbVjy2gkDvMN1Wd9I9HBvy0UI2JGGPwEIYoGa4uVfR2yYy1J6PWwTvSRERC1ZxjKGbOE117JojLuSZwPa6EkLSYN7802ImlbKQEyOv8gQ_q1Yp21R5gC3Bpsxk042trdjxX5yx7ejDWIQE79MsKnRGBN0fnLsvK8sInmBurUVmn9ibfRit7SmEgJ1UZhx6HF5n0I02uYFeZT0GtCYPKinMz3wPR7hgYVHM-JW5DMt_K',
-};
+const trendingHeroes = [
+  {
+    title: 'India Top 100',
+    subtitle: 'The 100 most played songs in India • Apple Music',
+    image: '/assets/india_top_100.png',
+    id: 'india-top-100',
+    isAppleMusic: true
+  },
+  {
+    title: 'Global Gen Z Hits',
+    subtitle: 'English, K-Pop, Spanish & International Trends',
+    image: '/assets/global_genz_hits.png',
+    id: 'global-dashboard',
+    isNavLink: true
+  }
+];
 
-const BrowseCategories = memo(function BrowseCategories() {
+const BrowseCategories = memo(function BrowseCategories({ onTabChange }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,31 +54,67 @@ const BrowseCategories = memo(function BrowseCategories() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(API(`/youtube/search?q=${encodeURIComponent(category.query)}`));
-      if (!response.ok) throw new Error('Failed to fetch category tracks');
-      
-      const data = await response.json();
-      const mappedTracks = data.map(video => ({
-        id: video.id,
-        title: video.title,
-        artist: video.artist,
-        albumArt: video.thumbnail,
-        albumArtSmall: video.thumbnail,
-        videoId: video.id,
-        source: 'youtube'
-      }));
+      let mappedTracks = [];
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+      if (category.isAppleMusic) {
+        // Fetch via backend proxy to avoid CORS issues
+        const response = await fetch(API('/itunes/top100'), { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error('Failed to fetch India Top 100');
+        const data = await response.json();
+        
+        mappedTracks = data.feed.results.map((item, index) => ({
+          id: `apple-${item.id}`,
+          title: item.name,
+          artist: item.artistName,
+          albumArt: item.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg'),
+          albumArtSmall: item.artworkUrl100,
+          source: 'apple-music',
+          rank: index + 1
+        }));
+      } else {
+        const response = await fetch(API(`/youtube/search?q=${encodeURIComponent(category.query)}`), { 
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error('Failed to fetch category tracks');
+        
+        const data = await response.json();
+        mappedTracks = data.map(video => ({
+          id: video.id,
+          title: video.title,
+          artist: video.artist,
+          albumArt: video.thumbnail,
+          albumArtSmall: video.thumbnail,
+          videoId: video.id,
+          source: 'youtube'
+        }));
+      }
 
       setTracks(mappedTracks);
       cacheService.set('categoryResults', cacheKey, mappedTracks);
     } catch (err) {
       console.error('Error fetching category tracks:', err);
-      setError('Could not load tracks. Please try again.');
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please check your connection.');
+      } else {
+        setError('Could not load tracks. Youtube might be busy. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const handleCategoryClick = (category) => {
+    if (category.isNavLink) {
+      if (onTabChange) onTabChange(category.id);
+      return;
+    }
     setSelectedCategory(category);
     fetchCategoryTracks(category);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -126,20 +173,33 @@ const BrowseCategories = memo(function BrowseCategories() {
 
   return (
     <section className="browse-section">
-      {/* Trending Now Hero */}
+      {/* Trending Now Sections */}
       <div className="browse-section__trending">
         <div className="browse-section__trending-header">
           <h3 className="browse-section__heading">Trending Now</h3>
-          <button className="browse-section__see-all">See All</button>
+          <button 
+            className="browse-section__see-all"
+            onClick={() => onTabChange && onTabChange('global-dashboard')}
+          >
+            See All
+          </button>
         </div>
 
-        <div className="trending-hero">
-          <img src={trendingHero.image} alt={trendingHero.title} loading="lazy" />
-          <div className="trending-hero__overlay" />
-          <div className="trending-hero__content">
-            <h4 className="trending-hero__title">{trendingHero.title}</h4>
-            <p className="trending-hero__subtitle">{trendingHero.subtitle}</p>
-          </div>
+        <div className="trending-gallery">
+          {trendingHeroes.map((hero) => (
+            <div 
+              key={hero.id} 
+              className="trending-hero" 
+              onClick={() => handleCategoryClick(hero)}
+            >
+              <img src={hero.image} alt={hero.title} loading="lazy" />
+              <div className="trending-hero__overlay" />
+              <div className="trending-hero__content">
+                <h4 className="trending-hero__title">{hero.title}</h4>
+                <p className="trending-hero__subtitle">{hero.subtitle}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

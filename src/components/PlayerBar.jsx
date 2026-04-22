@@ -8,7 +8,7 @@ import NowPlaying from './NowPlaying';
 import './PlayerBar.css';
 
 const PlayerBar = memo(function PlayerBar({ onOpenLibrary, onAddToPlaylist }) {
-  const { currentTrack, isLoading, errors, toggleLike, likedSongs } = usePlayer();
+  const { currentTrack, isLoading, errors, toggleLike, likedSongs, stopPlayback } = usePlayer();
   const [queueOpen, setQueueOpen] = useState(false);
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
 
@@ -87,6 +87,14 @@ const PlayerBar = memo(function PlayerBar({ onOpenLibrary, onAddToPlaylist }) {
                 onClick={onOpenLibrary}
               >
                 <span className="material-symbols-outlined">library_music</span>
+              </button>
+
+              <button
+                className="player-dock__btn text-red-400/70 hover:text-red-400"
+                onClick={stopPlayback}
+                title="Stop playback"
+              >
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
           </div>

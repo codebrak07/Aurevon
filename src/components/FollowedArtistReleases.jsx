@@ -6,6 +6,9 @@ import './FollowedArtistReleases.css';
 export default function FollowedArtistReleases({ followedArtists = [], onAddToPlaylist }) {
   const [tracks, setTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+
+  const visibleTracks = showAll ? tracks : tracks.slice(0, 5);
 
   useEffect(() => {
     if (followedArtists.length === 0) return;
@@ -51,23 +54,35 @@ export default function FollowedArtistReleases({ followedArtists = [], onAddToPl
         {!isLoading && <span className="release-count">{tracks.length} new songs</span>}
       </div>
 
-      <div className="fav-releases__scroll-container hide-scrollbar">
+      <div className="fav-releases__list">
         {isLoading ? (
-          <div className="flex gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="skeleton-track-card" />
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="skeleton-track-list-item" />
             ))}
           </div>
         ) : (
-          <div className="fav-releases__grid">
-            {tracks.map((track) => (
-              <TrackCard 
-                key={track.id} 
-                track={track} 
-                onAddToPlaylist={onAddToPlaylist}
-              />
-            ))}
-          </div>
+          <>
+            <div className="fav-releases__vertical-grid">
+              {visibleTracks.map((track) => (
+                <div key={track.id} className="fav-track-wrapper">
+                  <TrackCard 
+                    track={track} 
+                    onAddToPlaylist={onAddToPlaylist}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {tracks.length > 5 && (
+              <button 
+                className="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 font-bold transition-all border border-white/5"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? 'Show Less' : `Load More (${tracks.length - 5} more)`}
+              </button>
+            )}
+          </>
         )}
       </div>
     </section>

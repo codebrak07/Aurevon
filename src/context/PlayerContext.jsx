@@ -1067,6 +1067,18 @@ export function PlayerProvider({ children }) {
     dispatch({ type: 'CLEAR_QUEUE' });
   }, []);
 
+  const stopPlayback = useCallback(() => {
+    if (playerRef.current) {
+      try {
+        playerRef.current.pauseVideo();
+        playerRef.current.stopVideo(); // Stop buffering
+      } catch { /* ignore */ }
+    }
+    dispatch({ type: 'SET_PLAYING', payload: false });
+    dispatch({ type: 'SET_TRACK', payload: { track: null, videoId: null } });
+    playbackPersistence.clear(); // Optional: clear saved state so it doesn't resume on reload
+  }, []);
+
   const toggleLike = useCallback((track) => {
     dispatch({ type: 'TOGGLE_LIKE', payload: track });
     syncToBackend();
@@ -1122,13 +1134,19 @@ export function PlayerProvider({ children }) {
       const res = await axios.post(API(endpoint), payload, config);
       
       // V2 returns [{title, artist}], V1 returns ["Artist - Title"]
-      const seeds = isV2 ? res.data : res.data.map(s => {
+      const rawSeeds = isV2 ? res.data : (Array.isArray(res.data) ? res.data : []);
+      
+      const seeds = isV2 ? rawSeeds : rawSeeds.map(s => {
+        if (typeof s !== 'string') return null;
         const [artist, title] = s.split(' - ');
         return { artist, title };
-      });
+      }).filter(Boolean);
 
       const results = [];
       // Resolve top 5-8 seeds for faster start
+      if (!Array.isArray(seeds)) {
+        throw new Error('AI returned an invalid response format.');
+      }
       const resolutionTargets = seeds.slice(0, 10);
       
       for (const seed of resolutionTargets) {
@@ -1228,6 +1246,7 @@ export function PlayerProvider({ children }) {
     ...state,
     playTrack,
     togglePlay,
+    stopPlayback,
     nextTrack,
     prevTrack,
     toggleLoop,

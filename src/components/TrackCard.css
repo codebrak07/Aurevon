@@ -4,17 +4,14 @@
 
 .track-card {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 8px 14px;
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out);
   position: relative;
   animation: fadeIn var(--duration-normal) var(--ease-out);
   border-radius: var(--radius-md);
-  margin: 0 calc(-1 * var(--space-2));
-  padding-left: calc(var(--space-5) + var(--space-2));
-  padding-right: calc(var(--space-5) + var(--space-2));
 }
 
 .track-card:active {
@@ -38,21 +35,84 @@
   color: var(--accent-green);
 }
 
+/* ── Rank Number ── */
+.track-card__rank {
+  width: 20px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-headline);
+  flex-shrink: 0;
+}
+
+.track-card--active .track-card__rank {
+  color: var(--accent-green);
+}
+
+/* ── Vibe Badge & Flags ── */
+.track-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.track-card__flags {
+  display: flex;
+  gap: 2px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.track-card__flag {
+  font-size: 10px;
+}
+
+.track-card__vibe-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 100px;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  font-family: var(--font-headline);
+  letter-spacing: 0.5px;
+  color: white;
+  pointer-events: none;
+}
+
+/* Vibe Colors (Gen Z Neon) */
+.vibe--toxic { background: linear-gradient(135deg, #00ff00, #adff2f); color: black; box-shadow: 0 0 10px #00ff00; }
+.vibe--sigma { background: linear-gradient(135deg, #ff00ff, #800080); box-shadow: 0 0 10px #ff00ff; }
+.vibe--heartbreak { background: linear-gradient(135deg, #ff4d4d, #b30000); box-shadow: 0 0 10px #ff4d4d; }
+.vibe--villain-arc { background: linear-gradient(135deg, #1a1a1a, #4a00e0); box-shadow: 0 0 10px #4a00e0; }
+.vibe--late-night { background: linear-gradient(135deg, #000428, #004e92); box-shadow: 0 0 10px #004e92; }
+.vibe--soft-life { background: linear-gradient(135deg, #ff9a9e, #fad0c4); color: #8e2de2; box-shadow: 0 0 10px #ff9a9e; }
+.vibe--party-mode { background: linear-gradient(135deg, #fceaf0, #e8c3fd); color: #8e2de2; box-shadow: 0 0 10px #e8c3fd; }
+.vibe--gym { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; box-shadow: 0 0 10px #ffd700; }
+
 /* ── Album Art ── */
 .track-card__art-wrapper {
   position: relative;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
 }
 
 .track-card__art {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md);
   object-fit: cover;
   background: var(--surface-container-low);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  margin-top: 2px; /* Slight offset for top-alignment */
 }
 
 .track-card__art--placeholder {
@@ -64,8 +124,8 @@
 }
 
 .track-card__art--placeholder svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ── Playing Indicator ── */
@@ -81,15 +141,15 @@
 }
 
 .track-card__playing-indicator span {
-  width: 3px;
+  width: 2px;
   background: var(--accent-green);
   border-radius: 2px;
   animation: equalizerBar 0.8s ease-in-out infinite;
 }
 
-.track-card__playing-indicator span:nth-child(1) { height: 12px; animation-delay: 0s; }
-.track-card__playing-indicator span:nth-child(2) { height: 16px; animation-delay: 0.2s; }
-.track-card__playing-indicator span:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+.track-card__playing-indicator span:nth-child(1) { height: 10px; animation-delay: 0s; }
+.track-card__playing-indicator span:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+.track-card__playing-indicator span:nth-child(3) { height: 7px; animation-delay: 0.4s; }
 
 /* ── Info ── */
 .track-card__info {
@@ -97,17 +157,16 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .track-card__title {
-  font-size: var(--font-base);
+  font-size: var(--font-sm);
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+  white-space: normal;
+  line-height: 1.25;
+  margin-bottom: 2px;
 }
 
 .track-card__artist-row {
@@ -119,14 +178,12 @@
 .track-card__artist {
   font-size: var(--font-xs);
   color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+  white-space: normal;
+  line-height: 1.2;
 }
 
 .track-card__follow-btn {
-  font-size: 10px;
+  font-size: 9px;
   background: transparent;
   padding: 0;
   display: flex;
@@ -139,7 +196,7 @@
 
 .track-card__follow-btn:hover {
   opacity: 1;
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 .track-card__follow-btn.is-following {
@@ -151,24 +208,31 @@
 /* ── Actions ── */
 .track-card__actions {
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: var(--space-1);
   flex-shrink: 0;
+  width: 90px;
+  justify-content: flex-start;
 }
 
 .track-card__duration {
-  font-size: var(--font-xs);
-  color: var(--text-muted);
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--accent-green);
   font-variant-numeric: tabular-nums;
-  margin-right: var(--space-1);
+  opacity: 0.9;
 }
 
 .track-card__like-btn,
 .track-card__add-btn,
 .track-card__queue-btn,
 .track-card__more-btn {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;

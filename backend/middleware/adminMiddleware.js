@@ -13,7 +13,12 @@ const adminMiddleware = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const adminEmails = ['aalekhforapple@gmail.com', 'aalekhmaheshwari@gmail.com', process.env.ADMIN_EMAIL]
+    const adminEmails = [
+      'aalekhforapple@gmail.com', 
+      'aalekhmaheshwari@gmail.com', 
+      'ofcaalekhmaheshwari@gmail.com',
+      process.env.ADMIN_EMAIL
+    ]
       .filter(Boolean)
       .map(e => e.toLowerCase().trim());
 

@@ -22,22 +22,50 @@
   text-transform: uppercase;
 }
 
-.fav-releases__scroll-container {
-  overflow-x: auto;
-  padding-bottom: 16px;
-  margin: 0 calc(-1 * var(--space-4));
-  padding-left: var(--space-4);
+.fav-releases__list {
+  padding-bottom: 24px;
 }
 
-.fav-releases__grid {
+.fav-releases__vertical-grid {
   display: flex;
-  gap: 20px;
-  width: max-content;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.skeleton-track-card {
-  width: 160px;
-  height: 220px;
+.fav-track-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 2px 6px;
+  border-radius: var(--radius-xl);
+  transition: background 0.3s;
+}
+
+.fav-track-wrapper:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fav-track-wrapper .track-card {
+  flex: 1;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fav-track-date {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 50px;
+  text-align: right;
+  opacity: 0.8;
+}
+
+.skeleton-track-list-item {
+  width: 100%;
+  height: 70px;
   background: var(--surface-container-low);
   border-radius: var(--radius-lg);
   animation: shimmer 1.5s infinite;

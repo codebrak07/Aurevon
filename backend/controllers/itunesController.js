@@ -32,6 +32,18 @@ const searchSongs = async (req, res) => {
   }
 };
 
+const getIndiaTop100 = async (req, res) => {
+  try {
+    const url = 'https://rss.applemarketingtools.com/api/v2/in/music/most-played/100/songs.json';
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (error) {
+    console.error('iTunes Top 100 Error:', error.message);
+    res.status(500).json({ message: 'Error fetching India Top 100', error: error.message });
+  }
+};
+
 module.exports = {
-  searchSongs
+  searchSongs,
+  getIndiaTop100
 };

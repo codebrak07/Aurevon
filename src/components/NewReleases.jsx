@@ -12,11 +12,11 @@ const DEFAULT_FEATURED = {
 };
 
 const NewReleases = memo(function NewReleases() {
-  const { followedArtists, playTrack, setUserInteracted } = usePlayer();
+  const { followedArtists, likedSongs, playTrack, setUserInteracted } = usePlayer();
   const [featured, setFeatured] = useState(DEFAULT_FEATURED);
   const [trending, setTrending] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFeaturedFromFollowed, setIsFeaturedFromFollowed] = useState(false);
+  const [isPersonalized, setIsPersonalized] = useState(false);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -25,12 +25,15 @@ const NewReleases = memo(function NewReleases() {
       const trendingResults = await getTrendingSongs();
       setTrending(trendingResults.slice(0, 5));
 
-      // 2. Fetch Featured (Followed Artist or Top Trending)
-      if (followedArtists.length > 0) {
-        // Pick 2 random followed artists to check for new releases
-        const randomArtists = [...followedArtists]
+      // 2. Identify Seed Artists (Followed + Liked Artists)
+      const likedArtists = [...new Set(likedSongs.map(s => s.artist))];
+      const allSeedArtists = [...new Set([...followedArtists, ...likedArtists])];
+
+      if (allSeedArtists.length > 0) {
+        // Pick 3 random seed artists to check for new releases
+        const randomArtists = [...allSeedArtists]
           .sort(() => 0.5 - Math.random())
-          .slice(0, 2);
+          .slice(0, 3);
         
         let foundRelease = null;
         for (const artist of randomArtists) {
@@ -42,15 +45,18 @@ const NewReleases = memo(function NewReleases() {
         }
 
         if (foundRelease) {
+          // Improve thumbnail quality (YouTube maxres)
+          const hqArt = foundRelease.thumbnail.replace('default.jpg', 'maxresdefault.jpg');
+          
           setFeatured({
             label: 'NEW RELEASE',
             title: foundRelease.title,
             artist: foundRelease.channelTitle || foundRelease.artist,
-            desc: `Check out the latest release from ${foundRelease.channelTitle || foundRelease.artist}.`,
-            image: foundRelease.thumbnail,
+            desc: `Fresh drop from ${foundRelease.channelTitle || foundRelease.artist}. Based on your favorites.`,
+            image: hqArt,
             track: foundRelease
           });
-          setIsFeaturedFromFollowed(true);
+          setIsPersonalized(true);
         } else if (trendingResults.length > 0) {
           useTrendingAsFeatured(trendingResults[0]);
         }
@@ -62,7 +68,7 @@ const NewReleases = memo(function NewReleases() {
     } finally {
       setIsLoading(false);
     }
-  }, [followedArtists]);
+  }, [followedArtists, likedSongs]);
 
   const useTrendingAsFeatured = (track) => {
     setFeatured({
@@ -105,14 +111,24 @@ const NewReleases = memo(function NewReleases() {
         {!isLoading && (
           <>
             <div className="featured-album__art">
-              <img src={featured.image} alt={featured.title} loading="lazy" />
+              <img 
+                src={featured.image} 
+                alt={featured.title} 
+                loading="lazy" 
+                onError={(e) => {
+                  // Fallback if maxresdefault doesn't exist
+                  if (e.target.src.includes('maxresdefault.jpg')) {
+                    e.target.src = e.target.src.replace('maxresdefault.jpg', 'hqdefault.jpg');
+                  }
+                }}
+              />
               <div className="featured-album__overlay" />
             </div>
             <div className="featured-album__content">
-              {isFeaturedFromFollowed && (
-                <span className="new-releases__tag">From artists you follow ❤️</span>
+              {isPersonalized && (
+                <span className="new-releases__tag">Picked for you ❤️</span>
               )}
-              {!isFeaturedFromFollowed && !isLoading && (
+              {!isPersonalized && !isLoading && (
                 <span className="new-releases__tag">Trending Now 🔥</span>
               )}
               <span className="featured-album__label">{featured.label}</span>
@@ -130,44 +146,6 @@ const NewReleases = memo(function NewReleases() {
         )}
       </div>
 
-      {/* Trending Singles */}
-      <div className="new-releases__trending">
-        <div className="new-releases__trending-label">
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent-green)' }}>trending_up</span>
-          <span>TRENDING SINGLES</span>
-        </div>
-        <div className="trending-list">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="trending-item is-loading">
-                <div className="trending-item__rank" />
-                <div className="trending-item__art" />
-                <div className="trending-item__info" />
-              </div>
-            ))
-          ) : (
-            trending.map((track, index) => (
-              <div 
-                key={track.videoId} 
-                className="trending-item"
-                onClick={() => handlePlayTrending(track)}
-              >
-                <span className="trending-item__rank">{index + 1}</span>
-                <div className="trending-item__art">
-                  <img src={track.thumbnail} alt={track.title} loading="lazy" />
-                </div>
-                <div className="trending-item__info">
-                  <span className="trending-item__title">{track.title}</span>
-                  <span className="trending-item__artist">{track.channelTitle || track.artist}</span>
-                </div>
-                <button className="trending-item__more" aria-label="More options">
-                  <span className="material-symbols-outlined">more_vert</span>
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </section>
   );
 });
