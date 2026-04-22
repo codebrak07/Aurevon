@@ -34,7 +34,7 @@ const searchSongs = async (req, res) => {
 
 const getIndiaTop100 = async (req, res) => {
   try {
-    const url = 'https://rss.applemarketingtools.com/api/v2/in/music/most-played/100/songs.json';
+    const url = 'https://rss.marketingtools.apple.com/api/v2/in/music/most-played/100/songs.json';
     const response = await axios.get(url);
     res.json(response.data);
   } catch (error) {

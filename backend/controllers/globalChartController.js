@@ -35,7 +35,7 @@ const getGlobalDashboard = async (req, res) => {
 
     // Parallel Fetch from Apple Music RSS
     const fetchPromises = Object.keys(COUNTRIES).map(code => 
-      axios.get(`https://rss.applemarketingtools.com/api/v2/${code}/music/most-played/100/songs.json`)
+      axios.get(`https://rss.marketingtools.apple.com/api/v2/${code}/music/most-played/100/songs.json`)
         .then(res => ({ code, data: res.data.feed.results }))
         .catch(err => {
           console.error(`[GlobalChart] Failed to fetch ${code}:`, err.message);
