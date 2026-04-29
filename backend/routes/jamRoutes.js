@@ -7,7 +7,8 @@ const {
     voteSkip, 
     play, 
     pause,
-    heartbeat
+    heartbeat,
+    getRoom
 } = require('../controllers/jamController');
 const { optionalAuthMiddleware } = require('../middleware/authMiddleware');
 
@@ -16,6 +17,7 @@ router.use(optionalAuthMiddleware);
 
 router.post('/create', createRoom);
 router.post('/join', joinRoom);
+router.get('/:roomId', getRoom);
 router.post('/:roomId/queue', addSong);
 router.post('/:roomId/vote_skip', voteSkip);
 router.post('/:roomId/heartbeat', heartbeat);

@@ -16,21 +16,34 @@ export default function Lobby() {
     try {
       const name = userProfile?.name || 'Anonymous';
       await createRoom(name);
+      // If we reach here, createRoom set roomId and JammingHub will render LiveRoom
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create room');
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create room';
+      setError(msg);
       setLoading(false);
     }
   };
 
   const handleJoin = async (codeToJoin = roomCode) => {
-    if (!codeToJoin) return;
+    const normalizedCode = (codeToJoin || '').trim().toUpperCase();
+    if (!normalizedCode) {
+      setError('Please enter a room code');
+      return;
+    }
+    if (normalizedCode.length < 6) {
+      setError('Room code must be 6 characters');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
       const name = userProfile?.name || 'Anonymous';
-      await joinRoom(codeToJoin, name);
+      await joinRoom(normalizedCode, name);
+      // If we reach here, joinRoom set roomId and JammingHub will render LiveRoom
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to join room. It may not exist.');
+      // err.message will have the exact reason from JamContext or from the backend
+      setError(err?.message || 'Failed to join room. Please check the code and try again.');
       setLoading(false);
     }
   };

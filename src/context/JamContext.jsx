@@ -25,18 +25,31 @@ const writeLocalRooms = (rooms) => {
   window.dispatchEvent(new CustomEvent(LOCAL_JAM_EVENT));
 };
 
-const shouldUseLocalJamFallback = (error) => {
-  const message = error?.response?.data?.error || error?.response?.data?.message || error?.message || '';
-  const status = error?.response?.status;
-  return (
-    /credentials|project id|network error|auth\/configuration-not-found|failed to fetch|networkerror/i.test(message) ||
-    status >= 500
-  );
+/**
+ * Determines if we should skip Firestore real-time listeners and use polling.
+ * This is true when we got a room from the backend but without a Firebase custom token
+ * (meaning the backend is running in memory-only mode).
+ */
+const shouldUsePolling = (firebaseCustomToken) => {
+  return !firebaseCustomToken;
+};
+
+/**
+ * Only use local-only fallback when the backend is genuinely unreachable.
+ */
+const shouldUseLocalOnlyFallback = (error) => {
+  // Network-level failures where no HTTP response was received at all
+  if (!error?.response) {
+    const message = error?.message || '';
+    return /network error|failed to fetch|networkerror|econnrefused|timeout/i.test(message);
+  }
+  return false;
 };
 
 export const JamProvider = ({ children }) => {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [roomId, setRoomId] = useState(null);
+  const [roomCode, setRoomCode] = useState(null);
   const [isHost, setIsHost] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [voteStatus, setVoteStatus] = useState({ count: 0, threshold: 0 });
@@ -47,6 +60,8 @@ export const JamProvider = ({ children }) => {
 
   const unsubscribeRoom = useRef(null);
   const heartbeatInterval = useRef(null);
+  const pollingInterval = useRef(null);
+  const handleRoomSyncRef = useRef(null);
 
   const ensureJamIdentity = useCallback(() => {
     const token = localStorage.getItem('wavify_token');
@@ -62,10 +77,16 @@ export const JamProvider = ({ children }) => {
   }, []);
 
   const ensureJamRealtimeAuth = useCallback(async (firebaseCustomToken, expectedUid) => {
-    if (auth.currentUser?.uid === expectedUid) return;
-    if (!firebaseCustomToken) return;
+    if (!firebaseCustomToken) return false; // No token = can't auth with Firestore
+    if (auth.currentUser?.uid === expectedUid) return true;
 
-    await signInWithCustomToken(auth, firebaseCustomToken);
+    try {
+      await signInWithCustomToken(auth, firebaseCustomToken);
+      return true;
+    } catch (error) {
+      console.warn('[Jam] Firebase auth failed, will use polling:', error.message);
+      return false;
+    }
   }, []);
 
   const updateLocalRoom = useCallback((id, updater) => {
@@ -100,6 +121,7 @@ export const JamProvider = ({ children }) => {
     });
   };
 
+  // ── Heartbeat ──
   const startHeartbeat = useCallback((id) => {
     if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
     
@@ -130,7 +152,7 @@ export const JamProvider = ({ children }) => {
       return;
     }
 
-    // Initial heartbeat
+    // Server heartbeat
     getJamHeaders()
       .then((headers) => axios.post(API(`/jam/${id}/heartbeat`), {}, { headers }))
       .catch(console.error);
@@ -151,27 +173,72 @@ export const JamProvider = ({ children }) => {
     }
   }, []);
 
+  // ── Polling (for when Firestore snapshots aren't available) ──
+  const startPolling = useCallback((id) => {
+    if (pollingInterval.current) clearInterval(pollingInterval.current);
+
+    const poll = async () => {
+      try {
+        const headers = await getJamHeaders();
+        const res = await axios.get(API(`/jam/${id}`), { headers });
+        if (res.data?.room && handleRoomSyncRef.current) {
+          handleRoomSyncRef.current(res.data.room);
+        }
+      } catch (error) {
+        console.error('[Jam] Polling error:', error.message);
+      }
+    };
+
+    // Poll immediately then every 3 seconds
+    poll();
+    pollingInterval.current = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        poll();
+      }
+    }, 3000);
+  }, [getJamHeaders]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+  }, []);
+
+  // ── Leave Room ──
   const leaveRoom = useCallback(() => {
     if (unsubscribeRoom.current) {
       unsubscribeRoom.current();
       unsubscribeRoom.current = null;
     }
     stopHeartbeat();
+    stopPolling();
     setRoomId(null);
+    setRoomCode(null);
     setCurrentRoom(null);
     setParticipants([]);
     setIsHost(false);
-  }, [stopHeartbeat]);
+  }, [stopHeartbeat, stopPolling]);
 
+  // ── Room Sync Handler ──
   const handleRoomSync = useCallback((data) => {
     setCurrentRoom(data);
     setParticipants(data.participants || []);
     setVoteStatus({ count: data.voteCount || 0, threshold: 0 }); 
     
+    // Update roomCode from synced data if we don't have it yet
+    if (data.roomCode) {
+      setRoomCode(prev => prev || data.roomCode);
+    }
+
     const userId = auth.currentUser?.uid || ensureJamIdentity();
     setIsHost(data.hostId === userId);
   }, [ensureJamIdentity]);
 
+  // Keep ref in sync so polling can access latest version
+  handleRoomSyncRef.current = handleRoomSync;
+
+  // ── Local Room Subscription (localStorage-based, same-browser only) ──
   const subscribeToLocalRoom = useCallback((id) => {
     const syncLocalRoom = () => {
       const rooms = readLocalRooms();
@@ -194,34 +261,62 @@ export const JamProvider = ({ children }) => {
     };
   }, [handleRoomSync, leaveRoom]);
 
+  // ── Join Room ──
   const joinRoom = useCallback(async (code, name) => {
+    const normalizedCode = (code || '').trim().toUpperCase();
+    if (!normalizedCode) throw new Error('Please enter a room code');
+
+    console.log(`[Jam] Attempting to join room: "${normalizedCode}"`);
+
     try {
+      // ── 1. Try the backend API ──
       const headers = await getJamHeaders();
-      const res = await axios.post(API('/jam/join'), { roomCode: code, name }, { headers });
+      const res = await axios.post(API('/jam/join'), { roomCode: normalizedCode, name }, { headers });
       const id = res.data.roomId;
-      await ensureJamRealtimeAuth(res.data.firebaseCustomToken, res.data.participantId);
+      const token = res.data.firebaseCustomToken;
       
+      console.log(`[Jam] Backend join success: roomId=${id}, hasToken=${!!token}`);
+
+      // Set room state immediately
       setRoomId(id);
-      addToHistory({ roomId: id, roomCode: code, name });
+      setRoomCode(normalizedCode);
+      addToHistory({ roomId: id, roomCode: normalizedCode, name });
+
+      // Hydrate from response data immediately (no waiting for snapshot)
+      if (res.data.room) {
+        handleRoomSync(res.data.room);
+      }
+
+      // Try Firestore real-time sync
+      const authed = await ensureJamRealtimeAuth(token, res.data.participantId);
       
-      // Start listening
-      unsubscribeRoom.current = onSnapshot(doc(db, 'jamRooms', id), (doc) => {
-        if (doc.exists()) {
-          handleRoomSync(doc.data());
-        } else {
-          leaveRoom();
-        }
-      });
+      if (authed) {
+        // Use Firestore real-time snapshots
+        unsubscribeRoom.current = onSnapshot(doc(db, 'jamRooms', id), (docSnap) => {
+          if (docSnap.exists()) {
+            handleRoomSync(docSnap.data());
+          } else {
+            leaveRoom();
+          }
+        });
+        console.log(`[Jam] Using Firestore real-time sync`);
+      } else {
+        // Fall back to polling the backend API
+        startPolling(id);
+        console.log(`[Jam] Using polling sync (no Firestore token)`);
+      }
 
       startHeartbeat(id);
       return id;
     } catch (error) {
-      if (shouldUseLocalJamFallback(error)) {
+      // ── 2. If backend is unreachable, try local rooms ──
+      if (shouldUseLocalOnlyFallback(error)) {
+        console.warn('[Jam] Backend unreachable, trying local rooms');
         const userId = ensureJamIdentity();
         const rooms = readLocalRooms();
-        const match = Object.values(rooms).find((room) => room.roomCode === code);
+        const match = Object.values(rooms).find((room) => room.roomCode === normalizedCode);
         if (!match) {
-          throw new Error('Failed to join room. It may not exist.');
+          throw new Error(`Room "${normalizedCode}" not found. The backend is offline and no local room matches this code.`);
         }
 
         const updatedRoom = {
@@ -239,43 +334,71 @@ export const JamProvider = ({ children }) => {
         rooms[match.roomId] = updatedRoom;
         writeLocalRooms(rooms);
         setRoomId(match.roomId);
+        setRoomCode(match.roomCode);
         addToHistory({ roomId: match.roomId, roomCode: match.roomCode, name });
         subscribeToLocalRoom(match.roomId);
         startHeartbeat(match.roomId);
         return match.roomId;
       }
 
-      console.error('Error joining jam room:', error);
-      throw error;
+      // ── 3. Backend returned an error (e.g., 404 Room not found) ──
+      const serverMessage = error?.response?.data?.message;
+      console.error('[Jam] Join failed:', serverMessage || error.message);
+      throw new Error(serverMessage || 'Failed to join room. Please check the code and try again.');
     }
-  }, [ensureJamIdentity, ensureJamRealtimeAuth, getJamHeaders, handleRoomSync, leaveRoom, startHeartbeat, subscribeToLocalRoom]);
+  }, [ensureJamIdentity, ensureJamRealtimeAuth, getJamHeaders, handleRoomSync, leaveRoom, startHeartbeat, startPolling, subscribeToLocalRoom]);
 
+  // ── Create Room ──
   const createRoom = useCallback(async (name) => {
+    console.log(`[Jam] Creating room for "${name}"`);
+    
     try {
+      // ── 1. Try the backend API ──
       const headers = await getJamHeaders();
       const res = await axios.post(API('/jam/create'), { name }, { headers });
-      const { roomId, roomCode } = res.data;
-      await ensureJamRealtimeAuth(res.data.firebaseCustomToken, res.data.participantId);
-      
-      setRoomId(roomId);
-      addToHistory({ roomId, roomCode, name });
+      const { roomId: id, roomCode: code } = res.data;
+      const token = res.data.firebaseCustomToken;
 
-      unsubscribeRoom.current = onSnapshot(doc(db, 'jamRooms', roomId), (doc) => {
-        if (doc.exists()) {
-          handleRoomSync(doc.data());
-        }
-      });
+      console.log(`[Jam] Backend create success: roomId=${id}, code=${code}, hasToken=${!!token}`);
 
-      startHeartbeat(roomId);
-      return { roomId, roomCode };
+      // Set state immediately
+      setRoomId(id);
+      setRoomCode(code);
+      addToHistory({ roomId: id, roomCode: code, name });
+
+      // Hydrate from response data immediately
+      if (res.data.room) {
+        handleRoomSync(res.data.room);
+      }
+
+      // Try Firestore real-time sync
+      const authed = await ensureJamRealtimeAuth(token, res.data.participantId);
+
+      if (authed) {
+        unsubscribeRoom.current = onSnapshot(doc(db, 'jamRooms', id), (docSnap) => {
+          if (docSnap.exists()) {
+            handleRoomSync(docSnap.data());
+          }
+        });
+        console.log(`[Jam] Using Firestore real-time sync`);
+      } else {
+        // Poll the backend for state updates
+        startPolling(id);
+        console.log(`[Jam] Using polling sync (no Firestore token)`);
+      }
+
+      startHeartbeat(id);
+      return { roomId: id, roomCode: code };
     } catch (error) {
-      if (shouldUseLocalJamFallback(error)) {
+      // ── 2. Backend unreachable — pure local fallback ──
+      if (shouldUseLocalOnlyFallback(error)) {
+        console.warn('[Jam] Backend unreachable, creating local room');
         const userId = ensureJamIdentity();
-        const roomId = `local-${Date.now()}`;
-        const roomCode = generateRoomCode();
+        const id = `local-${Date.now()}`;
+        const code = generateRoomCode();
         const room = {
-          roomId,
-          roomCode,
+          roomId: id,
+          roomCode: code,
           hostId: userId,
           state: 'waiting',
           participants: [{ uid: userId, name, joinedAt: new Date().toISOString(), lastSeen: new Date().toISOString() }],
@@ -291,21 +414,23 @@ export const JamProvider = ({ children }) => {
         };
 
         const rooms = readLocalRooms();
-        rooms[roomId] = room;
+        rooms[id] = room;
         writeLocalRooms(rooms);
 
-        setRoomId(roomId);
-        addToHistory({ roomId, roomCode, name });
-        subscribeToLocalRoom(roomId);
-        startHeartbeat(roomId);
-        return { roomId, roomCode };
+        setRoomId(id);
+        setRoomCode(code);
+        addToHistory({ roomId: id, roomCode: code, name });
+        subscribeToLocalRoom(id);
+        startHeartbeat(id);
+        return { roomId: id, roomCode: code };
       }
 
-      console.error('Error creating jam room:', error);
+      console.error('[Jam] Error creating room:', error.message);
       throw error;
     }
-  }, [ensureJamIdentity, ensureJamRealtimeAuth, getJamHeaders, handleRoomSync, startHeartbeat, subscribeToLocalRoom]);
+  }, [ensureJamIdentity, ensureJamRealtimeAuth, getJamHeaders, handleRoomSync, startHeartbeat, startPolling, subscribeToLocalRoom]);
 
+  // ── Vote Skip ──
   const castVote = useCallback(async () => {
     if (!roomId) return;
     if (roomId.startsWith('local-')) {
@@ -327,6 +452,7 @@ export const JamProvider = ({ children }) => {
     await axios.post(API(`/jam/${roomId}/vote_skip`), {}, { headers });
   }, [ensureJamIdentity, getJamHeaders, roomId, updateLocalRoom]);
 
+  // ── Host Commands ──
   const sendHostCommand = useCallback(async (command, payload = {}) => {
     if (!roomId || !isHost) return;
     if (roomId.startsWith('local-')) {
@@ -360,6 +486,7 @@ export const JamProvider = ({ children }) => {
     <JamContext.Provider value={{
       currentRoom,
       roomId,
+      roomCode,
       isHost,
       participants,
       voteStatus,

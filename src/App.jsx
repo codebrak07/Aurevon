@@ -170,7 +170,7 @@ function AppContent() {
       <main className={`flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 px-0 md:px-0 ${currentTrack ? 'pb-[220px]' : 'pb-[140px]'}`}>
         
         {/* Global Search */}
-        {activeNavTab !== 'settings' && activeNavTab !== 'admin' && (
+        {activeNavTab !== 'settings' && activeNavTab !== 'admin' && activeNavTab !== 'jamming' && activeNavTab !== 'wrapped' && activeNavTab !== 'global-dashboard' && (
           <div className="mb-8">
             <SearchBar
               onResults={handleResults}

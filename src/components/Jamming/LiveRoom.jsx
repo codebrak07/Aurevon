@@ -1,12 +1,19 @@
-import React, { useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useJam } from '../../context/JamContext';
 import usePlayer from '../../hooks/usePlayer';
 import SearchBar from '../SearchBar';
 
 export default function LiveRoom() {
-  const { currentRoom, isHost, participants, leaveRoom, castVote, sendHostCommand } = useJam();
+  const { currentRoom, roomCode: contextRoomCode, isHost, participants, leaveRoom, castVote, sendHostCommand } = useJam();
   const { currentTrack, isPlaying, playTrack, playerRef } = usePlayer();
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  // Use contextRoomCode (set synchronously during create/join) as primary,
+  // fall back to currentRoom?.roomCode (set async via snapshot)
+  const displayRoomCode = contextRoomCode || currentRoom?.roomCode || null;
 
   const roomTrack = currentRoom?.queue?.[currentRoom?.currentTrackIndex ?? 0] || null;
 
@@ -55,15 +62,75 @@ export default function LiveRoom() {
     }
   };
 
+  const handleCopyCode = useCallback(async () => {
+    if (!displayRoomCode) return;
+    try {
+      await navigator.clipboard.writeText(displayRoomCode);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    } catch {
+      // Fallback for older browsers / insecure contexts
+      const textarea = document.createElement('textarea');
+      textarea.value = displayRoomCode;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, [displayRoomCode]);
+
   return (
     <div className="max-w-5xl mx-auto px-4">
       {/* Header */}
       <div className="live-room-header rounded-2xl px-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest font-['Manrope']">Room Code</span>
-            <span className="text-3xl font-black text-[var(--text-primary)] font-['Epilogue'] tracking-widest">{currentRoom?.roomCode}</span>
+          {/* ── ROOM CODE BADGE ── */}
+          <div 
+            className="room-code-badge"
+            onClick={handleCopyCode}
+            title={displayRoomCode ? `Click to copy: ${displayRoomCode}` : 'Generating room code...'}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleCopyCode()}
+          >
+            <span className="room-code-label">
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>content_copy</span>
+              {copyFeedback ? 'Copied!' : 'Room Code — Tap to Copy'}
+            </span>
+            {displayRoomCode ? (
+              <span className="room-code-value">
+                {displayRoomCode.split('').map((char, i) => (
+                  <span key={i} className="room-code-char">{char}</span>
+                ))}
+              </span>
+            ) : (
+              <span className="room-code-value room-code-loading">
+                {[...Array(6)].map((_, i) => (
+                  <span key={i} className="room-code-char room-code-skeleton">•</span>
+                ))}
+              </span>
+            )}
+
+            {/* Copy feedback overlay */}
+            <AnimatePresence>
+              {copyFeedback && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="room-code-copied-toast"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+                  Copied to clipboard!
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+
           <div className="h-10 w-[1px] bg-[var(--glass-border)] hidden md:block"></div>
           <div className="flex -space-x-3">
             {activeParticipants.slice(0, 5).map((p) => {
@@ -102,6 +169,16 @@ export default function LiveRoom() {
            </button>
         </div>
       </div>
+
+      {currentRoom?.isLocalFallback && (
+        <div className="bg-orange-500/10 border border-orange-500/30 text-orange-400 p-4 rounded-xl mb-8 text-center font-['Manrope'] text-sm shadow-md">
+          <span className="font-bold flex items-center justify-center gap-2 mb-1">
+            <span className="material-symbols-outlined text-lg">warning</span>
+            Server Connection Failed
+          </span>
+          You are currently in a local, offline room because the backend server is unreachable. Other users will not be able to join using this room code.
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Player Area */}
@@ -150,9 +227,39 @@ export default function LiveRoom() {
           <div className="bg-[var(--bg-glass-heavy)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-xl">
              <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4 font-['Manrope']">Add to Queue</h3>
              <SearchBar 
-                onAddToPlaylist={handleAddToQueue} 
+                onResults={setSearchResults}
+                onLoading={setIsSearching}
                 compact={true}
              />
+             
+             {/* Search Results */}
+             {(searchResults?.tracks?.length > 0 || isSearching) && (
+               <div className="mt-4 bg-[var(--surface-container-high)] rounded-xl p-2 max-h-60 overflow-y-auto custom-scrollbar">
+                 {isSearching ? (
+                   <p className="text-center text-xs text-[var(--text-muted)] py-4 flex justify-center"><span className="material-symbols-outlined animate-spin">refresh</span></p>
+                 ) : (
+                   <div className="flex flex-col gap-2">
+                     {searchResults.tracks.slice(0, 10).map(track => (
+                       <button
+                         key={track.id}
+                         onClick={() => {
+                           handleAddToQueue(track);
+                           setSearchResults(null);
+                         }}
+                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-container-highest)] transition-colors text-left"
+                       >
+                         <img src={track.albumArt} alt="" className="w-8 h-8 rounded object-cover" />
+                         <div className="flex-1 overflow-hidden">
+                           <p className="text-sm font-medium text-[var(--text-primary)] truncate">{track.title}</p>
+                           <p className="text-[10px] text-[var(--text-secondary)] truncate">{track.artist}</p>
+                         </div>
+                         <span className="material-symbols-outlined text-[var(--text-muted)] text-[16px]">add_circle</span>
+                       </button>
+                     ))}
+                   </div>
+                 )}
+               </div>
+             )}
           </div>
 
           <div className="bg-[var(--bg-glass-heavy)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-xl h-[400px] flex flex-col">

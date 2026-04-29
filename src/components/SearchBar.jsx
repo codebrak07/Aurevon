@@ -4,7 +4,7 @@ import { searchTracks, searchArtists } from '../services/spotifyService';
 
 const noop = () => {};
 
-export default function SearchBar({ onResults = noop, onLoading = noop, onError = noop }) {
+export default function SearchBar({ onResults = noop, onLoading = noop, onError = noop, compact = false }) {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
   const abortRef = useRef(null);
@@ -61,13 +61,13 @@ export default function SearchBar({ onResults = noop, onLoading = noop, onError 
         <div className="absolute -inset-0.5 md:-inset-1 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-green)]/20 rounded-full blur-[15px] md:blur-[20px] opacity-30 group-hover:opacity-60 transition duration-700"></div>
         
         {/* Search input container */}
-        <div className="relative flex items-center bg-[var(--bg-glass-heavy)] backdrop-blur-3xl rounded-full p-2 md:p-5 border border-[var(--glass-border)] shadow-xl transition-all duration-300 focus-within:bg-[var(--surface-container-high)] focus-within:border-[var(--accent-green)]/30">
-          <span className="material-symbols-outlined ml-3 md:ml-4 text-[var(--accent-purple)] text-[22px] md:text-[28px]">search</span>
+        <div className={`relative flex items-center bg-[var(--bg-glass-heavy)] backdrop-blur-3xl rounded-full ${compact ? 'p-2' : 'p-2 md:p-5'} border border-[var(--glass-border)] shadow-xl transition-all duration-300 focus-within:bg-[var(--surface-container-high)] focus-within:border-[var(--accent-green)]/30`}>
+          <span className={`material-symbols-outlined ${compact ? 'ml-3 text-[20px]' : 'ml-3 md:ml-4 text-[22px] md:text-[28px]'} text-[var(--accent-purple)]`}>search</span>
           
           <input
             id="search-input"
             type="text"
-            className="w-full bg-transparent border-none outline-none focus:ring-0 text-base md:text-2xl font-['Manrope'] px-3 md:px-6 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:font-medium h-10 md:h-auto"
+            className={`w-full bg-transparent border-none outline-none focus:ring-0 ${compact ? 'text-sm px-2' : 'text-base md:text-2xl px-3 md:px-6'} font-['Manrope'] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:font-medium ${compact ? 'h-8' : 'h-10 md:h-auto'}`}
             placeholder="Search for songs, artists..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
