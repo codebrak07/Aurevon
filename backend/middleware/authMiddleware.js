@@ -24,7 +24,9 @@ const authMiddleware = (req, res, next) => {
 const optionalAuthMiddleware = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
+  const guestId = req.headers['x-guest-id'];
 
+  // 1. Try JWT authentication first
   if (token) {
     try {
       const decoded = jwt.verify(
@@ -34,11 +36,19 @@ const optionalAuthMiddleware = (req, res, next) => {
       req.userId = decoded.userId;
       return next();
     } catch (error) {
-      return res.status(401).json({ message: 'Token is not valid' });
+      // JWT failed — but don't hard-fail yet.
+      // If there's also a guest ID, use that as fallback.
+      console.warn(`[Auth] JWT verification failed: ${error.message}. Checking guest ID fallback.`);
+      if (guestId) {
+        req.userId = guestId;
+        return next();
+      }
+      // No fallback available
+      return res.status(401).json({ message: 'Token is not valid and no guest ID provided' });
     }
   }
 
-  const guestId = req.headers['x-guest-id'];
+  // 2. Guest ID authentication
   if (guestId) {
     req.userId = guestId;
     return next();

@@ -100,12 +100,17 @@ export const JamProvider = ({ children }) => {
   }, []);
 
   const getJamHeaders = useCallback(async () => {
+    const guestId = ensureJamIdentity();
     const token = localStorage.getItem('wavify_token');
+    
     if (token) {
-      return { Authorization: `Bearer ${token}` };
+      // Send BOTH: JWT for auth + guest ID as fallback if JWT fails on server
+      return { 
+        Authorization: `Bearer ${token}`,
+        'X-Guest-Id': guestId
+      };
     }
 
-    const guestId = ensureJamIdentity();
     return { 'X-Guest-Id': guestId };
   }, [ensureJamIdentity]);
 
@@ -182,7 +187,9 @@ export const JamProvider = ({ children }) => {
         const headers = await getJamHeaders();
         const res = await axios.get(API(`/jam/${id}`), { headers });
         if (res.data?.room && handleRoomSyncRef.current) {
-          handleRoomSyncRef.current(res.data.room);
+          const room = res.data.room;
+          console.log(`[Jam Poll] Room ${id}: queue=${room.queue?.length || 0}, state=${room.state}, trackIdx=${room.currentTrackIndex}`);
+          handleRoomSyncRef.current(room);
         }
       } catch (error) {
         console.error('[Jam] Polling error:', error.message);
@@ -470,6 +477,23 @@ export const JamProvider = ({ children }) => {
   }, [roomId, getJamHeaders, handleRoomSync, ensureJamIdentity, updateLocalRoom]);
 
   // ══════════════════════════════
+  // ── MANUAL REFRESH (force re-sync from backend) ──
+  // ══════════════════════════════
+  const refreshRoom = useCallback(async () => {
+    if (!roomId || roomId.startsWith('local-')) return;
+    try {
+      const headers = await getJamHeaders();
+      const res = await axios.get(API(`/jam/${roomId}`), { headers });
+      if (res.data?.room) {
+        console.log(`[Jam] Manual refresh: queue=${res.data.room.queue?.length || 0}`);
+        handleRoomSync(res.data.room);
+      }
+    } catch (error) {
+      console.error('[Jam] Manual refresh error:', error.message);
+    }
+  }, [roomId, getJamHeaders, handleRoomSync]);
+
+  // ══════════════════════════════
   // ── PLAY / PAUSE (host only) ──
   // ══════════════════════════════
   const playPause = useCallback(async (action) => {
@@ -628,6 +652,7 @@ export const JamProvider = ({ children }) => {
       sendHostCommand,
       // ── New explicit actions ──
       addToQueue,
+      refreshRoom,
       playPause,
       skipTrack,
       removeFromQueue,

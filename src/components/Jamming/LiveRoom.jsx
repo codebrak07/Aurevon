@@ -13,6 +13,7 @@ export default function LiveRoom() {
     leaveRoom,
     castVote,
     addToQueue,
+    refreshRoom,
     playPause,
     skipTrack,
     removeFromQueue,
@@ -129,6 +130,22 @@ export default function LiveRoom() {
     const idx = currentRoom?.currentTrackIndex ?? 0;
     return q.slice(idx + 1).map((track, i) => ({ ...track, _queueIndex: idx + 1 + i }));
   }, [currentRoom?.queue, currentRoom?.currentTrackIndex]);
+
+  // ── Watch queue changes to show notification when someone else adds a song ──
+  const prevQueueLengthRef = useRef(currentRoom?.queue?.length || 0);
+  useEffect(() => {
+    const currentLen = currentRoom?.queue?.length || 0;
+    const prevLen = prevQueueLengthRef.current;
+    if (currentLen > prevLen && prevLen > 0) {
+      // A new song was added (not the initial load)
+      const newSong = currentRoom.queue[currentLen - 1];
+      if (newSong) {
+        setAddedFeedback(`"${newSong.title}" added to queue`);
+        setTimeout(() => setAddedFeedback(null), 3000);
+      }
+    }
+    prevQueueLengthRef.current = currentLen;
+  }, [currentRoom?.queue?.length]);
 
   return (
     <div className="max-w-5xl mx-auto px-4">
@@ -398,7 +415,16 @@ export default function LiveRoom() {
                  <span className="material-symbols-outlined text-sm">queue_music</span>
                  Up Next
                </span>
-               <span className="text-[var(--text-secondary)]">{upcomingQueue.length} track{upcomingQueue.length !== 1 ? 's' : ''}</span>
+               <span className="flex items-center gap-2">
+                 <span className="text-[var(--text-secondary)]">{upcomingQueue.length} track{upcomingQueue.length !== 1 ? 's' : ''}</span>
+                 <button 
+                   onClick={refreshRoom} 
+                   className="text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition-colors" 
+                   title="Sync queue"
+                 >
+                   <span className="material-symbols-outlined text-sm">sync</span>
+                 </button>
+               </span>
              </h3>
              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
                {upcomingQueue.map((track, i) => (

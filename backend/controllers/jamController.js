@@ -181,6 +181,12 @@ const addSong = async (req, res) => {
     const { roomId } = req.params;
     const { song } = req.body; 
 
+    console.log(`🎵 [Jam] addSong request: roomId=${roomId}, userId=${userId}, song="${song?.title}"}`);
+
+    if (!song || !song.title) {
+      return res.status(400).json({ message: 'Invalid song data' });
+    }
+
     // Check memory store first
     if (memoryRooms.has(roomId)) {
       const room = memoryRooms.get(roomId);
@@ -196,7 +202,9 @@ const addSong = async (req, res) => {
       
       room.lastActive = new Date().toISOString();
       memoryRooms.set(roomId, room);
-      return res.json({ message: 'Song added to queue', room });
+      console.log(`✅ [Jam] Song "${song.title}" added to queue. Queue now has ${room.queue.length} tracks. State: ${room.state}`);
+      // Return a deep copy to prevent reference issues
+      return res.json({ message: 'Song added to queue', room: JSON.parse(JSON.stringify(room)) });
     }
     
     const roomRef = db.collection('jamRooms').doc(roomId);
@@ -635,7 +643,9 @@ const getRoom = async (req, res) => {
     
     // Memory store
     if (memoryRooms.has(roomId)) {
-      return res.json({ room: memoryRooms.get(roomId) });
+      const room = memoryRooms.get(roomId);
+      // Return a deep copy to prevent reference issues between requests
+      return res.json({ room: JSON.parse(JSON.stringify(room)) });
     }
     
     if (isFirestoreAvailable()) {
