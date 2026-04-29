@@ -31,3 +31,8 @@ backend/.env
 # Local data and scratch files
 backend/data/*.json
 scratch/
+
+# Firebase Admin SDK Credentials
+*-firebase-adminsdk-*.json
+firebase-credentials.json
+serviceAccountKey.json

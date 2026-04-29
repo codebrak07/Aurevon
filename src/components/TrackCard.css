@@ -8,7 +8,7 @@
   gap: var(--space-3);
   padding: 8px 14px;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-out);
+  transition: all var(--duration-fast) var(--ease-out);
   position: relative;
   animation: fadeIn var(--duration-normal) var(--ease-out);
   border-radius: var(--radius-md);
@@ -16,11 +16,13 @@
 
 .track-card:active {
   background: var(--bg-card-hover);
+  transform: scale(0.98);
 }
 
 @media (hover: hover) {
   .track-card:hover {
     background: var(--surface-container-low);
+    border: 1px solid var(--glass-border);
   }
   .track-card:hover .track-card__actions {
     opacity: 1;
@@ -29,6 +31,7 @@
 
 .track-card--active {
   background: var(--accent-subtle);
+  border: 1px solid var(--accent-subtle);
 }
 
 .track-card--active .track-card__title {
@@ -44,6 +47,7 @@
   color: var(--text-muted);
   font-family: var(--font-headline);
   flex-shrink: 0;
+  margin-top: 18px;
 }
 
 .track-card--active .track-card__rank {
@@ -80,7 +84,7 @@
   text-transform: uppercase;
   border-radius: 100px;
   z-index: 2;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-sm);
   font-family: var(--font-headline);
   letter-spacing: 0.5px;
   color: white;
@@ -111,15 +115,15 @@
   border-radius: var(--radius-md);
   object-fit: cover;
   background: var(--surface-container-low);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  margin-top: 2px; /* Slight offset for top-alignment */
+  box-shadow: var(--shadow-sm);
+  margin-top: 2px;
 }
 
 .track-card__art--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--surface-container-low), var(--surface-container));
+  background: var(--surface-container);
   color: var(--text-muted);
 }
 
@@ -132,7 +136,7 @@
 .track-card__playing-indicator {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--bg-glass-heavy);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -158,11 +162,12 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding-top: 2px;
 }
 
 .track-card__title {
   font-size: var(--font-sm);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   white-space: normal;
   line-height: 1.25;
@@ -180,6 +185,7 @@
   color: var(--text-secondary);
   white-space: normal;
   line-height: 1.2;
+  font-weight: 600;
 }
 
 .track-card__follow-btn {
@@ -192,16 +198,19 @@
   opacity: 0.4;
   transition: all var(--duration-fast);
   cursor: pointer;
+  color: var(--text-secondary);
 }
 
 .track-card__follow-btn:hover {
   opacity: 1;
   transform: scale(1.1);
+  color: var(--accent-green);
 }
 
 .track-card__follow-btn.is-following {
   opacity: 1;
-  filter: drop-shadow(0 0 4px var(--accent-green));
+  color: var(--accent-green);
+  filter: drop-shadow(0 0 4px var(--accent-glow));
 }
 
 
@@ -246,8 +255,8 @@
 .track-card__add-btn:hover,
 .track-card__queue-btn:hover,
 .track-card__more-btn:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  background: var(--surface-container-high);
 }
 
 .track-card__like-btn:active,
@@ -255,7 +264,7 @@
 .track-card__queue-btn:active,
 .track-card__more-btn:active {
   transform: scale(0.85);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-container-highest);
 }
 
 .track-card__more-btn span {
@@ -273,9 +282,9 @@
 }
 
 .track-card__add-btn:active {
-  color: var(--accent);
+  color: var(--accent-green);
 }
 
 .track-card__more-btn:active {
-  color: var(--accent-light);
+  color: var(--accent-green);
 }

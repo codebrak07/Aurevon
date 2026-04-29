@@ -3,10 +3,14 @@ import usePlayer from '../hooks/usePlayer';
 import { formatTime } from '../utils/mappers';
 import './SeekBar.css';
 
-const SeekBar = memo(function SeekBar() {
+const SeekBar = memo(function SeekBar({ showTimeOnly = false }) {
   const { currentTime, duration, seekTo } = usePlayer();
   const barRef = useRef(null);
   const isDragging = useRef(false);
+
+  if (showTimeOnly) {
+    return <span className="player-dock__time-label">{formatTime(duration)}</span>;
+  }
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 

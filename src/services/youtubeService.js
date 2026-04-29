@@ -4,6 +4,11 @@ import cacheService from './cacheService';
 const KEYS = [
   import.meta.env.VITE_YOUTUBE_API_KEY,
   import.meta.env.VITE_YOUTUBE_API_KEY_SECONDARY,
+  import.meta.env.VITE_YOUTUBE_API_KEY_TERTIARY,
+  import.meta.env.VITE_YOUTUBE_API_KEY_4,
+  import.meta.env.VITE_YOUTUBE_API_KEY_5,
+  import.meta.env.VITE_YOUTUBE_API_KEY_6,
+  // Base64 Backups
   atob('QUl6YVN5Qkx0Y0RBVDR3cEllX09EazEtelNGWjFmd0E3TVBiQmhn'),
   atob('QUl6YVN5QjYtLXVJMExXRWE2SGZmWTVkZXVFUVlBaDB6TWI0M1U4'),
   atob('QUl6YVN5RHRDUG9tX2ZhWDF4Q1JtWktrTFVORmw3Wkl4VERVSTlj'),
@@ -12,23 +17,36 @@ const KEYS = [
   atob('QUl6YVN5Q3pCZi1NcmhuRnVkcXRFNDRRWFpPQ3J3STlDWVk1bDJF')
 ].filter(Boolean);
 
+// Deduplicate keys
+const UNIQUE_KEYS = [...new Set(KEYS)];
+
 let currentKeyIndex = 0;
 
 const SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 
 async function fetchWithFallback(url, params) {
   let response = null;
-  for (let i = 0; i < KEYS.length; i++) {
-    let attemptIndex = (currentKeyIndex + i) % KEYS.length;
-    params.set('key', KEYS[attemptIndex]);
+  for (let i = 0; i < UNIQUE_KEYS.length; i++) {
+    let attemptIndex = (currentKeyIndex + i) % UNIQUE_KEYS.length;
+    params.set('key', UNIQUE_KEYS[attemptIndex]);
     
-    response = await fetch(`${url}?${params}`);
-    if (response.ok) {
-      currentKeyIndex = attemptIndex;
-      break;
+    try {
+      response = await fetch(`${url}?${params}`);
+      if (response.ok) {
+        currentKeyIndex = attemptIndex;
+        return response;
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
+      console.warn(`[YouTube API] Key ${attemptIndex} failed with status ${response.status}:`, errorData.error?.message || 'Unknown error');
+      
+      // If it's not a quota or auth error, don't bother trying other keys
+      if (response.status !== 403 && response.status !== 429) {
+        return response;
+      }
+    } catch (err) {
+      console.error(`[YouTube API] Fetch error with key ${attemptIndex}:`, err);
     }
-    if (response.status !== 403 && response.status !== 429) break;
-    console.warn(`YouTube API quota exceeded for key ${attemptIndex}. Trying next...`);
   }
   return response;
 }
@@ -73,65 +91,54 @@ export async function searchVideoId(trackTitle, artistName, trackId) {
   // Check cache first
   if (trackId) {
     const cached = cacheService.get('videoMap', trackId);
-    if (cached) return cached;
+    if (cached) return { videoId: cached, title: 'Cached' };
   }
 
-  // Clean track title: replace emojis and trim
-  const cleanTitle = trackTitle.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{1FAB0}-\u{1FABF}\u{1FAC0}-\u{1FACF}\u{1FAD0}-\u{1FADF}\u{1FAE0}-\u{1FAEF}\u{1FAF0}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
-  const cleanArtist = artistName ? artistName.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{1FAB0}-\u{1FABF}\u{1FAC0}-\u{1FACF}\u{1FAD0}-\u{1FADF}\u{1FAE0}-\u{1FAEF}\u{1FAF0}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') : '';
+  const cleanTitle = trackTitle.replace(/[^\w\s]/gi, '').trim();
+  const cleanArtist = artistName ? artistName.replace(/[^\w\s]/gi, '').trim() : '';
   
-  let query = `${cleanTitle} ${cleanArtist} official audio`.trim();
-  let params = new URLSearchParams({
-    part: 'snippet',
-    q: query,
-    type: 'video',
-    maxResults: '5',
-    videoCategoryId: '10', // Music category
-  });
+  // Strategy 1: Specific
+  const queries = [
+    `${cleanTitle} ${cleanArtist} official audio`,
+    `${cleanTitle} ${cleanArtist}`,
+    `${trackTitle}`,
+    `${cleanTitle.split(' ')[0]} music video` // Absolute last resort: first word of title
+  ];
 
-  let response = await fetchWithFallback(SEARCH_URL, params);
-  let data;
-  if (response.ok) {
-    data = await response.json();
-  } else if (response.status !== 403 && response.status !== 429) {
-    throw new Error(`YouTube search failed: ${response.status}`);
-  }
+  let items = [];
+  let bestTitle = null;
 
-  let items = data?.items || [];
-
-  // Fallback 1: Broad search without "official audio" and NO category restriction
-  if (items.length === 0) {
-    query = `${cleanTitle} ${cleanArtist}`.trim();
-    params = new URLSearchParams({
+  for (const q of queries) {
+    console.log(`[YouTube Search] Trying query: "${q}"`);
+    const params = new URLSearchParams({
       part: 'snippet',
-      q: query,
+      q: q,
       type: 'video',
       maxResults: '5',
+      videoCategoryId: '10', // Music
     });
-    response = await fetchWithFallback(SEARCH_URL, params);
-    if (response.ok) {
-      data = await response.json();
+
+    const response = await fetchWithFallback(SEARCH_URL, params);
+    if (response?.ok) {
+      const data = await response.json();
       items = data?.items || [];
+      if (items.length > 0) break;
+    }
+    
+    // If specific music category failed, try without it
+    params.delete('videoCategoryId');
+    const fallbackResponse = await fetchWithFallback(SEARCH_URL, params);
+    if (fallbackResponse?.ok) {
+      const data = await fallbackResponse.json();
+      items = data?.items || [];
+      if (items.length > 0) break;
     }
   }
 
-  // Fallback 2: Just search the exact raw trackTitle incase it was heavily filtered
   if (items.length === 0) {
-    query = `${trackTitle}`.trim();
-    params = new URLSearchParams({
-      part: 'snippet',
-      q: query,
-      type: 'video',
-      maxResults: '3',
-    });
-    response = await fetchWithFallback(SEARCH_URL, params);
-    if (response.ok) {
-      data = await response.json();
-      items = data?.items || [];
-    }
+    console.error(`[YouTube Search] All queries failed for: ${trackTitle}`);
+    return null;
   }
-
-  if (items.length === 0) return null;
 
   // Smart matching: score all results, pick the best
   const scored = items.map((item) => ({
@@ -147,33 +154,26 @@ export async function searchVideoId(trackTitle, artistName, trackId) {
     cacheService.set('videoMap', trackId, mapped.videoId);
   }
 
-  return mapped?.videoId || null;
+  return { 
+    videoId: mapped?.videoId || null, 
+    title: best?.snippet?.title || null 
+  };
 }
 
-/**
- * Find related music videos by searching for similar content.
- * (YouTube deprecated `relatedToVideoId` — this uses search instead)
- */
 export async function getRelatedVideos(videoId, trackTitle, artistName) {
   if (!trackTitle && !artistName) return [];
-
-  // Search for similar music by the same artist or genre
-  const query = artistName
-    ? `${artistName} music`
-    : `${trackTitle} similar songs`;
-
+  const query = artistName ? `${artistName} music` : `${trackTitle} similar songs`;
   const params = new URLSearchParams({
     part: 'snippet',
     q: query,
     type: 'video',
     maxResults: '10',
-    videoCategoryId: '10', // Music
+    videoCategoryId: '10',
   });
 
   try {
     const response = await fetchWithFallback(SEARCH_URL, params);
-    if (!response.ok) return [];
-
+    if (!response?.ok) return [];
     const data = await response.json();
     return (data.items || []).map(mapYouTubeResult).filter(Boolean);
   } catch {
@@ -181,9 +181,6 @@ export async function getRelatedVideos(videoId, trackTitle, artistName) {
   }
 }
 
-/**
- * Fetch 5 trending music videos.
- */
 export async function getTrendingSongs() {
   const cacheKey = 'trending_songs_2025';
   const cached = cacheService.get('aiSuggestions', cacheKey);
@@ -193,17 +190,15 @@ export async function getTrendingSongs() {
     part: 'snippet',
     q: 'trending music 2025 top songs this week',
     type: 'video',
-    maxResults: '5',
-    videoCategoryId: '10', // Music
+    maxResults: '10',
+    videoCategoryId: '10',
   });
 
   try {
     const response = await fetchWithFallback(SEARCH_URL, params);
-    if (!response.ok) return [];
+    if (!response?.ok) return [];
     const data = await response.json();
     const results = (data.items || []).map(mapYouTubeResult).filter(Boolean);
-    
-    // Cache for 12 hours
     cacheService.set('aiSuggestions', cacheKey, results); 
     return results;
   } catch {
@@ -211,12 +206,8 @@ export async function getTrendingSongs() {
   }
 }
 
-/**
- * Fetch 1-2 latest music videos for a specific artist.
- */
 export async function getArtistLatestReleases(artistName) {
   if (!artistName) return [];
-
   const cacheKey = `latest_release:${artistName.toLowerCase()}`;
   const cached = cacheService.get('aiSuggestions', cacheKey);
   if (cached) return cached;
@@ -225,22 +216,19 @@ export async function getArtistLatestReleases(artistName) {
     part: 'snippet',
     q: `${artistName} new song 2025 official music video`,
     type: 'video',
-    order: 'date', // Prioritize newest
+    order: 'date',
     maxResults: '2',
-    videoCategoryId: '10', // Music
+    videoCategoryId: '10',
   });
 
   try {
     const response = await fetchWithFallback(SEARCH_URL, params);
-    if (!response.ok) return [];
+    if (!response?.ok) return [];
     const data = await response.json();
     const results = (data.items || []).map(mapYouTubeResult).filter(Boolean);
-
-    // Cache for 12 hours
     cacheService.set('aiSuggestions', cacheKey, results);
     return results;
   } catch {
     return [];
   }
 }
-

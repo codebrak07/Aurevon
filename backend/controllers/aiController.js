@@ -112,6 +112,11 @@ const magicVibeV2 = async (req, res) => {
     You must return a curated list of exactly 15 songs that perfectly match this vibe. 
     Mix some well-known hits with recent trending masterpieces.
     
+    IMPORTANT RULES:
+    - DO NOT TRANSLATE song titles or artist names. 
+    - Keep Hindi songs (e.g., Arijit Singh, Pritam) in their original transliterated titles (e.g., "Pehle Bhi Main" instead of "Every Moment Feels Like Heaven").
+    - If the user specifies Hindi or Indian artists, ensure the titles reflect the actual released names.
+    
     Respond with ONLY a JSON array of objects: 
     [ { "title": "Song Name", "artist": "Artist Name" }, ... ]`;
 

@@ -23,6 +23,39 @@ function cleanJSON(text) {
   }
 }
 
+function normalizeShuffleQueries(payload) {
+  if (!payload) return [];
+
+  if (Array.isArray(payload)) {
+    return payload
+      .flatMap((item) => {
+        if (typeof item === 'string') return [item];
+        if (Array.isArray(item)) {
+          return item.filter((entry) => typeof entry === 'string');
+        }
+        if (item && typeof item === 'object') {
+          if (typeof item.query === 'string') return [item.query];
+          if (typeof item.title === 'string') {
+            return [`${item.title}${item.artist ? ` ${item.artist}` : ''}`.trim()];
+          }
+        }
+        return [];
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof payload === 'object') {
+    for (const key of ['queries', 'songs', 'tracks', 'results']) {
+      const normalized = normalizeShuffleQueries(payload[key]);
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    }
+  }
+
+  return [];
+}
+
 async function callGemini(prompt) {
   try {
     const url = GEMINI_URL();
@@ -54,21 +87,34 @@ async function callGroq(prompt, systemContent, apiKey = getApiKey('VITE_GROQ_API
 
 export async function generateSmartShuffle(contextData) {
   try {
-    const prompt = `Based on these tracks: ${JSON.stringify(contextData)}... Recommend a smart shuffle order for the following 20 tracks. Return ONLY a JSON array of indices.`;
-    return await callGemini(prompt) || await callGroq(prompt, 'Return JSON array of indices') || [];
+    const prompt = `You are building the next songs for a music session.
+Context: ${JSON.stringify(contextData)}
+Return ONLY JSON.
+Format: an array of 5 to 10 search query strings like ["Blinding Lights The Weeknd", "Midnight City M83"].
+
+CRITICAL RULE: DO NOT TRANSLATE song titles. Keep Hindi/Indian songs in their original transliterated titles (e.g. "Pehle Bhi Main", "Tum Hi Ho"). Do not return indices or explanations.`;
+    const result =
+      await callGemini(prompt) ||
+      await callGroq(prompt, 'Return only a JSON array of music search query strings. No translations.') ||
+      [];
+    return normalizeShuffleQueries(result);
   } catch { return []; }
 }
 
 export async function getSmartRecommendations(contextData) {
   try {
-    const systemPrompt = "You are a musical recommendation engine. Return a JSON object with 'songs' array (title, artist, reason) and UI text labels.";
+    const systemPrompt = `You are a musical recommendation engine. 
+    IMPORTANT: DO NOT TRANSLATE song titles or artist names. Keep Hindi songs in their original transliterated titles.
+    Return a JSON object with 'songs' array (title, artist, reason) and UI text labels.`;
     return await callGemini(`${systemPrompt}\n\n${JSON.stringify(contextData)}`) || await callGroq(JSON.stringify(contextData), systemPrompt) || null;
   } catch { return null; }
 }
 
 export async function generateMagicSeeds(prompt) {
   try {
-    const systemPrompt = "You are a musical vibe expert. Given a mood or memory, provide 5 specific song queries (Artist - Title) that represent that feeling. Return ONLY a JSON array of strings.";
+    const systemPrompt = `You are a musical vibe expert. Given a mood or memory, provide 5 specific song queries (Artist - Title) that represent that feeling. 
+    RULE: DO NOT TRANSLATE song titles. Keep Indian music in original transliterated titles.
+    Return ONLY a JSON array of strings.`;
     return await callGemini(`${systemPrompt}\n\n${prompt}`) || await callGroq(prompt, systemPrompt) || [];
   } catch { return []; }
 }

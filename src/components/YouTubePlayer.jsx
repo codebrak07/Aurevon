@@ -71,18 +71,22 @@ const YouTubePlayer = memo(function YouTubePlayer() {
           },
           onStateChange: (event) => {
             const state = event.data;
+            
+            // Handle End of Track
             if (state === window.YT.PlayerState.ENDED) {
               onTrackEndRef.current();
+              return;
             }
+
+            // Sync global playing state with YouTube's internal state
             if (state === window.YT.PlayerState.PLAYING) {
               setUserInteracted();
               setPlaying(true);
-            }
-            if (state === window.YT.PlayerState.PAUSED || state === window.YT.PlayerState.BUFFERING) {
-              setPlaying(state === window.YT.PlayerState.PLAYING);
-            }
-            if (state === window.YT.PlayerState.PAUSED) {
-                setPlaying(false);
+            } else if (state === window.YT.PlayerState.PAUSED || state === window.YT.PlayerState.BUFFERING) {
+              // We keep it 'true' during buffering to show active UI, but false on explicit pause
+              setPlaying(state === window.YT.PlayerState.BUFFERING || state === window.YT.PlayerState.PLAYING);
+            } else if (state === window.YT.PlayerState.CUED) {
+              setPlaying(false);
             }
           },
           onError: (event) => {
@@ -95,9 +99,15 @@ const YouTubePlayer = memo(function YouTubePlayer() {
             };
             console.error(`[Aurevon Player] Error ${event.data}: ${errorCodes[event.data] || 'Unknown error'}`);
             
-            // High-Resilience: Auto-skip on failure
-            if ([100, 101, 150].includes(event.data)) {
-                console.warn('[Aurevon Player] Auto-skipping unplayable content...');
+            // Embedded playback restrictions should not force a 0-second skip loop.
+            if ([101, 150].includes(event.data)) {
+                setPlaying(false);
+                console.warn('[Aurevon Player] Embedded playback is restricted for this track. Staying on the current item.');
+                return;
+            }
+
+            if (event.data === 100) {
+                console.warn('[Aurevon Player] Auto-skipping unavailable content...');
                 onTrackEndRef.current();
             }
           },

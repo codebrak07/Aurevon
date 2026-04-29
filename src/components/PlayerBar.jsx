@@ -8,7 +8,7 @@ import NowPlaying from './NowPlaying';
 import './PlayerBar.css';
 
 const PlayerBar = memo(function PlayerBar({ onOpenLibrary, onAddToPlaylist }) {
-  const { currentTrack, isLoading, errors, toggleLike, likedSongs, stopPlayback } = usePlayer();
+  const { currentTrack, isLoading, isPlaying, errors, toggleLike, likedSongs, stopPlayback } = usePlayer();
   const [queueOpen, setQueueOpen] = useState(false);
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
 
@@ -38,64 +38,58 @@ const PlayerBar = memo(function PlayerBar({ onOpenLibrary, onAddToPlaylist }) {
           </div>
 
           <div className="player-dock__main">
-            {/* Track Mini Info */}
-            <div className="player-dock__track" onClick={() => setNowPlayingOpen(true)}>
-              <div className="player-dock__art-wrapper">
+            {/* Main Control Strip (The 10-button row) */}
+            <div className="player-dock__strip">
+              <div className="player-dock__art-mini" onClick={() => setNowPlayingOpen(true)}>
                 {currentTrack?.albumArt ? (
                   <img src={currentTrack.albumArtSmall || currentTrack.albumArt} alt="" />
                 ) : (
                   <span className="material-symbols-outlined">music_note</span>
                 )}
-                {/* Playing Animation */}
-                {!isLoading && currentTrack && (
-                   <div className="player-dock__playing-icon">
+                {!isLoading && isPlaying && (
+                   <div className="player-dock__bars">
                       <span></span><span></span><span></span>
                    </div>
                 )}
               </div>
-              <div className="player-dock__info">
-                <span className="player-dock__title">{currentTrack?.title || 'Loading...'}</span>
-                <span className="player-dock__artist">{currentTrack?.artist || 'Unknown'}</span>
+
+              <div className="player-dock__controls-group">
+                <Controls />
               </div>
-            </div>
 
-            {/* Core Controls */}
-            <div className="player-dock__controls">
-              <Controls />
-            </div>
+              <div className="player-dock__actions-group">
+                <button
+                  className={`player-dock__btn ${isCurrentLiked ? 'is-liked' : ''}`}
+                  onClick={handleLike}
+                  title="Like"
+                >
+                  <span className="material-symbols-outlined">{isCurrentLiked ? 'favorite' : 'favorite'}</span>
+                </button>
+                
+                <button
+                  className={`player-dock__btn ${queueOpen ? 'is-active' : ''}`}
+                  onClick={() => setQueueOpen(!queueOpen)}
+                  title="Queue"
+                >
+                  <span className="material-symbols-outlined">queue_music</span>
+                </button>
 
-            {/* Action Group */}
-            <div className="player-dock__actions">
-              <button
-                className={`player-dock__btn ${isCurrentLiked ? 'is-liked' : ''}`}
-                onClick={handleLike}
-              >
-                <span className="material-symbols-outlined">
-                  {isCurrentLiked ? 'favorite' : 'favorite'}
-                </span>
-              </button>
-              
-              <button
-                className={`player-dock__btn ${queueOpen ? 'is-active' : ''}`}
-                onClick={() => setQueueOpen(!queueOpen)}
-              >
-                <span className="material-symbols-outlined">queue_music</span>
-              </button>
+                <button
+                  className="player-dock__btn"
+                  onClick={onOpenLibrary}
+                  title="Lyrics"
+                >
+                  <span className="material-symbols-outlined">lyrics</span>
+                </button>
 
-              <button
-                className="player-dock__btn"
-                onClick={onOpenLibrary}
-              >
-                <span className="material-symbols-outlined">library_music</span>
-              </button>
-
-              <button
-                className="player-dock__btn text-red-400/70 hover:text-red-400"
-                onClick={stopPlayback}
-                title="Stop playback"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
+                <button
+                  className="player-dock__btn player-dock__btn--close"
+                  onClick={stopPlayback}
+                  title="Close"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

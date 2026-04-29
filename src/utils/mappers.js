@@ -26,6 +26,29 @@ export function mapITunesTrack(item) {
   const hqArtwork = item.artworkUrl100?.replace('100x100bb', '600x600bb') || '';
   const lowArtwork = item.artworkUrl100?.replace('100x100bb', '300x300bb') || '';
 
+  // Detection for Hindi Artists to prevent auto-translation issues
+  const HINDI_ARTISTS = [
+    'arijit singh', 'pritam', 'shreya ghoshal', 'amit trivedi', 
+    'vishal-shekhar', 'a.r. rahman', 'ar rahman', 'badshah', 
+    'diljit dosanjh', 'jubin nautiyal', 'neha kakkar', 'sidhu moose wala',
+    'ap dhillon', 'gurinder gill', 'shubh', 'king', 'raftaar', 'krsna',
+    'darshan raval', 'armaan malik', 'amaal mallik', 'Atif Aslam', 'Mohit Chauhan'
+  ];
+  const isHindiArtist = HINDI_ARTISTS.some(a => (item.artistName || '').toLowerCase().includes(a.toLowerCase()));
+  
+  // Quality Filter: Reject fake AI/Impersonator tracks
+  const VALID_HINDI_GENRES = ['bollywood', 'indian', 'pop', 'world', 'devotional', 'regional indian', 'playback'];
+  const trackGenre = (item.primaryGenreName || '').toLowerCase();
+  const isSuspiciousGenre = !VALID_HINDI_GENRES.some(g => trackGenre.includes(g)) && 
+                          (trackGenre.includes('hip-hop') || trackGenre.includes('rap') || trackGenre.includes('electronic'));
+
+  const SUSPICIOUS_COLLECTIONS = ['forever in your eyes', 'every moment feels like heaven', 'feels like heaven'];
+  const isSuspiciousCollection = SUSPICIOUS_COLLECTIONS.some(c => (item.collectionName || '').toLowerCase().includes(c));
+
+  if (isHindiArtist && (isSuspiciousGenre || isSuspiciousCollection)) {
+    return null;
+  }
+  
   return {
     id: String(item.trackId),
     title: item.trackName || '',
@@ -38,6 +61,7 @@ export function mapITunesTrack(item) {
     spotifyId: String(item.trackId), // Store trackId in spotifyId so the app components don't break
     genres: item.primaryGenreName ? [item.primaryGenreName] : [],
     releaseDate: item.releaseDate || '',
+    isHindiArtist: isHindiArtist
   };
 }
 

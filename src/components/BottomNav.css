@@ -12,20 +12,23 @@
   justify-content: space-around;
   align-items: center;
   padding: var(--space-2) 0 calc(var(--space-2) + var(--safe-bottom));
-  background: rgba(14, 14, 14, 0.92);
+  background: var(--bg-glass-heavy);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .bottom-nav__item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: var(--space-1) var(--space-4);
-  color: var(--text-muted);
-  transition: color var(--duration-fast) var(--ease-out);
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
   position: relative;
   -webkit-tap-highlight-color: transparent;
 }
@@ -36,30 +39,43 @@
 }
 
 .bottom-nav__item--active {
-  color: white;
+  color: var(--text-primary);
 }
 
 .bottom-nav__icon {
   font-size: 24px;
   transition: all var(--duration-fast) var(--ease-out);
+  color: inherit;
 }
 
 .bottom-nav__item--active .bottom-nav__icon {
   color: var(--accent-green);
-  filter: drop-shadow(0 0 8px rgba(114, 254, 143, 0.3));
+  filter: drop-shadow(0 0 12px var(--accent-glow));
 }
 
 .bottom-nav__label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.2px;
+  color: inherit;
 }
 
 .bottom-nav__item--active .bottom-nav__label {
-  color: white;
+  color: var(--text-primary);
 }
 
 /* ── When player is visible, push bottom nav content up above dock ── */
 .has-player .bottom-nav {
   padding-bottom: calc(var(--space-2) + var(--safe-bottom));
+}
+
+@media (max-width: 420px) {
+  .bottom-nav__icon {
+    font-size: 21px;
+  }
+
+  .bottom-nav__label {
+    font-size: 9px;
+    letter-spacing: 0.1px;
+  }
 }

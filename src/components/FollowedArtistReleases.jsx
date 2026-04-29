@@ -76,7 +76,7 @@ export default function FollowedArtistReleases({ followedArtists = [], onAddToPl
             
             {tracks.length > 5 && (
               <button 
-                className="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 font-bold transition-all border border-white/5"
+                className="load-more-btn"
                 onClick={() => setShowAll(!showAll)}
               >
                 {showAll ? 'Show Less' : `Load More (${tracks.length - 5} more)`}

@@ -1,9 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
+import { getGoogleOriginIssue } from '../utils/googleAuth';
 import './Settings.css';
 
+const getGsiState = () => {
+  if (!window.__aurevonGsiState) {
+    window.__aurevonGsiState = { initialized: false };
+  }
+  return window.__aurevonGsiState;
+};
+
 export default function Settings() {
-  const { userProfile, updateUserProfile, user, token } = usePlayer();
+  const { userProfile, updateUserProfile, user, token, authStatus, loginWithGoogle } = usePlayer();
   
   const [formData, setFormData] = useState({
     name: userProfile?.name || user?.name || '',
@@ -16,6 +24,134 @@ export default function Settings() {
   });
 
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const [loginError, setLoginError] = useState(null);
+  const [showGoogleFallback, setShowGoogleFallback] = useState(false);
+  const [googlePrompting, setGooglePrompting] = useState(false);
+  const gsiInitialized = useRef(false);
+
+  const triggerGooglePrompt = () => {
+    const originIssue = getGoogleOriginIssue();
+    if (originIssue) {
+      setLoginError(originIssue);
+      setShowGoogleFallback(true);
+      return;
+    }
+
+    if (!window.google?.accounts?.id) {
+      setLoginError('Google Sign-In is still loading. Please try again in a moment.');
+      setShowGoogleFallback(true);
+      return;
+    }
+
+    setGooglePrompting(true);
+    try {
+      window.google.accounts.id.prompt((notification) => {
+        const notDisplayed = notification?.isNotDisplayed?.();
+        const skipped = notification?.isSkippedMoment?.();
+        const dismissed = notification?.isDismissedMoment?.();
+
+        if (notDisplayed || skipped || dismissed) {
+          setShowGoogleFallback(true);
+        }
+        setGooglePrompting(false);
+      });
+    } catch (error) {
+      console.error('Google prompt failed:', error);
+      setLoginError('Could not open Google Sign-In. Please try again.');
+      setShowGoogleFallback(true);
+      setGooglePrompting(false);
+    }
+  };
+
+  useEffect(() => {
+    setFormData({
+      name: userProfile?.name || user?.name || '',
+      fullName: userProfile?.fullName || user?.name || '',
+      email: userProfile?.email || user?.email || '',
+      dob: userProfile?.dob || '',
+      gender: userProfile?.gender || '',
+      queuingMode: userProfile?.preferences?.queuingMode || 'ai',
+      username: user?.username || ''
+    });
+  }, [userProfile, user]);
+
+  useEffect(() => {
+    if (authStatus === 'authenticated') return;
+
+    const initGoogle = () => {
+      const originIssue = getGoogleOriginIssue();
+      if (originIssue) {
+        setLoginError(originIssue);
+        setShowGoogleFallback(true);
+        return;
+      }
+
+      if (!window.google || !import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+        setShowGoogleFallback(true);
+        return;
+      }
+
+      try {
+        const gsiState = getGsiState();
+        if (!gsiInitialized.current && !gsiState.initialized) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            callback: async (res) => {
+              if (!res.credential) return;
+
+              setLoginError(null);
+              try {
+                await loginWithGoogle(res.credential);
+              } catch (err) {
+                setLoginError(err.response?.data?.message || 'Login failed. Please try again.');
+              }
+            }
+          });
+          gsiInitialized.current = true;
+          gsiState.initialized = true;
+        } else if (gsiState.initialized) {
+          gsiInitialized.current = true;
+        }
+
+        const parent = document.getElementById('settings-google-signin-btn');
+        if (parent) {
+          parent.innerHTML = '';
+          window.google.accounts.id.renderButton(parent, {
+            theme: 'filled_black',
+            size: 'large',
+            shape: 'pill',
+            text: 'signin_with',
+            logo_alignment: 'left',
+            width: Math.min(parent.offsetWidth || 280, 320)
+          });
+          setTimeout(() => {
+            const visibleIframe = parent.querySelector('iframe, div[role="button"]');
+            const failedToRender = !visibleIframe || parent.getBoundingClientRect().height < 40;
+            setShowGoogleFallback(failedToRender);
+            if (failedToRender && !loginError) {
+              setLoginError('Google button did not render inside settings. You can still use the backup sign-in button below.');
+            }
+          }, 350);
+        }
+      } catch (err) {
+        console.error('GIS Error:', err);
+        setShowGoogleFallback(true);
+      }
+    };
+
+    if (!window.google) {
+      const interval = setInterval(() => {
+        if (window.google) {
+          initGoogle();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+
+    const timeout = setTimeout(initGoogle, 150);
+    return () => clearTimeout(timeout);
+  }, [authStatus, loginError, loginWithGoogle]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,7 +203,32 @@ export default function Settings() {
       <form className="settings-form" onSubmit={handleSave}>
         {/* Experience Section */}
         <section className="settings-section">
-          <h3 className="section-title">Music Experience</h3>
+          <h3 className="section-title">App Experience</h3>
+          
+          <div className="setting-card">
+            <div className="setting-info">
+              <span className="material-symbols-outlined setting-icon">palette</span>
+              <div className="setting-text">
+                <h4 className="setting-label">Light Mode</h4>
+                <p className="setting-desc">Switch between dark and light themes</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              className={`toggle-switch ${document.documentElement.getAttribute('data-theme') === 'light' ? 'toggle-switch--active' : ''}`}
+              onClick={() => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('wavify_theme', next);
+                // Force re-render if needed (though CSS handles it)
+                setFormData(prev => ({ ...prev, _t: Date.now() }));
+              }}
+            >
+              <div className="toggle-handle" />
+            </button>
+          </div>
+
           <div className="setting-card">
             <div className="setting-info">
               <span className="material-symbols-outlined setting-icon">smart_toy</span>
@@ -204,8 +365,46 @@ export default function Settings() {
       {!token && (
         <div className="settings-login-teaser">
           <span className="material-symbols-outlined">info</span>
-          <p>Login with Google to sync your settings across devices.</p>
+          <div>
+            <p>Login with Google to sync your settings across devices.</p>
+            {loginError && (
+              <p className="mt-2 text-red-400">{loginError}</p>
+            )}
+          </div>
         </div>
+      )}
+
+      {!token && (
+        <section className="settings-section">
+          <h3 className="section-title">Sign In</h3>
+          <div className="setting-card settings-google-card flex-col items-start gap-4">
+            <div className="setting-info">
+              <span className="material-symbols-outlined setting-icon">login</span>
+              <div className="setting-text">
+                <h4 className="setting-label">Sign in with Google</h4>
+                <p className="setting-desc">Use your existing account to sync likes, playlists, and profile settings.</p>
+              </div>
+            </div>
+            <div id="settings-google-signin-btn" className="settings-google-slot" />
+            <button
+              type="button"
+              onClick={triggerGooglePrompt}
+              className="settings-google-manual"
+              disabled={googlePrompting}
+            >
+              <span className="material-symbols-outlined text-[18px]">login</span>
+              {googlePrompting ? 'Opening Google...' : 'Continue with Google'}
+            </button>
+            {showGoogleFallback && (
+              <div className="settings-google-fallback">
+                <p className="text-[var(--text-primary)] font-semibold">Google sign-in button could not load.</p>
+                <p className="mt-1">
+                  {loginError || `Authorize ${window.location.origin} in Google Cloud Console for this client ID.`}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </div>
   );

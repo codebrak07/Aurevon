@@ -14,7 +14,7 @@
   font-family: var(--font-headline);
   font-size: var(--font-xl);
   font-weight: 800;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: -0.3px;
 }
 
@@ -31,7 +31,8 @@
   transition: all var(--duration-fast) var(--ease-out);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
               0 0 20px rgba(114, 254, 143, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  background: var(--surface-container-low);
 }
 
 .featured-album:hover {
@@ -105,7 +106,7 @@
   font-family: var(--font-headline);
   font-size: var(--font-2xl);
   font-weight: 800;
-  color: white;
+  color: white; /* Keep white on dark image overlay */
   margin-bottom: var(--space-2);
   letter-spacing: -0.5px;
 }
@@ -222,7 +223,7 @@
 .trending-item__title {
   font-size: var(--font-base);
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

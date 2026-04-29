@@ -115,8 +115,74 @@
   --bg-heavy: rgba(0, 0, 0, 0.7);
   --error: #ff7351;
   --primary: var(--accent);
+  --on-primary: #00391c;
+  --text-on-primary: #00391c;
   --primary-rgb: 114, 254, 143;
+  --bg-rgb: 14, 14, 14;
+  --text-primary-rgb: 255, 255, 255;
 }
+
+[data-theme='light'] {
+  --bg-dark: #f8fafc;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f1f5f9;
+  --bg-elevated: #ffffff;
+  --surface-container-low: #f8fafc;
+  --surface-container: #ffffff;
+  --surface-container-high: #f1f5f9;
+  --surface-container-highest: #e2e8f0;
+  --surface-bright: #ffffff;
+
+  --accent-green: #059669;
+  --accent: #059669;
+  --accent-purple: #7c3aed;
+  --accent-blue: #0284c7;
+  --accent-glow: rgba(5, 150, 105, 0.12);
+  
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --bg-glass-heavy: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-bright: rgba(0, 0, 0, 0.12);
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --on-surface-variant: #475569;
+
+  --grad-mesh: radial-gradient(circle at 0% 0%, rgba(5, 150, 105, 0.06) 0%, transparent 40%),
+               radial-gradient(circle at 100% 100%, rgba(2, 132, 199, 0.05) 0%, transparent 40%);
+  --grad-dynamic: radial-gradient(circle at top center, rgba(5, 150, 105, 0.1) 0%, rgba(248, 250, 252, 1) 70%);
+
+  --border: rgba(0, 0, 0, 0.1);
+  --on-primary: #ffffff;
+  --text-on-primary: #ffffff;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-bright: rgba(0, 0, 0, 0.15);
+  --bg-card-hover: rgba(0, 0, 0, 0.04);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --bg-rgb: 255, 255, 255;
+  --text-primary-rgb: 15, 23, 42;
+}
+
+.app-container {
+  padding-bottom: calc(var(--player-height) + 80px + var(--safe-bottom));
+}
+
+@media (max-width: 420px) {
+  .app-container {
+    padding-bottom: calc(var(--player-height) + 100px + var(--safe-bottom));
+  }
+}
+
+/* ── Theme Utilities ── */
+.bg-glass { background-color: var(--bg-glass); }
+.bg-surface { background-color: var(--surface-container); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.border-glass { border-color: var(--glass-border); }
+.border-glass-bright { border-color: var(--border-bright); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
 
 @media (max-width: 450px) {
   :root {
@@ -174,6 +240,41 @@
     .app__header {
       padding: 12px 14px !important;
     }
+
+    /* Mini Player Specific Overrides */
+    .player-dock-wrapper {
+      padding: 0 14px calc(14px + var(--safe-bottom)) !important;
+      bottom: calc(58px + var(--safe-bottom)) !important;
+    }
+
+    .player-dock__main {
+      padding: 10px 12px 12px !important;
+      gap: 6px !important;
+    }
+
+    .player-dock__art-wrapper {
+      width: 42px !important;
+      height: 42px !important;
+    }
+
+    .player-dock__title {
+      font-size: 12px !important;
+      max-width: 180px !important;
+    }
+
+    .player-dock__actions {
+      gap: 4px !important;
+      padding-left: 10px !important;
+    }
+
+    .player-dock__btn {
+      width: 34px !important;
+      height: 34px !important;
+    }
+
+    .player-dock__btn span {
+      font-size: 18px !important;
+    }
   }
 
   /* Profile Modal Scaling & Animation Fix */
@@ -203,11 +304,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  font-size: 16px;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-dark);
+  overflow-x: hidden;
+  transition: background-color var(--duration-normal) var(--ease-out), color var(--duration-normal) var(--ease-out);
 }
 
 /* ── Aurora Background ── */
@@ -333,7 +439,7 @@ a {
   font-family: var(--font-headline);
   font-size: var(--font-xs);
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   padding: var(--space-4) var(--space-5) var(--space-2);

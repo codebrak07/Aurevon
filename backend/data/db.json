@@ -60,8 +60,8 @@
       "email": "aalekhmaheshwari@gmail.com",
       "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocKvN3H5DY2fxt3n7ijNBgLU4LzaiNEyjHCA9xypQI0Y84NUs1A=s96-c",
       "followedArtists": [
-        "Arijit Singh",
-        "The Weeknd"
+        "The Weeknd",
+        "Arijit Singh"
       ],
       "likedSongs": [
         {
@@ -134,8 +134,303 @@
           ]
         }
       ],
-      "recentlyPlayed": [],
-      "preferences": {}
+      "recentlyPlayed": [
+        {
+          "id": "apple-1879493592",
+          "title": "Bairan",
+          "artist": "Banjaare",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/600x600bb.jpg",
+          "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/100x100bb.jpg",
+          "source": "apple-music",
+          "rank": 2,
+          "playedAt": 1777010579497
+        }
+      ],
+      "preferences": {
+        "queuingMode": "manual"
+      },
+      "createdAt": "2026-04-24T05:18:24.398Z",
+      "fullName": "Aalekh Maheshwari",
+      "lastPlaybackState": {
+        "currentTrack": null,
+        "videoId": null,
+        "queue": [
+          {
+            "id": "1578450680",
+            "title": "King Kong - Type Beat Mhd",
+            "artist": "undefined undefined",
+            "artistId": "1577966116",
+            "album": "King Kong - Type Beat Mhd - Single",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/50/df/52/50df5267-e391-9816-c84d-87175b41a774/9c7b03e8-dc61-4f49-bef4-5df52b165540.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/50/df/52/50df5267-e391-9816-c84d-87175b41a774/9c7b03e8-dc61-4f49-bef4-5df52b165540.jpg/300x300bb.jpg",
+            "duration": 167744,
+            "spotifyId": "1578450680",
+            "genres": [
+              "Instrumental"
+            ],
+            "releaseDate": "2021-08-12T12:00:00Z"
+          },
+          {
+            "id": "apple-1879493592",
+            "title": "Bairan",
+            "artist": "Banjaare",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/100x100bb.jpg",
+            "source": "apple-music",
+            "rank": 2
+          },
+          {
+            "id": "apple-1885907881",
+            "title": "Jaiye Sajana",
+            "artist": "Shashwat Sachdev, Jasmine Sandlas & Satinder Sartaaj",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/89/74/08/897408d1-39d9-5d32-06a8-256ea77e4158/8902894362900_cover.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/89/74/08/897408d1-39d9-5d32-06a8-256ea77e4158/8902894362900_cover.jpg/100x100bb.jpg",
+            "source": "apple-music",
+            "rank": 1
+          },
+          {
+            "id": "1879493592",
+            "title": "Bairan",
+            "artist": "Banjaare",
+            "artistId": "1782253872",
+            "album": "Bairan - Single",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/bd/01/3cbd01ad-1bbd-14b5-fb72-1d61c101d49d/821530642238.jpg/300x300bb.jpg",
+            "duration": 150857,
+            "spotifyId": "1879493592",
+            "genres": [
+              "Indian Pop"
+            ],
+            "releaseDate": "2026-01-23T12:00:00Z"
+          },
+          {
+            "id": "1111703146",
+            "title": "Raat Bhar",
+            "artist": "Arijit Singh & Shreya Ghoshal",
+            "artistId": "484568188",
+            "album": "Heropanti (Original Motion Picture Soundtrack)",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+            "duration": 325582,
+            "spotifyId": "1111703146",
+            "genres": [
+              "Bollywood"
+            ],
+            "releaseDate": "2014-04-21T07:00:00Z"
+          },
+          {
+            "id": "1743852427",
+            "title": "Love Me Not",
+            "artist": "Ravyn Lenae",
+            "artistId": "1044417443",
+            "album": "Bird's Eye",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+            "duration": 213467,
+            "spotifyId": "1743852427",
+            "genres": [
+              "R&B/Soul"
+            ],
+            "releaseDate": "2024-05-03T12:00:00Z"
+          },
+          {
+            "id": "1731057886",
+            "title": "If We Being Rëal",
+            "artist": "Yeat",
+            "artistId": "1318094493",
+            "album": "2093",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/300x300bb.jpg",
+            "duration": 172500,
+            "spotifyId": "1731057886",
+            "genres": [
+              "Hip-Hop/Rap"
+            ],
+            "releaseDate": "2024-02-16T12:00:00Z"
+          }
+        ],
+        "currentIndex": 1,
+        "currentTime": 0
+      },
+      "dob": "",
+      "gender": "",
+      "listeningHistory": [
+        {
+          "track": {
+            "id": "apple-1854466376",
+            "title": "Khat",
+            "artist": "Navjot Ahuja",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ea/01/29/ea012994-51e8-6883-e1e1-c71fdd51754f/5026854264479.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ea/01/29/ea012994-51e8-6883-e1e1-c71fdd51754f/5026854264479.jpg/100x100bb.jpg",
+            "source": "apple-music",
+            "rank": 7
+          },
+          "percentListened": 0.05532365743174631,
+          "label": "skipped_early",
+          "isLiked": false,
+          "ts": 1777010892900
+        },
+        {
+          "track": {
+            "id": "1743852427",
+            "title": "Love Me Not",
+            "artist": "Ravyn Lenae",
+            "artistId": "1044417443",
+            "album": "Bird's Eye",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+            "duration": 213467,
+            "spotifyId": "1743852427",
+            "genres": [
+              "R&B/Soul"
+            ]
+          },
+          "percentListened": 0.9998879771926704,
+          "label": "looped",
+          "isLiked": true,
+          "ts": 1775330304989
+        },
+        {
+          "track": {
+            "id": "1452026049",
+            "title": "Century",
+            "artist": "Big Thief",
+            "artistId": "1083255351",
+            "album": "U.F.O.F.",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/c2/71/2b/c2712ba8-9fb4-da63-6b2a-f1f25275e9e6/Big_Thief_UFOF.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/c2/71/2b/c2712ba8-9fb4-da63-6b2a-f1f25275e9e6/Big_Thief_UFOF.jpg/300x300bb.jpg",
+            "duration": 187307,
+            "spotifyId": "1452026049",
+            "genres": [
+              "Alternative"
+            ]
+          },
+          "percentListened": 0.4422111867109884,
+          "label": "neutral",
+          "isLiked": false,
+          "ts": 1775234322410
+        },
+        {
+          "track": {
+            "id": "1743852427",
+            "title": "Love Me Not",
+            "artist": "Ravyn Lenae",
+            "artistId": "1044417443",
+            "album": "Bird's Eye",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+            "duration": 213467,
+            "spotifyId": "1743852427",
+            "genres": [
+              "R&B/Soul"
+            ]
+          },
+          "percentListened": 1.0008302394227726,
+          "label": "listened_fully",
+          "isLiked": true,
+          "ts": 1775220040414
+        },
+        {
+          "track": {
+            "id": "1754025109",
+            "title": "Ophelia",
+            "artist": "The Lumineers",
+            "artistId": "350720227",
+            "album": "Cleopatra (Deluxe Edition)",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/46/21/0c462181-5777-67a5-ec92-1775e9a3d5d4/22999.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/46/21/0c462181-5777-67a5-ec92-1775e9a3d5d4/22999.jpg/300x300bb.jpg",
+            "duration": 160097,
+            "spotifyId": "1754025109",
+            "genres": [
+              "Alternative"
+            ]
+          },
+          "percentListened": 1.000536569363631,
+          "label": "listened_fully",
+          "isLiked": false,
+          "ts": 1775219783310
+        },
+        {
+          "track": {
+            "id": "1754025109",
+            "title": "Ophelia",
+            "artist": "The Lumineers",
+            "artistId": "350720227",
+            "album": "Cleopatra (Deluxe Edition)",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/46/21/0c462181-5777-67a5-ec92-1775e9a3d5d4/22999.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/46/21/0c462181-5777-67a5-ec92-1775e9a3d5d4/22999.jpg/300x300bb.jpg",
+            "duration": 160097,
+            "spotifyId": "1754025109",
+            "genres": [
+              "Alternative"
+            ]
+          },
+          "percentListened": 1.000536569363631,
+          "label": "listened_fully",
+          "isLiked": false,
+          "ts": 1775219783310
+        },
+        {
+          "track": {
+            "id": "1743852427",
+            "title": "Love Me Not",
+            "artist": "Ravyn Lenae",
+            "artistId": "1044417443",
+            "album": "Bird's Eye",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+            "duration": 213467,
+            "spotifyId": "1743852427",
+            "genres": [
+              "R&B/Soul"
+            ]
+          },
+          "percentListened": 1.0008200710993602,
+          "label": "listened_fully",
+          "isLiked": false,
+          "ts": 1775219618556
+        },
+        {
+          "track": {
+            "id": "1743852427",
+            "title": "Love Me Not",
+            "artist": "Ravyn Lenae",
+            "artistId": "1044417443",
+            "album": "Bird's Eye",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+            "duration": 213467,
+            "spotifyId": "1743852427",
+            "genres": [
+              "R&B/Soul"
+            ]
+          },
+          "percentListened": 1.0008200710993602,
+          "label": "listened_fully",
+          "isLiked": false,
+          "ts": 1775219618556
+        },
+        {
+          "track": {
+            "id": "1111703146",
+            "title": "Raat Bhar",
+            "artist": "Arijit Singh & Shreya Ghoshal",
+            "artistId": "484568188",
+            "album": "Heropanti (Original Motion Picture Soundtrack)",
+            "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+            "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+            "duration": 325582,
+            "spotifyId": "1111703146",
+            "genres": [
+              "Bollywood"
+            ]
+          },
+          "percentListened": 1.000241752718262,
+          "label": "listened_fully",
+          "isLiked": true,
+          "ts": 1775213851505
+        }
+      ]
     },
     {
       "id": "fc7c802c-3a87-442d-9163-4b5b7e621374",
@@ -169,6 +464,19 @@
       ],
       "recentlyPlayed": [],
       "preferences": {}
+    },
+    {
+      "id": "09914693-f6dd-48e7-8dcc-aa471c862ed3",
+      "googleId": "101081255154102441831",
+      "username": "braksan",
+      "email": "braksan17@gmail.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIdJOH6KI3-E8y1gzeV_AqKS2srX8XdgrhkeyOgU1TIHCY1kg=s96-c",
+      "followedArtists": [],
+      "likedSongs": [],
+      "playlists": [],
+      "recentlyPlayed": [],
+      "preferences": {},
+      "createdAt": "2026-04-23T11:27:24.293Z"
     }
   ],
   "playlists": []

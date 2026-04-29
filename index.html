@@ -8,6 +8,7 @@
     <meta name="description" content="Aurevon — AI-powered music player. Search, stream, and discover with intelligent recommendations." />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/aurevon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -22,7 +23,26 @@
           theme: {
             extend: {
               colors: {
-                "surface-variant": "#262626", "surface-container": "#1a1a1a", "on-tertiary": "#005762", "secondary": "#7cfbb5", "on-primary": "#005f26", "on-surface": "#ffffff", "tertiary": "#88ebff", "surface-container-lowest": "#000000", "outline-variant": "#484847", "error-dim": "#d53d18", "on-primary-container": "#002a0c", "primary-fixed": "#72fe8f", "on-background": "#ffffff", "secondary-container": "#006d42", "on-tertiary-fixed-variant": "#005763", "surface-container-high": "#20201f", "on-primary-fixed-variant": "#006a2b", "surface-tint": "#72fe8f", "on-tertiary-fixed": "#003840", "on-primary-fixed": "#004a1c", "tertiary-fixed": "#0fe3ff", "primary": "#72fe8f", "outline": "#767575", "on-secondary": "#005e39", "on-error-container": "#ffd2c8", "primary-dim": "#63ef82", "on-secondary-container": "#e2ffe9", "secondary-fixed-dim": "#6deca8", "surface": "#0e0e0e", "surface-dim": "#0e0e0e", "primary-container": "#1cb853", "tertiary-container": "#0fe3ff", "tertiary-dim": "#00d4ee", "secondary-dim": "#6deca8", "surface-container-highest": "#262626", "primary-fixed-dim": "#63ef82", "on-error": "#450900", "inverse-on-surface": "#565555", "on-secondary-fixed-variant": "#006940", "background": "#0e0e0e", "inverse-surface": "#fcf9f8", "error-container": "#b92902", "inverse-primary": "#006e2d", "secondary-fixed": "#7cfbb5", "surface-bright": "#2c2c2c", "on-surface-variant": "#adaaaa", "tertiary-fixed-dim": "#00d4ee", "on-tertiary-container": "#004d58", "error": "#ff7351", "on-secondary-fixed": "#00492b", "surface-container-low": "#131313"
+                "surface-variant": "var(--surface-container-highest)", 
+                "surface-container": "var(--surface-container)", 
+                "secondary": "var(--text-secondary)", 
+                "on-primary": "var(--on-primary)", 
+                "on-surface": "var(--text-primary)", 
+                "tertiary": "var(--accent-tertiary)", 
+                "surface-container-lowest": "var(--bg-dark)", 
+                "surface-container-high": "var(--surface-container-high)", 
+                "surface-tint": "var(--accent-green)", 
+                "primary": "var(--primary)", 
+                "outline": "var(--text-muted)", 
+                "surface": "var(--bg-primary)", 
+                "surface-dim": "var(--bg-dark)", 
+                "primary-container": "var(--accent-green-container)", 
+                "surface-container-highest": "var(--surface-container-highest)", 
+                "background": "var(--bg-dark)", 
+                "surface-bright": "var(--surface-bright)", 
+                "on-surface-variant": "var(--on-surface-variant)", 
+                "error": "var(--error)", 
+                "surface-container-low": "var(--surface-container-low)"
               },
               fontFamily: { "headline": ["Outfit", "sans-serif"], "body": ["Plus Jakarta Sans", "sans-serif"], "label": ["Plus Jakarta Sans", "sans-serif"] },
               borderRadius: {"DEFAULT": "0.75rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"}

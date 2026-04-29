@@ -57,7 +57,7 @@ const MagicVibe = memo(function MagicVibe() {
                 <h2 className="magic-hero__title">What's your <span className="text-glow">Vibe</span> today?</h2>
                 <div className="space-y-8 mt-10">
                   <div>
-                    <p className="text-xs font-bold text-[#686880] uppercase tracking-widest mb-4">How are you feeling?</p>
+                    <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">How are you feeling?</p>
                     <input
                       className="magic-v2-input"
                       type="text"
@@ -67,7 +67,7 @@ const MagicVibe = memo(function MagicVibe() {
                     />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#686880] uppercase tracking-widest mb-4">Choose a Genre</p>
+                    <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">Choose a Genre</p>
                     <div className="flex flex-wrap gap-3">
                       {GENRES.map(g => (
                         <button 
@@ -97,7 +97,7 @@ const MagicVibe = memo(function MagicVibe() {
                 <h2 className="magic-hero__title">Final <span className="text-glow">Touches</span></h2>
                 <div className="space-y-8 mt-10">
                   <div>
-                    <p className="text-xs font-bold text-[#686880] uppercase tracking-widest mb-4">Preferred Language</p>
+                    <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">Preferred Language</p>
                     <div className="grid grid-cols-3 gap-3">
                       {LANGUAGES.map(l => (
                         <button 
@@ -111,7 +111,7 @@ const MagicVibe = memo(function MagicVibe() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#686880] uppercase tracking-widest mb-4">Any example songs? (Optional)</p>
+                    <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">Any example songs? (Optional)</p>
                     <textarea
                       className="magic-v2-input min-h-[100px] py-4"
                       placeholder="e.g. Pehle Bhi Main, or Blinding Lights..."

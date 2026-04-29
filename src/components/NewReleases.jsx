@@ -79,7 +79,7 @@ const NewReleases = memo(function NewReleases() {
       image: track.thumbnail,
       track: track 
     });
-    setIsFeaturedFromFollowed(false);
+    setIsPersonalized(false);
   };
 
   useEffect(() => {

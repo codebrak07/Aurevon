@@ -1,7 +1,15 @@
 import React, { useRef, useState, useEffect } from 'react';
 import usePlayer from '../hooks/usePlayer';
 import { searchArtists } from '../services/spotifyService';
+import { getGoogleOriginIssue } from '../utils/googleAuth';
 import './ProfileModal.css';
+
+const getGsiState = () => {
+  if (!window.__aurevonGsiState) {
+    window.__aurevonGsiState = { initialized: false };
+  }
+  return window.__aurevonGsiState;
+};
 
 export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtistSelect }) {
   const { 
@@ -9,6 +17,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
     followedArtists, 
     toggleFollowArtist,
     loginWithGoogle, 
+    updateUserProfile,
     logout, 
     user, 
     authStatus, 
@@ -20,20 +29,66 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
   const [searchResults, setSearchResults] = useState([]);
   const [artistMetadata, setArtistMetadata] = useState({}); // { [artistName]: artistObj }
   const [loginError, setLoginError] = useState(null);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [showGoogleFallback, setShowGoogleFallback] = useState(false);
+  const [googlePrompting, setGooglePrompting] = useState(false);
   
   const fileInputRef = useRef(null);
   const gsiInitialized = useRef(false);
+
+  const triggerGooglePrompt = () => {
+    const originIssue = getGoogleOriginIssue();
+    if (originIssue) {
+      setLoginError(originIssue);
+      setShowGoogleFallback(true);
+      return;
+    }
+
+    if (!window.google?.accounts?.id) {
+      setLoginError('Google Sign-In is still loading. Please try again in a moment.');
+      setShowGoogleFallback(true);
+      return;
+    }
+
+    setGooglePrompting(true);
+    try {
+      window.google.accounts.id.prompt((notification) => {
+        const notDisplayed = notification?.isNotDisplayed?.();
+        const skipped = notification?.isSkippedMoment?.();
+        const dismissed = notification?.isDismissedMoment?.();
+
+        if (notDisplayed || skipped || dismissed) {
+          setShowGoogleFallback(true);
+        }
+        setGooglePrompting(false);
+      });
+    } catch (error) {
+      console.error('Google prompt failed:', error);
+      setLoginError('Could not open Google Sign-In. Please try again.');
+      setShowGoogleFallback(true);
+      setGooglePrompting(false);
+    }
+  };
 
   // Manual Google Login Integration (GIS)
   useEffect(() => {
     if (isOpen && authStatus !== 'authenticated') {
       const initGoogle = () => {
-        if (window.google) {
+        const originIssue = getGoogleOriginIssue();
+        if (originIssue) {
+          setLoginError(originIssue);
+          setShowGoogleFallback(true);
+          return;
+        }
+
+        if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
           try {
             // Only initialize once per session to avoid GIS warnings
-            if (!gsiInitialized.current) {
+            const gsiState = getGsiState();
+            if (!gsiInitialized.current && !gsiState.initialized) {
               window.google.accounts.id.initialize({
                 client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                itp_support: true,
                 callback: async (res) => {
                   if (res.credential) {
                     setLoginError(null);
@@ -46,21 +101,38 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                 }
               });
               gsiInitialized.current = true;
+              gsiState.initialized = true;
+            } else if (gsiState.initialized) {
+              gsiInitialized.current = true;
             }
             
             const parent = document.getElementById('google-signin-btn');
             if (parent) {
-              // Ensure button is rendered
+              parent.innerHTML = '';
               window.google.accounts.id.renderButton(parent, {
                 theme: 'filled_black',
                 size: 'large',
-                shape: 'circle',
-                width: 280
+                shape: 'pill',
+                text: 'signin_with',
+                logo_alignment: 'left',
+                width: Math.min(parent.offsetWidth || 280, 320)
               });
+
+              setTimeout(() => {
+                const visibleIframe = parent.querySelector('iframe, div[role="button"]');
+                const failedToRender = !visibleIframe || parent.getBoundingClientRect().height < 40;
+                setShowGoogleFallback(failedToRender);
+                if (failedToRender && !loginError) {
+                  setLoginError('Google button did not render inside the profile modal. You can still use the backup sign-in button below.');
+                }
+              }, 350);
             }
           } catch (err) {
             console.error('GIS Error:', err);
+            setShowGoogleFallback(true);
           }
+        } else {
+          setShowGoogleFallback(true);
         }
       };
 
@@ -79,7 +151,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
         return () => clearTimeout(timeout);
       }
     }
-  }, [isOpen, authStatus, loginWithGoogle]);
+  }, [isOpen, authStatus, loginError, loginWithGoogle]);
 
   useEffect(() => {
     if (isOpen && activeView === 'following' && (followedArtists?.length || 0) > 0) {
@@ -242,7 +314,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                     {/* Username Action */}
                     {!user?.username && authStatus === 'authenticated' && (
                         <button 
-                            onClick={(e) => { e.stopPropagation(); onOpenSettings(); }}
+                            onClick={(e) => { e.stopPropagation(); handleOpenSettings(); }}
                             className="mb-10 px-6 py-2 rounded-full bg-[#d394ff]/10 border border-[#d394ff]/30 text-[#d394ff] text-[10px] font-black uppercase tracking-widest hover:bg-[#d394ff] hover:text-black transition-all"
                         >
                             Set a Unique Username
@@ -260,16 +332,51 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                             className="flex flex-col items-center group transition-transform hover:scale-110"
                             onClick={() => setActiveView('following')}
                         >
-                            <span className="text-3xl font-black text-[#d394ff] group-hover:text-white transition-colors leading-none">
+                            <span className="text-3xl font-black text-[var(--accent-purple)] group-hover:text-[var(--text-primary)] transition-colors leading-none">
                                 {followedArtists?.length || 0}
                             </span>
-                            <span className="text-[10px] text-[#acaab1] group-hover:text-[#d394ff] uppercase tracking-[0.3em] font-black mt-3 transition-colors">
+                            <span className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--accent-purple)] uppercase tracking-[0.3em] font-black mt-3 transition-colors">
                                 Following
                             </span>
                         </button>
                     </div>
 
                     <div className="profile-modal-actions w-full space-y-4 mb-10">
+                        {authStatus !== 'authenticated' && (
+                            <div className="profile-google-card">
+                                <div className="profile-google-card__head">
+                                    <span className="material-symbols-outlined">login</span>
+                                    <div>
+                                        <p className="profile-google-card__title">Sign in with Google</p>
+                                        <p className="profile-google-card__desc">Sync your likes, playlists, and profile on every device.</p>
+                                    </div>
+                                </div>
+                                {loginError && (
+                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20">
+                                        {loginError}
+                                    </div>
+                                )}
+                                <div id="google-signin-btn" className="profile-google-card__slot"></div>
+                                <button
+                                    type="button"
+                                    onClick={triggerGooglePrompt}
+                                    className="profile-google-card__manual"
+                                    disabled={googlePrompting}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">login</span>
+                                    {googlePrompting ? 'Opening Google...' : 'Continue with Google'}
+                                </button>
+                                {showGoogleFallback && (
+                                    <div className="profile-google-card__fallback">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-white">Google Sign-In Unavailable</p>
+                                        <p className="mt-1 text-[11px] text-[#acaab1]">
+                                            {loginError || `Authorize ${window.location.origin} in Google Cloud Console for this client ID.`}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <button 
                             onClick={handleOpenSettings}
                             className="profile-modal-action-btn w-full py-5 rounded-[1.25rem] font-black tracking-widest uppercase text-[10px] bg-white/5 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center gap-3 border border-white/10"
@@ -277,7 +384,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                             <span className="material-symbols-outlined text-xl">tune</span>
                             Account Settings
                         </button>
-                        
+
                         {authStatus === 'authenticated' ? (
                             <div className="bg-white/5 rounded-[1.25rem] p-6 border border-white/10 w-full backdrop-blur-sm">
                                 <div className="flex items-center justify-between mb-4">
@@ -289,20 +396,12 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-1.5 h-1.5 rounded-full bg-[#72fe8f] shadow-[0_0_10px_#72fe8f]"></div>
-                                    <span className="text-[10px] text-[#acaab1] font-bold uppercase tracking-tighter">Your data is synced</span>
+                                    <span className="text-[10px] text-[#acaab1] font-bold uppercase tracking-tighter">
+                                        {isSyncing ? 'Syncing your data...' : 'Your data is synced'}
+                                    </span>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="pt-6 flex flex-col items-center gap-6">
-                                <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                {loginError && (
-                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20 mb-2">
-                                        {loginError}
-                                    </div>
-                                )}
-                                <div id="google-signin-btn" className="min-h-[44px]"></div>
-                            </div>
-                        )}
+                        ) : null}
                     </div>
 
                     <button 
@@ -318,16 +417,21 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                     <header className="flex items-center mb-8">
                         <button 
                             onClick={() => setActiveView('main')}
-                            className="p-2 -ml-2 rounded-full hover:bg-white/5 text-[#acaab1] hover:text-white transition-all focus:outline-none"
+                            className="p-2 -ml-2 rounded-full hover:bg-[var(--surface-container)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all focus:outline-none"
                         >
                             <span className="material-symbols-outlined text-2xl">arrow_back</span>
                         </button>
-                        <h3 className="ml-4 text-xl font-bold text-white uppercase tracking-[0.1em]">Artists Following</h3>
+                        <h3 className="ml-4 text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.1em]">Artists Following</h3>
                     </header>
 
                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        {isLoadingMetadata && (
+                            <div className="mb-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--surface-container-low)] px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                                Loading artist details...
+                            </div>
+                        )}
                         {(followedArtists?.length || 0) === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-48 text-[#acaab1] opacity-50">
+                            <div className="flex flex-col items-center justify-center h-48 text-[var(--text-muted)] opacity-50">
                                 <span className="material-symbols-outlined text-5xl mb-4">group</span>
                                 <p className="text-sm font-bold uppercase tracking-widest">Choose some favorites!</p>
                             </div>
@@ -339,10 +443,10 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                                     <div 
                                         key={artistName}
                                         onClick={() => handleArtistClick(artistName)}
-                                        className="group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all border border-transparent hover:border-white/10 cursor-pointer"
+                                        className="group flex items-center justify-between p-4 rounded-2xl bg-[var(--surface-container-low)] hover:bg-[var(--surface-container-high)] transition-all border border-transparent hover:border-[var(--glass-border)] cursor-pointer"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/5 flex-shrink-0">
+                                            <div className="w-12 h-12 rounded-full overflow-hidden bg-[var(--surface-container)] flex-shrink-0">
                                                 {metadata?.image ? (
                                                   <img 
                                                     src={metadata.image} 

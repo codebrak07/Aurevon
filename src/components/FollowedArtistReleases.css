@@ -36,14 +36,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-container-low);
   padding: 2px 6px;
   border-radius: var(--radius-xl);
-  transition: background 0.3s;
+  transition: all var(--duration-normal);
+  border: 1px solid transparent;
 }
 
 .fav-track-wrapper:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-container);
+  border-color: var(--glass-border);
 }
 
 .fav-track-wrapper .track-card {
@@ -77,13 +79,37 @@
   100% { opacity: 0.1; }
 }
 
+.load-more-btn {
+  margin-top: var(--space-6);
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-xl);
+  background: var(--surface-container-low);
+  color: var(--text-secondary);
+  font-weight: 800;
+  transition: all var(--duration-fast);
+  border: 1px solid var(--glass-border);
+  font-family: var(--font-headline);
+}
+
+.load-more-btn:hover {
+  background: var(--surface-container);
+  transform: translateY(-2px);
+  border-color: var(--accent-green);
+}
+
+.load-more-btn:active {
+  transform: scale(0.98);
+}
+
 /* ── Device Specific: CMF2 Pro (393x873) ── */
 @media (width: 393px) and (height: 873px) {
   .fav-releases {
-    margin-top: 24px;
+    margin-top: 16px;
+    padding: 0 14px;
   }
   
   .section-header {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 }

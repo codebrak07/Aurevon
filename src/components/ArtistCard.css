@@ -3,15 +3,17 @@
   align-items: center;
   gap: 16px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-container-low);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   transition: all 0.2s ease;
   user-select: none;
+  cursor: pointer;
 }
 
 .artist-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-card-hover);
+  border-color: var(--accent-green);
   transform: scale(1.02);
 }
 
@@ -21,7 +23,7 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--glass-border);
 }
 
 .artist-card__art img {
@@ -41,7 +43,7 @@
 .artist-card__name {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -49,8 +51,8 @@
 
 .artist-card__type {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .artist-card__follow-btn {
@@ -58,24 +60,25 @@
   border-radius: 20px;
   font-size: 0.813rem;
   font-weight: 700;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--surface-container);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .artist-card__follow-btn:hover {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-green);
+  background: var(--surface-container-high);
 }
 
 .artist-card__follow-btn.is-followed {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  background: var(--accent-green);
+  color: var(--on-primary);
+  border-color: var(--accent-green);
 }
 
 .artist-card__follow-btn.is-followed:hover {
   opacity: 0.8;
+  filter: brightness(1.1);
 }

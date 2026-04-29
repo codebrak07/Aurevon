@@ -110,7 +110,7 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
             {/* TopAppBar */}
             <header className="flex justify-between items-center w-full px-6 py-3 bg-transparent flex-shrink-0">
               <button onClick={onClose} className="hover:opacity-80 transition-opacity active:scale-95 duration-200">
-                <span className="material-symbols-outlined text-[#72fe8f] text-[28px] drop-shadow-lg">expand_more</span>
+                <span className="material-symbols-outlined text-primary text-[28px] drop-shadow-lg">expand_more</span>
               </button>
               
               <div className="flex items-center gap-4">
@@ -121,9 +121,9 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                  >
                     <span className="material-symbols-outlined text-on-surface-variant text-[26px] drop-shadow-lg">playlist_add</span>
                  </button>
-                 <button onClick={() => setViewMode(viewMode === 'artwork' ? 'lyrics' : 'artwork')} className="hover:opacity-80 transition-opacity active:scale-95 duration-200">
-                    <span className={`material-symbols-outlined text-[26px] drop-shadow-lg ${viewMode === 'lyrics' ? 'text-[#72fe8f]' : 'text-on-surface-variant'}`}>{viewMode === 'lyrics' ? 'lyrics' : 'queue_music'}</span>
-                 </button>
+                  <button onClick={() => setViewMode(viewMode === 'artwork' ? 'lyrics' : 'artwork')} className="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+                    <span className={`material-symbols-outlined text-[26px] drop-shadow-lg ${viewMode === 'lyrics' ? 'text-primary' : 'text-on-surface-variant'}`}>{viewMode === 'lyrics' ? 'lyrics' : 'queue_music'}</span>
+                  </button>
               </div>
             </header>
 
@@ -155,10 +155,10 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                 <div className="flex-shrink-0 np-bottom-group">
                   <section className="px-6 pt-3 pb-1 flex items-center justify-between np-track-info">
                     <div className="flex flex-col overflow-hidden mr-6">
-                      <h1 className="text-2xl font-[800] tracking-tight leading-tight mb-1 truncate text-white drop-shadow-sm np-title">{currentTrack.title}</h1>
+                      <h1 className="text-2xl font-[800] tracking-tight leading-tight mb-1 truncate text-primary drop-shadow-sm np-title">{currentTrack.title}</h1>
                       <p className="text-on-surface-variant text-base font-medium tracking-wide truncate np-artist">{currentTrack.artist}</p>
                     </div>
-                    <button onClick={() => toggleLike(currentTrack)} className={`hover:scale-110 active:scale-90 transition-transform ${liked ? 'text-[#1DB954]' : 'text-on-surface-variant'}`}>
+                    <button onClick={() => toggleLike(currentTrack)} className={`hover:scale-110 active:scale-90 transition-transform ${liked ? 'text-primary' : 'text-on-surface-variant'}`}>
                       <span className="material-symbols-outlined text-3xl drop-shadow-md" style={{ fontVariationSettings: liked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                     </button>
                   </section>
@@ -171,10 +171,10 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                       onTouchStart={handlePointerDown}
                     >
                       <div 
-                        className="absolute left-0 top-0 h-full bg-[#1DB954] rounded-full group-hover:bg-[#1ed760] transition-colors relative" 
+                        className="absolute left-0 top-0 h-full bg-primary rounded-full group-hover:bg-primary/80 transition-colors relative" 
                         style={{ width: `${progress}%` }}
                       >
-                        <div className="absolute right-[-8px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity transform"></div>
+                        <div className="absolute right-[-8px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] bg-on-primary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity transform"></div>
                       </div>
                     </div>
                     <div className="flex justify-between mt-3">
@@ -184,21 +184,21 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                   </section>
 
                   <section className="px-8 mt-2 flex items-center justify-between mb-3 np-controls">
-                    <button onClick={toggleShuffle} className={`${shuffleEnabled ? 'text-[#1DB954]' : 'text-on-surface-variant'} hover:text-white transition-colors active:scale-95`}>
+                    <button onClick={toggleShuffle} className={`${shuffleEnabled ? 'text-primary' : 'text-on-surface-variant'} hover:text-primary transition-colors active:scale-95`}>
                       <span className="material-symbols-outlined text-[28px]">shuffle</span>
                     </button>
                     <div className="flex items-center gap-6">
-                      <button onClick={prevTrack} className="text-on-surface hover:text-[#1DB954] transition-colors active:scale-90">
+                      <button onClick={prevTrack} className="text-on-surface hover:text-primary transition-colors active:scale-90">
                         <span className="material-symbols-outlined text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>skip_previous</span>
                       </button>
-                      <button onClick={togglePlay} disabled={isLoading} className="bg-[#1DB954] hover:bg-[#1ed760] text-black w-[64px] h-[64px] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(29,185,84,0.4)] active:scale-95 transition-all np-play-btn">
+                      <button onClick={togglePlay} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-on-primary w-[64px] h-[64px] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)] active:scale-95 transition-all np-play-btn">
                         {isLoading ? (
                           <span className="material-symbols-outlined text-[36px] animate-spin">sync</span>
                         ) : (
                           <span className="material-symbols-outlined text-[44px]" style={{ fontVariationSettings: "'FILL' 1" }}>{isPlaying ? 'pause' : 'play_arrow'}</span>
                         )}
                       </button>
-                      <button onClick={nextTrack} className="text-on-surface hover:text-[#1DB954] transition-colors active:scale-90">
+                      <button onClick={nextTrack} className="text-on-surface hover:text-primary transition-colors active:scale-90">
                         <span className="material-symbols-outlined text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>skip_next</span>
                       </button>
                     </div>
@@ -208,7 +208,7 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                   </section>
 
                   <footer className="px-8 pb-8 flex items-center justify-between np-footer">
-                    <button className="text-on-surface-variant hover:text-white transition-colors active:scale-95">
+                    <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
                       <span className="material-symbols-outlined cursor-pointer text-[22px]">devices</span>
                     </button>
                     <div className="flex-grow mx-6 flex items-center gap-3">
@@ -219,13 +219,13 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                         onMouseDown={handleVolDown}
                         onTouchStart={handleVolDown}
                       >
-                        <div className="h-full bg-on-surface-variant group-hover:bg-[#1DB954] transition-colors rounded-full absolute top-0 left-0" style={{ width: `${volume}%` }}>
-                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[12px] h-[12px] bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="h-full bg-on-surface-variant group-hover:bg-primary transition-colors rounded-full absolute top-0 left-0" style={{ width: `${volume}%` }}>
+                          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[12px] h-[12px] bg-on-primary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         </div>
                       </div>
                       <span className="material-symbols-outlined text-on-surface-variant text-[20px]" onClick={() => setVolume(100)}>volume_up</span>
                     </div>
-                    <button className="text-on-surface-variant hover:text-white transition-colors active:scale-95">
+                    <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
                       <span className="material-symbols-outlined cursor-pointer text-[22px]">share</span>
                     </button>
                   </footer>

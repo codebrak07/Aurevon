@@ -1,14 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { OAuth2Client } = require('google-auth-library');
 const { readData, writeData } = require('../data/db');
+const axios = require('axios');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// ── AUTHORED EMAILS ONLY ──
-// Removed restriction to allow any Google account for development.
-const WHITELIST_EMAILS = []; 
 
 const signup = async (req, res) => {
   try {
@@ -85,11 +80,37 @@ const login = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-    const payload = ticket.getPayload();
+    if (!idToken) {
+      return res.status(400).json({ message: 'Missing Google ID token' });
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      console.error('[Auth] GOOGLE_CLIENT_ID is not configured in backend .env');
+      return res.status(500).json({ message: 'Backend configuration error: Google Client ID is missing' });
+    }
+
+    console.log('[Auth] Attempting to verify Google ID token via direct fetch...');
+    
+    // Direct verification via Google's tokeninfo endpoint
+    // This avoids the 'Could not load default credentials' error from the library
+    let payload;
+    try {
+      const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+      payload = response.data;
+      
+      if (payload.aud !== process.env.GOOGLE_CLIENT_ID) {
+        console.error('[Auth] Token audience mismatch');
+        return res.status(401).json({ message: 'Invalid token audience' });
+      }
+      console.log('[Auth] Google ID token verified successfully via API');
+    } catch (verifyError) {
+      console.error('[Auth] Direct verification failed:', verifyError.response?.data || verifyError.message);
+      return res.status(401).json({ message: 'Failed to verify Google token' });
+    }
+    if (!payload?.email) {
+      return res.status(400).json({ message: 'Google account did not provide an email address' });
+    }
+
     const { sub: googleId, email, name, picture: avatarUrl } = payload;
 
     // Whitelist check removed for development
@@ -104,6 +125,7 @@ const googleLogin = async (req, res) => {
         id: uuidv4(),
         googleId,
         username: name,
+        fullName: name,
         email: normalizedEmail,
         avatarUrl,
         followedArtists: [],
@@ -120,6 +142,7 @@ const googleLogin = async (req, res) => {
       // This ensures if they change their Google name, it reflects in our DB
       let changed = false;
       if (user.username !== name) { user.username = name; changed = true; }
+      if (user.fullName !== name) { user.fullName = name; changed = true; }
       if (user.avatarUrl !== avatarUrl) { user.avatarUrl = avatarUrl; changed = true; }
       if (!user.googleId) { user.googleId = googleId; changed = true; }
       if (!user.createdAt) { user.createdAt = new Date().toISOString(); changed = true; }
@@ -135,11 +158,13 @@ const googleLogin = async (req, res) => {
       { expiresIn: '7d' }
     );
 
+
     res.json({
       token,
       user: {
         id: user.id,
         username: user.username,
+        fullName: user.fullName || user.username,
         email: user.email,
         avatarUrl: user.avatarUrl,
         followedArtists: user.followedArtists || [],
@@ -149,7 +174,12 @@ const googleLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Google login failed', error: error.message });
+    console.error('[Auth] Google login failed:', error);
+    res.status(500).json({ 
+      message: 'Google login failed', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+    });
   }
 };
 

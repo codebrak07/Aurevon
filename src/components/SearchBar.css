@@ -15,7 +15,8 @@
   gap: var(--space-4);
   background: var(--surface-container-low);
   backdrop-filter: var(--glass-blur);
-  border: 1px solid transparent;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
   border-radius: var(--radius-md);
   padding: var(--space-4) var(--space-5);
   transition: all var(--duration-normal) var(--ease-out);
@@ -68,7 +69,7 @@
 
 .search-bar__clear:hover {
   background: var(--surface-container-high);
-  color: white;
+  color: var(--text-primary);
 }
 
 .search-bar__clear:active {

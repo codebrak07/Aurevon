@@ -13,7 +13,10 @@ const searchSongs = async (req, res) => {
       params: {
         term: q,
         media: 'music',
-        limit: 10
+        limit: 15,
+        country: 'IN',
+        lang: 'en_us',
+        _t: Date.now()
       }
     });
 

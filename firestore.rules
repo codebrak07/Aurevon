@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ── USERS & PRIVATE DATA ──
+    // Users can only read and write their own data, verified by Custom Token
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /history/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /stats/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /wrapped/{year} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // ── JAM ROOMS ──
+    // Frontend can ONLY read. All modifications must go through Node.js backend.
+    match /jamRooms/{roomId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+      
+      match /votes/{uid} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+    
+    // ── BLEND SESSIONS ──
+    match /blendSessions/{blendId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // ── SHAREABLE LINKS ──
+    // Public links: anyone can read. Only creators can modify.
+    match /sharedLinks/{shareId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.creatorUid;
+    }
+  }
+}

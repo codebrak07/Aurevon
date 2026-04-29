@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlayerProvider } from './context/PlayerContext';
 import usePlayer from './hooks/usePlayer';
@@ -22,7 +22,9 @@ import Library from './components/Library';
 import YouTubePlayer from './components/YouTubePlayer';
 import Settings from './components/Settings';
 import ArtistProfileModal from './components/ArtistProfileModal';
-import MakeSong from './components/MakeSong';
+import JammingHub from './components/Jamming/JammingHub';
+import WrappedDashboard from './components/Wrapped/WrappedDashboard';
+import { JamProvider } from './context/JamContext';
 import ResumeSessionOverlay from './components/ResumeSessionOverlay';
 import AdminPanel from './components/AdminPanel';
 import GlobalDashboard from './components/GlobalDashboard';
@@ -31,6 +33,12 @@ import './index.css';
 
 function AppContent() {
   const [searchResults, setSearchResults] = useState({ tracks: [], artists: [] });
+  
+  // Theme initialization
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('wavify_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -92,7 +100,7 @@ function AppContent() {
     if (tab === 'library') {
       openLibrary('index');
     }
-    if (tab === 'admin' || tab === 'settings' || tab === 'make-song') {
+    if (tab === 'admin' || tab === 'settings' || tab === 'jamming' || tab === 'wrapped') {
       setHasSearched(false);
       setSearchResults({ tracks: [], artists: [] });
     }
@@ -103,6 +111,9 @@ function AppContent() {
     if (tab === 'home') {
       setHasSearched(false);
       setSearchResults({ tracks: [], artists: [] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (tab === 'jamming' || tab === 'wrapped' || tab === 'admin' || tab === 'global-dashboard' || tab === 'library' || tab === 'settings') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [openLibrary]);
@@ -123,36 +134,40 @@ function AppContent() {
       </div>
 
       {/* Header (Layer 100) */}
-      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-center px-4 py-4 bg-[#0e0e0e]/70 backdrop-blur-2xl border-b border-white/[0.06]">
+      <header className="fixed top-0 left-0 right-0 z-[100] flex justify-between items-center px-4 py-4 bg-glass backdrop-blur-2xl border-b border-glass-bright">
         <div className="flex items-center gap-3 px-4">
           <span 
-            className="material-symbols-outlined text-white/50 hover:text-primary active:scale-95 transition-all cursor-pointer text-2xl"
+            className="material-symbols-outlined text-secondary hover:text-primary active:scale-95 transition-all cursor-pointer text-2xl"
             onClick={() => setSidebarOpen(true)}
           >
             menu
           </span>
           <div className="flex items-center gap-2">
-            <img src="/aurevon.png" alt="Aurevon Logo" className="w-8 h-8 rounded-full border border-white/10 object-cover shadow-[0_0_15px_rgba(114,254,143,0.3)]" />
-            <h1 className="text-xl font-extrabold text-white font-headline tracking-tight m-0">Aurevon</h1>
+            <img src="/aurevon.png" alt="Aurevon Logo" className="w-8 h-8 rounded-full border border-glass object-cover shadow-glow" />
+            <h1 className="text-xl font-extrabold text-primary font-headline tracking-tight m-0">Aurevon</h1>
           </div>
         </div>
-        <div className="active:scale-95 duration-300 cursor-pointer" onClick={() => setProfileOpen(true)}>
+        <div 
+          className="relative group active:scale-90 duration-300 cursor-pointer p-0.5 rounded-full overflow-hidden" 
+          onClick={() => setProfileOpen(true)}
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-tertiary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           {(user?.avatarUrl || userProfile?.image) ? (
             <img 
                src={user?.avatarUrl || userProfile?.image} 
                alt="Profile" 
-               className="w-9 h-9 rounded-full object-cover border border-white/10 shadow-lg" 
+               className="w-8 h-8 rounded-full object-cover border border-glass shadow-sm relative z-10" 
             />
           ) : (
-            <div className="w-9 h-9 rounded-full flex items-center justify-center border border-white/10 bg-white/5 text-white/40">
-              <span className="material-symbols-outlined text-xl">person</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center border border-glass bg-surface-container text-secondary relative z-10">
+              <span className="material-symbols-outlined text-[18px]">person</span>
             </div>
           )}
         </div>
       </header>
 
       {/* Main Content (Layer 1) */}
-      <main className="flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 pb-[140px] px-0 md:px-0">
+      <main className={`flex-1 w-full max-w-[var(--max-width)] mx-auto relative z-[var(--layer-mid)] pt-24 px-0 md:px-0 ${currentTrack ? 'pb-[220px]' : 'pb-[140px]'}`}>
         
         {/* Global Search */}
         {activeNavTab !== 'settings' && activeNavTab !== 'admin' && (
@@ -215,8 +230,12 @@ function AppContent() {
                 <Settings />
               )}
               
-              {activeNavTab === 'make-song' && (
-                <MakeSong />
+              {activeNavTab === 'jamming' && (
+                <JammingHub />
+              )}
+
+              {activeNavTab === 'wrapped' && (
+                <WrappedDashboard onClose={() => handleNavChange('home')} />
               )}
 
               {activeNavTab === 'admin' && (
@@ -276,8 +295,8 @@ function AppContent() {
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         onSelectTab={(tab) => {
-          if (tab === 'admin') {
-            handleNavChange('admin');
+          if (['admin', 'settings', 'jamming', 'wrapped', 'global-dashboard', 'home', 'search'].includes(tab)) {
+            handleNavChange(tab);
           } else {
             openLibrary(tab);
           }
@@ -315,7 +334,9 @@ function AppContent() {
 export default function App() {
   return (
     <PlayerProvider>
-      <AppContent />
+      <JamProvider>
+        <AppContent />
+      </JamProvider>
     </PlayerProvider>
   );
 }

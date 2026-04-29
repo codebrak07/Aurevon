@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 
@@ -41,18 +41,28 @@ app.use('/api/suno', sunoRoutes);
 app.use('/api/loudly', loudlyRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/jam', require('./routes/jamRoutes'));
+app.use('/api/share', require('./routes/shareRoutes'));
 
 // iTunes Search Proxy (Helper)
 app.get('/api/search/itunes', async (req, res) => {
   try {
-    const { term, entity, limit } = req.query;
+    const { term, entity, limit, country = 'IN', lang = 'en_us' } = req.query;
+    console.log(`🔍 iTunes Proxy: Searching for "${term}" [${entity}] in ${country}/${lang}`);
+    
     const response = await axios.get('https://itunes.apple.com/search', {
-      params: { term, entity, limit }
+      params: { term, entity, limit, country, lang, _t: Date.now() },
+      timeout: 5000
     });
+    
+    console.log(`✅ iTunes Proxy: Found ${response.data.results?.length || 0} results`);
     res.json(response.data);
   } catch (error) {
-    console.error('iTunes Proxy Error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch from iTunes' });
+    console.error('❌ iTunes Proxy Error:', error.message);
+    if (error.response) {
+      console.error('Data:', error.response.data);
+    }
+    res.status(500).json({ error: 'Failed to fetch from iTunes', details: error.message });
   }
 });
 

@@ -80,6 +80,15 @@ function loadFollowedArtists() {
   }
 }
 
+function loadRecentlyPlayed() {
+  try {
+    const saved = localStorage.getItem('wavify_recently_played');
+    return (saved && saved !== 'null') ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
 // ── Session Mood Tracker ──
 function computeSessionMood(listeningHistory, recentTracks) {
   const recentGenres = [];
@@ -102,6 +111,40 @@ function computeSessionMood(listeningHistory, recentTracks) {
     skipRate,
     avgEnergy,
   };
+}
+
+function normalizeAiShuffleQueries(result) {
+  if (!result) return [];
+
+  if (Array.isArray(result)) {
+    return result
+      .flatMap((item) => {
+        if (typeof item === 'string') return [item];
+        if (Array.isArray(item)) {
+          return item.filter((entry) => typeof entry === 'string');
+        }
+        if (item && typeof item === 'object') {
+          if (typeof item.query === 'string') return [item.query];
+          if (typeof item.title === 'string') {
+            return [`${item.title}${item.artist ? ` ${item.artist}` : ''}`];
+          }
+        }
+        return [];
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof result === 'object') {
+    const candidates = ['queries', 'songs', 'tracks', 'results', 'shuffleOrder', 'order', 'trackIndices', 'indices'];
+    for (const key of candidates) {
+      const normalized = normalizeAiShuffleQueries(result[key]);
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    }
+  }
+
+  return [];
 }
 
 // API Path Normalization
@@ -159,6 +202,7 @@ const initialState = {
   playlists: loadPlaylists(),
   userProfile: loadUserProfile(),
   followedArtists: loadFollowedArtists(),
+  recentlyPlayed: loadRecentlyPlayed(),
   user: loadUser(),
   token: loadToken(),
   isSyncing: false,
@@ -284,10 +328,12 @@ function reducer(state, action) {
       const track = action.payload;
       const filtered = state.recentTracks.filter(t => t.id !== track.id);
       const recentTracks = [track, ...filtered].slice(0, MAX_RECENT_TRACKS);
+      const recentlyPlayed = [{ ...track, playedAt: Date.now() }, ...state.recentlyPlayed.filter(t => t.id !== track.id)].slice(0, 20);
       const isSameTrack = state.repeatTrack?.id === track.id;
       return {
         ...state,
         recentTracks,
+        recentlyPlayed,
         repeatTrack: track,
         repeatCount: isSameTrack ? state.repeatCount + 1 : 1,
       };
@@ -340,6 +386,7 @@ function reducer(state, action) {
         userProfile: {
           ...state.userProfile,
           name: authenticatedUser.username || state.userProfile.name,
+          fullName: authenticatedUser.fullName || authenticatedUser.username || state.userProfile.fullName,
           email: authenticatedUser.email || state.userProfile.email,
           image: authenticatedUser.avatarUrl || state.userProfile.image
         },
@@ -430,6 +477,13 @@ export function PlayerProvider({ children }) {
     } catch { /* storage full */ }
   }, [state.followedArtists]);
 
+  // Persist recently played tracks
+  useEffect(() => {
+    try {
+      localStorage.setItem('wavify_recently_played', JSON.stringify(state.recentlyPlayed));
+    } catch { /* storage full */ }
+  }, [state.recentlyPlayed]);
+
   // Persist token
   useEffect(() => {
     if (state.token) {
@@ -505,6 +559,7 @@ export function PlayerProvider({ children }) {
       followedArtists: state.followedArtists,
       playlists: state.playlists,
       recentlyPlayed: state.recentlyPlayed,
+      listeningHistory: state.listeningHistory,
       username: state.userProfile.name, // Mapping profile name to backend username for consistency
       avatarUrl: state.userProfile.image, // Mapping profile image to backend avatarUrl
       email: state.userProfile.email,
@@ -573,22 +628,39 @@ export function PlayerProvider({ children }) {
 
       // Perform initial sync/merge
       const mergeUrl = API('/user/sync');
-      const mergeRes = await axios.post(mergeUrl, {
-        ...localData,
-        lastPlaybackState: {
-          currentTrack: stateRef.current.currentTrack,
-          videoId: stateRef.current.videoId,
-          queue: stateRef.current.queue,
-          currentIndex: stateRef.current.currentIndex,
-          currentTime: stateRef.current.currentTime
-        }
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      let authenticatedUser = user;
 
-      dispatch({ type: 'AUTH_SUCCESS', payload: { token, user: mergeRes.data.user } });
+      try {
+        const mergeRes = await axios.post(mergeUrl, {
+          ...localData,
+          listeningHistory: loadListeningHistory(),
+          lastPlaybackState: {
+            currentTrack: stateRef.current.currentTrack,
+            videoId: stateRef.current.videoId,
+            queue: stateRef.current.queue,
+            currentIndex: stateRef.current.currentIndex,
+            currentTime: stateRef.current.currentTime
+          }
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        authenticatedUser = {
+          ...user,
+          ...mergeRes.data.user,
+          avatarUrl: mergeRes.data.user?.avatarUrl || user.avatarUrl,
+          fullName: mergeRes.data.user?.fullName || user.fullName || user.username,
+        };
+      } catch (mergeError) {
+        console.warn('[Auth] Initial profile sync failed, continuing with Google profile data:', mergeError);
+      }
+
+      dispatch({ type: 'AUTH_SUCCESS', payload: { token, user: authenticatedUser } });
     } catch (err) {
       console.error('Google login failed:', err);
+      if (err.response) {
+        console.error('Backend Error Data:', err.response.data);
+      }
       throw err;
     } finally {
       dispatch({ type: 'SET_MAGIC_LOADING', payload: false });
@@ -598,6 +670,11 @@ export function PlayerProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('wavify_user');
     localStorage.removeItem('wavify_token');
+    
+    // Sign out of Firebase
+    import('../config/firebase').then(({ auth }) => {
+      auth.signOut();
+    }).catch(err => console.error('[Firebase] Signout error:', err));
     
     // Disable auto-select so user can switch accounts next time
     if (window.google) {
@@ -685,7 +762,7 @@ export function PlayerProvider({ children }) {
       const listenPercent = lastBehavior?.percentListened || 1;
 
       // Get AI queries
-      const queries = await generateSmartShuffle({
+      const rawQueries = await generateSmartShuffle({
         currentSong: {
           title: currentTrack.title,
           artist: currentTrack.artist,
@@ -697,7 +774,13 @@ export function PlayerProvider({ children }) {
         sessionMood,
       });
 
+      const queries = normalizeAiShuffleQueries(rawQueries);
+
       console.log('[Smart Shuffle] AI queries:', queries);
+
+      if (queries.length === 0) {
+        throw new Error('AI did not return usable search queries.');
+      }
 
       // Convert queries → Spotify tracks → queue
       const newTracks = [];
@@ -754,17 +837,18 @@ export function PlayerProvider({ children }) {
     try {
       // Step 1: Pre-match optimization — check if we have a prefetched ID
       let vid = null;
-      if (prefetchedRef.current === track.id) {
-        // We probably triggered a search earlier, wait for it or try to get from cache
-        vid = await searchVideoId(track.title, track.artist, track.id);
-      } else {
-        vid = await searchVideoId(track.title, track.artist, track.id);
-      }
+      let ytTitle = null;
+      
+      const ytData = await searchVideoId(track.title, track.artist, track.id);
+      vid = ytData?.videoId;
+      ytTitle = ytData?.title;
 
       if (!vid) throw new Error('Could not find audio for this track.');
       
-      dispatch({ type: 'SET_TRACK', payload: { track, videoId: vid } });
-      dispatch({ type: 'TRACK_PLAYED', payload: track });
+      const trackToPlay = { ...track };
+      
+      dispatch({ type: 'SET_TRACK', payload: { track: trackToPlay, videoId: vid } });
+      dispatch({ type: 'TRACK_PLAYED', payload: trackToPlay });
 
       // Step 2: Trigger Pre-fetch for the NEXT track immediately after starting this one
       const { currentIndex, queue, shuffleEnabled, shuffledIndices } = stateRef.current;
@@ -998,13 +1082,18 @@ export function PlayerProvider({ children }) {
   const togglePlay = useCallback(() => {
     if (!playerRef.current) return;
     try {
-      if (stateRef.current.isPlaying) {
+      const playerState = playerRef.current.getPlayerState?.();
+      if (playerState === window.YT.PlayerState.PLAYING || stateRef.current.isPlaying) {
         playerRef.current.pauseVideo();
       } else {
         playerRef.current.playVideo();
       }
-      dispatch({ type: 'TOGGLE_PLAY' });
-    } catch { /* ignore */ }
+      // Note: We no longer dispatch TOGGLE_PLAY here. 
+      // We wait for YouTube's onStateChange to update the global isPlaying state.
+      // This prevents the UI from showing the wrong state during transitional periods.
+    } catch (error) {
+      console.error('[Aurevon Player] TogglePlay failed:', error);
+    }
   }, []);
 
   const prevTrack = useCallback(async () => {
@@ -1234,9 +1323,30 @@ export function PlayerProvider({ children }) {
     }
   }, [resolveAndPlay, getNextTrackIndex, playTrack, recordBehavior, triggerAiShuffle]);
 
-  const updateUserProfile = useCallback((profileData) => {
+  const updateUserProfile = useCallback(async (profileData) => {
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: profileData });
-  }, []);
+
+    if (!stateRef.current.token) return;
+
+    const updatePayload = {
+      username: profileData.username,
+      avatarUrl: profileData.image,
+      email: profileData.email,
+      fullName: profileData.fullName,
+      dob: profileData.dob,
+      gender: profileData.gender,
+      preferences: profileData.preferences,
+    };
+
+    Object.keys(updatePayload).forEach((key) => {
+      if (updatePayload[key] === undefined) {
+        delete updatePayload[key];
+      }
+    });
+
+    await axiosInstance.patch('/user/update', updatePayload);
+    syncToBackend();
+  }, [syncToBackend]);
 
   const setPlaying = useCallback((isPlaying) => {
     dispatch({ type: 'SET_PLAYING', payload: isPlaying });
@@ -1282,6 +1392,39 @@ export function PlayerProvider({ children }) {
     isSyncing: state.isSyncing,
   };
 
+  // ── Audio Unlock Hack for Mobile Background Playback ──
+  useEffect(() => {
+    let unlocked = false;
+
+    const unlockAudio = () => {
+      if (unlocked || !silentAudioRef.current) return;
+      
+      // Play and immediately pause to initialize audio context securely within a user gesture
+      silentAudioRef.current.play().then(() => {
+        silentAudioRef.current.pause();
+        unlocked = true;
+        console.log('[Audio Session] Unlocked successfully for background playback');
+        // Clean up listeners
+        ['touchstart', 'touchend', 'mousedown', 'keydown', 'click'].forEach((event) => {
+          document.removeEventListener(event, unlockAudio);
+        });
+      }).catch(err => {
+        console.warn('[Audio Session] Unlock failed, will retry on next interaction:', err);
+      });
+    };
+
+    // Attach to all possible initial interactions
+    ['touchstart', 'touchend', 'mousedown', 'keydown', 'click'].forEach((event) => {
+      document.addEventListener(event, unlockAudio, { once: true, passive: true });
+    });
+
+    return () => {
+      ['touchstart', 'touchend', 'mousedown', 'keydown', 'click'].forEach((event) => {
+        document.removeEventListener(event, unlockAudio);
+      });
+    };
+  }, []);
+
   // ── Media Session API (Background Streaming & Controls) ──
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
@@ -1314,6 +1457,7 @@ export function PlayerProvider({ children }) {
         silentAudioRef.current.pause();
       }
     }
+
 
     const actionHandlers = [
       ['play', togglePlay],

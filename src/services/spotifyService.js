@@ -24,6 +24,8 @@ async function fallbackSearch(query, signal) {
     type: 'video',
     maxResults: '20',
     videoCategoryId: '10', // Music
+    regionCode: 'IN',
+    relevanceLanguage: 'en'
   });
 
   let response = null;
@@ -60,18 +62,24 @@ async function fallbackSearch(query, signal) {
 export async function searchTracks(query, signal) {
   if (!query || query.trim().length < 2) return [];
 
-  const cacheKey = `search_${query.trim().toLowerCase()}`;
+  const cacheKey = `search_v2_${query.trim().toLowerCase()}`;
   const cached = cacheService.get('search', cacheKey);
   if (cached && cached.length > 0) return cached;
 
   try {
-    const params = new URLSearchParams({ term: query, entity: 'song', limit: '20' });
+    const params = new URLSearchParams({ term: query, entity: 'song', limit: '20', country: 'IN', lang: 'en_us' });
     const isProd = import.meta.env.PROD;
     const searchUrl = isProd 
       ? API(`/search/itunes?${params}`) 
       : `https://itunes.apple.com/search?${params}`;
+      
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     
-    const response = await fetch(searchUrl, { signal });
+    const response = await fetch(searchUrl, { 
+      signal: signal ? (signal.aborted ? signal : controller.signal) : controller.signal 
+    });
+    clearTimeout(timeoutId);
 
     if (!response.ok) throw new Error('iTunes search error');
 
@@ -82,6 +90,7 @@ export async function searchTracks(query, signal) {
     return tracks;
   } catch (err) {
     if (err.name === 'AbortError') throw err;
+    console.warn(`⚠️ iTunes search failed for "${query}", falling back to YouTube:`, err.message);
     const fbResults = await fallbackSearch(query, signal);
     if (fbResults.length > 0) cacheService.set('search', cacheKey, fbResults);
     return fbResults;
@@ -91,12 +100,12 @@ export async function searchTracks(query, signal) {
 export async function searchArtists(query) {
   if (!query || query.trim().length < 2) return [];
 
-  const cacheKey = `search_artist_${query.trim().toLowerCase()}`;
+  const cacheKey = `search_artist_v2_${query.trim().toLowerCase()}`;
   const cached = cacheService.get('artistData', cacheKey);
   if (cached) return cached;
 
   try {
-    const params = new URLSearchParams({ term: query, entity: 'musicArtist', limit: '5' });
+    const params = new URLSearchParams({ term: query, entity: 'musicArtist', limit: '5', country: 'IN' });
     const isProd = import.meta.env.PROD;
     const searchUrl = isProd 
       ? API(`/search/itunes?${params}`) 
@@ -151,7 +160,7 @@ export async function getArtistData(artistId) {
 
 export async function getArtistTopTracks(artistId) {
   if (!artistId) return [];
-  const cacheKey = `artist_top_tracks_${artistId}`;
+  const cacheKey = `artist_top_tracks_v2_${artistId}`;
   const cached = cacheService.get('artistData', cacheKey);
   if (cached) return cached;
 
@@ -161,7 +170,6 @@ export async function getArtistTopTracks(artistId) {
     if (!response.ok) return [];
 
     const data = await response.json();
-    // The first result is the artist metadata, subsequent ones are the tracks
     const tracks = (data.results || []).slice(1).map(mapITunesTrack).filter(Boolean);
     
     if (tracks.length > 0) cacheService.set('artistData', cacheKey, tracks);
@@ -228,7 +236,7 @@ export async function getRecommendations({
   targetValence,
   targetEnergy,
 }) {
-  const cacheKey = `recs_${[...seedTracks, ...seedArtists, ...seedGenres].join(',')}_v${targetValence}_e${targetEnergy}`;
+  const cacheKey = `recs_v2_${[...seedTracks, ...seedArtists, ...seedGenres].join(',')}_v${targetValence}_e${targetEnergy}`;
   const cached = cacheService.get('recommendations', cacheKey);
   if (cached && cached.length > 0) return cached;
 
@@ -237,7 +245,7 @@ export async function getRecommendations({
   query = query.trim() || 'popular matching songs';
 
   try {
-    const params = new URLSearchParams({ term: query, entity: 'song', limit: '20' });
+    const params = new URLSearchParams({ term: query, entity: 'song', limit: '20', country: 'IN', lang: 'en_us' });
     const response = await fetch(`https://itunes.apple.com/search?${params}`);
     if (!response.ok) return [];
 
@@ -256,19 +264,37 @@ export async function getRecommendations({
 
 export async function getArtistLatestTracks(artistName) {
   if (!artistName) return [];
-  const cacheKey = `artist_latest_tracks_${artistName.toLowerCase()}`;
+  const cacheKey = `artist_latest_tracks_v2_${artistName.toLowerCase()}`;
   const cached = cacheService.get('artistData', cacheKey);
   if (cached) return cached;
 
   try {
-    const params = new URLSearchParams({ term: artistName, entity: 'song', limit: '15', sort: 'recent' });
+    const params = new URLSearchParams({ 
+      term: artistName, 
+      entity: 'song', 
+      limit: '15', 
+      sort: 'recent', 
+      country: 'IN', 
+      lang: 'en_us' 
+    });
+    
     const response = await fetch(`https://itunes.apple.com/search?${params}`);
     if (!response.ok) return [];
 
     const data = await response.json();
+    
+    // Stricter filtering: 
+    // 1. Must include the artist name
+    // 2. Deduplicate by artwork (AI collections often use the same art for all junk tracks)
+    const seenArt = new Set();
     const tracks = (data.results || [])
       .map(track => ({ ...mapITunesTrack(track), rawRating: track.userRatingCount || 0 }))
-      .filter(t => t && t.artist.toLowerCase().includes(artistName.toLowerCase()))
+      .filter(t => {
+        if (!t || !t.artist.toLowerCase().includes(artistName.toLowerCase())) return false;
+        if (seenArt.has(t.albumArt)) return false;
+        seenArt.add(t.albumArt);
+        return true;
+      })
       .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     
     if (tracks.length > 0) cacheService.set('artistData', cacheKey, tracks);

@@ -4,7 +4,7 @@ import './BottomNav.css';
 const navItems = [
   { id: 'home', icon: 'home', label: 'Home' },
   { id: 'search', icon: 'search', label: 'Search' },
-  { id: 'make-song', icon: 'auto_awesome', label: 'AI' },
+  { id: 'jamming', icon: 'cell_tower', label: 'Jam' },
   { id: 'library', icon: 'library_music', label: 'Library' },
   { id: 'settings', icon: 'settings', label: 'Settings' },
 ];

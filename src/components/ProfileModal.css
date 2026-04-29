@@ -1,7 +1,7 @@
 .profile-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--bg-heavy);
   backdrop-filter: blur(20px);
   z-index: 400;
   animation: fadeIn 0.3s ease-out;
@@ -21,16 +21,98 @@
 }
 
 .profile-modal-main {
-  background: #12121a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass-heavy);
+  border: 1px solid var(--glass-border);
   border-radius: 48px;
   padding: 40px;
   position: relative;
   overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 32px 128px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
   animation: fadeInUp 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.profile-google-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 16px;
+  border-radius: 22px;
+  background: var(--surface-container);
+  border: 1px solid var(--glass-border);
+}
+
+.profile-google-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-google-card__head .material-symbols-outlined {
+  color: var(--accent-green);
+  font-size: 24px;
+}
+
+.profile-google-card__title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.profile-google-card__desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.profile-google-card__slot {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-google-card__manual {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-container-highest);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.profile-google-card__manual:hover {
+  background: var(--bg-card-hover);
+}
+
+.profile-google-card__manual:disabled {
+  opacity: 0.6;
+}
+
+.profile-google-card__fallback {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-container-low);
+  color: var(--text-muted);
+  padding: 12px;
+  text-align: center;
 }
 
 @keyframes fadeIn {
@@ -49,66 +131,32 @@
     padding: 32px 24px;
     border-radius: 40px;
   }
-  
-  .profile-modal-identity-avatar {
-    width: 120px;
-    height: 120px;
-  }
 }
 
 /* ── Device Specific: CMF2 Pro (393x873) ── */
 @media (width: 393px) and (height: 873px) {
   .profile-modal-container {
     width: 92%;
-    max-height: 48vh;
+    max-height: 82vh;
   }
 
   .profile-modal-main {
-    padding: 12px 10px;
+    padding: 18px 14px 20px;
     border-radius: 24px;
-    min-height: 380px;
+    min-height: 0;
   }
 
-  .profile-modal-identity-avatar {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 8px;
+  .profile-google-card {
+    padding: 14px 12px;
+    border-radius: 16px;
   }
 
-  .profile-modal-title {
-    font-size: 1.15rem;
+  .profile-google-card__title {
+    font-size: 9px;
   }
 
-  .profile-modal-email {
-    font-size: 0.65rem;
-    margin-bottom: 12px;
-  }
-
-  .profile-modal-stats {
-    gap: 20px;
-    margin-bottom: 16px;
-  }
-
-  .profile-modal-stats span:first-child {
-    font-size: 1.125rem;
-  }
-
-  .profile-modal-stats span:last-child {
-    font-size: 7.5px;
-    letter-spacing: 0.15em;
-    margin-top: 1px;
-  }
-
-  .profile-modal-close {
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-  }
-
-  .profile-modal-actions {
-    gap: 6px;
-    margin-bottom: 12px;
+  .profile-google-card__desc {
+    font-size: 10px;
   }
 
   .profile-modal-action-btn {
