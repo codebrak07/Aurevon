@@ -189,13 +189,13 @@ export const JamProvider = ({ children }) => {
       }
     };
 
-    // Poll immediately then every 3 seconds
+    // Poll immediately then every 2 seconds for responsive sync
     poll();
     pollingInterval.current = setInterval(() => {
       if (document.visibilityState === 'visible') {
         poll();
       }
-    }, 3000);
+    }, 2000);
   }, [getJamHeaders]);
 
   const stopPolling = useCallback(() => {
@@ -430,6 +430,137 @@ export const JamProvider = ({ children }) => {
     }
   }, [ensureJamIdentity, ensureJamRealtimeAuth, getJamHeaders, handleRoomSync, startHeartbeat, startPolling, subscribeToLocalRoom]);
 
+  // ══════════════════════════════════════
+  // ── ADD TO QUEUE (any user can call) ──
+  // ══════════════════════════════════════
+  const addToQueue = useCallback(async (song) => {
+    if (!roomId) return;
+
+    // Local room fallback
+    if (roomId.startsWith('local-')) {
+      updateLocalRoom(roomId, (room) => {
+        const newSong = { ...song, addedBy: ensureJamIdentity(), addedAt: new Date().toISOString() };
+        room.queue = [...(room.queue || []), newSong];
+        if (room.state === 'waiting' && room.queue.length === 1) {
+          room.state = 'playing';
+          room.currentTrackIndex = 0;
+        }
+        room.lastActive = new Date().toISOString();
+        return room;
+      });
+      return;
+    }
+
+    // Backend API — any user (host or guest) can add songs
+    try {
+      const headers = await getJamHeaders();
+      const res = await axios.post(API(`/jam/${roomId}/queue`), { song }, { headers });
+      // If backend returns updated room, hydrate immediately
+      if (res.data?.room) {
+        handleRoomSync(res.data.room);
+      }
+      console.log(`[Jam] Song "${song.title}" added to queue`);
+    } catch (error) {
+      console.error('[Jam] Failed to add song to queue:', error.message);
+      throw error;
+    }
+  }, [roomId, getJamHeaders, handleRoomSync, ensureJamIdentity, updateLocalRoom]);
+
+  // ══════════════════════════════
+  // ── PLAY / PAUSE (host only) ──
+  // ══════════════════════════════
+  const playPause = useCallback(async (action) => {
+    if (!roomId || !isHost) return;
+
+    // Local room fallback
+    if (roomId.startsWith('local-')) {
+      updateLocalRoom(roomId, (room) => {
+        room.state = action === 'play' ? 'playing' : 'paused';
+        room.lastActive = new Date().toISOString();
+        return room;
+      });
+      return;
+    }
+
+    try {
+      const headers = await getJamHeaders();
+      const endpoint = action === 'play' ? 'play' : 'pause';
+      const res = await axios.post(API(`/jam/${roomId}/${endpoint}`), {}, { headers });
+      if (res.data?.room) {
+        handleRoomSync(res.data.room);
+      }
+    } catch (error) {
+      console.error(`[Jam] Failed to ${action}:`, error.message);
+    }
+  }, [roomId, isHost, getJamHeaders, handleRoomSync, updateLocalRoom]);
+
+  // ══════════════════════════════
+  // ── SKIP TRACK (host only) ──
+  // ══════════════════════════════
+  const skipTrack = useCallback(async () => {
+    if (!roomId || !isHost) return;
+
+    // Local room fallback
+    if (roomId.startsWith('local-')) {
+      updateLocalRoom(roomId, (room) => {
+        room.currentTrackIndex = (room.currentTrackIndex || 0) + 1;
+        room.voteCount = 0;
+        room.voteRoundId = (room.voteRoundId || 1) + 1;
+        room.seekPosition = 0;
+        room.startedAt = new Date().toISOString();
+        if (room.currentTrackIndex >= (room.queue || []).length) {
+          room.state = 'ended';
+        } else {
+          room.state = 'playing';
+        }
+        room.lastActive = new Date().toISOString();
+        return room;
+      });
+      return;
+    }
+
+    try {
+      const headers = await getJamHeaders();
+      const res = await axios.post(API(`/jam/${roomId}/skip`), {}, { headers });
+      if (res.data?.room) {
+        handleRoomSync(res.data.room);
+      }
+    } catch (error) {
+      console.error('[Jam] Failed to skip:', error.message);
+    }
+  }, [roomId, isHost, getJamHeaders, handleRoomSync, updateLocalRoom]);
+
+  // ═══════════════════════════════════════
+  // ── REMOVE FROM QUEUE (host only) ──
+  // ═══════════════════════════════════════
+  const removeFromQueue = useCallback(async (queueIndex) => {
+    if (!roomId || !isHost) return;
+
+    // Local room fallback
+    if (roomId.startsWith('local-')) {
+      updateLocalRoom(roomId, (room) => {
+        room.queue = room.queue.filter((_, i) => i !== queueIndex);
+        // Adjust currentTrackIndex if needed
+        if (queueIndex < room.currentTrackIndex) {
+          room.currentTrackIndex = Math.max(0, room.currentTrackIndex - 1);
+        }
+        room.lastActive = new Date().toISOString();
+        return room;
+      });
+      return;
+    }
+
+    try {
+      const headers = await getJamHeaders();
+      const res = await axios.post(API(`/jam/${roomId}/remove`), { queueIndex }, { headers });
+      if (res.data?.room) {
+        handleRoomSync(res.data.room);
+      }
+    } catch (error) {
+      console.error('[Jam] Failed to remove from queue:', error.message);
+    }
+  }, [roomId, isHost, getJamHeaders, handleRoomSync, updateLocalRoom]);
+
   // ── Vote Skip ──
   const castVote = useCallback(async () => {
     if (!roomId) return;
@@ -452,27 +583,23 @@ export const JamProvider = ({ children }) => {
     await axios.post(API(`/jam/${roomId}/vote_skip`), {}, { headers });
   }, [ensureJamIdentity, getJamHeaders, roomId, updateLocalRoom]);
 
-  // ── Host Commands ──
+  // ── Legacy sendHostCommand (kept for backwards compat but shouldn't be needed) ──
   const sendHostCommand = useCallback(async (command, payload = {}) => {
-    if (!roomId || !isHost) return;
+    if (!roomId) return;
+
+    // For 'queue' commands, use addToQueue which works for any user
+    if (command === 'queue' && payload.song) {
+      return addToQueue(payload.song);
+    }
+
+    if (!isHost) return;
+
+    if (command === 'play') return playPause('play');
+    if (command === 'pause') return playPause('pause');
+
+    // Fallback for any other commands
     if (roomId.startsWith('local-')) {
       updateLocalRoom(roomId, (room) => {
-        if (command === 'queue' && payload.song) {
-          room.queue = [...(room.queue || []), payload.song];
-          if (room.state === 'waiting' && room.queue.length === 1) {
-            room.state = 'playing';
-            room.currentTrackIndex = 0;
-          }
-        }
-
-        if (command === 'play') {
-          room.state = 'playing';
-        }
-
-        if (command === 'pause') {
-          room.state = 'paused';
-        }
-
         room.lastActive = new Date().toISOString();
         return room;
       });
@@ -480,7 +607,7 @@ export const JamProvider = ({ children }) => {
     }
     const headers = await getJamHeaders();
     await axios.post(API(`/jam/${roomId}/${command}`), payload, { headers });
-  }, [getJamHeaders, isHost, roomId]);
+  }, [roomId, isHost, getJamHeaders, addToQueue, playPause, updateLocalRoom]);
 
   return (
     <JamContext.Provider value={{
@@ -495,7 +622,12 @@ export const JamProvider = ({ children }) => {
       createRoom,
       leaveRoom,
       castVote,
-      sendHostCommand
+      sendHostCommand,
+      // ── New explicit actions ──
+      addToQueue,
+      playPause,
+      skipTrack,
+      removeFromQueue,
     }}>
       {children}
     </JamContext.Provider>

@@ -7,6 +7,8 @@ const {
     voteSkip, 
     play, 
     pause,
+    skip,
+    removeFromQueue,
     heartbeat,
     getRoom
 } = require('../controllers/jamController');
@@ -25,5 +27,7 @@ router.post('/:roomId/heartbeat', heartbeat);
 // Host actions
 router.post('/:roomId/play', play);
 router.post('/:roomId/pause', pause);
+router.post('/:roomId/skip', skip);
+router.post('/:roomId/remove', removeFromQueue);
 
 module.exports = router;

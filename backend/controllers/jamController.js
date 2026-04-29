@@ -501,6 +501,133 @@ const heartbeat = async (req, res) => {
   }
 };
 
+// ── Host Skip (advance to next track) ──
+const skip = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { roomId } = req.params;
+
+    // Memory store
+    if (memoryRooms.has(roomId)) {
+      const room = memoryRooms.get(roomId);
+      if (room.hostId !== userId) return res.status(403).json({ message: 'Host only' });
+      
+      room.currentTrackIndex = (room.currentTrackIndex || 0) + 1;
+      room.voteCount = 0;
+      room.voteRoundId = (room.voteRoundId || 1) + 1;
+      room.seekPosition = 0;
+      room.startedAt = new Date().toISOString();
+      room._votes = {};
+      
+      if (room.currentTrackIndex >= (room.queue || []).length) {
+        room.state = 'ended';
+      } else {
+        room.state = 'playing';
+      }
+      
+      room.lastActive = new Date().toISOString();
+      memoryRooms.set(roomId, room);
+      return res.json({ message: 'Skipped', room });
+    }
+
+    const roomRef = db.collection('jamRooms').doc(roomId);
+    
+    await db.runTransaction(async (t) => {
+      const doc = await t.get(roomRef);
+      if (!doc.exists) throw new Error('Room not found');
+      const roomData = doc.data();
+      if (roomData.hostId !== userId) throw new Error('Host only');
+      
+      const nextIndex = roomData.currentTrackIndex + 1;
+      const updates = {
+        currentTrackIndex: nextIndex,
+        voteCount: 0,
+        voteRoundId: (roomData.voteRoundId || 1) + 1,
+        seekPosition: 0,
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastActive: admin.firestore.FieldValue.serverTimestamp()
+      };
+      
+      if (nextIndex >= roomData.queue.length) {
+        updates.state = 'ended';
+      } else {
+        updates.state = 'playing';
+      }
+      
+      t.update(roomRef, updates);
+    });
+    
+    res.json({ message: 'Skipped' });
+  } catch (error) {
+    res.status(403).json({ message: error.message });
+  }
+};
+
+// ── Host Remove from Queue ──
+const removeFromQueue = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { roomId } = req.params;
+    const { queueIndex } = req.body;
+
+    if (typeof queueIndex !== 'number') {
+      return res.status(400).json({ message: 'queueIndex is required' });
+    }
+
+    // Memory store
+    if (memoryRooms.has(roomId)) {
+      const room = memoryRooms.get(roomId);
+      if (room.hostId !== userId) return res.status(403).json({ message: 'Host only' });
+      
+      if (queueIndex < 0 || queueIndex >= room.queue.length) {
+        return res.status(400).json({ message: 'Invalid queue index' });
+      }
+      
+      room.queue.splice(queueIndex, 1);
+      
+      // Adjust currentTrackIndex if the removed item was before the current track
+      if (queueIndex < room.currentTrackIndex) {
+        room.currentTrackIndex = Math.max(0, room.currentTrackIndex - 1);
+      }
+      
+      room.lastActive = new Date().toISOString();
+      memoryRooms.set(roomId, room);
+      return res.json({ message: 'Removed from queue', room });
+    }
+
+    const roomRef = db.collection('jamRooms').doc(roomId);
+    
+    await db.runTransaction(async (t) => {
+      const doc = await t.get(roomRef);
+      if (!doc.exists) throw new Error('Room not found');
+      const roomData = doc.data();
+      if (roomData.hostId !== userId) throw new Error('Host only');
+      
+      const queue = [...roomData.queue];
+      if (queueIndex < 0 || queueIndex >= queue.length) {
+        throw new Error('Invalid queue index');
+      }
+      
+      queue.splice(queueIndex, 1);
+      
+      const updates = {
+        queue,
+        lastActive: admin.firestore.FieldValue.serverTimestamp()
+      };
+      
+      if (queueIndex < roomData.currentTrackIndex) {
+        updates.currentTrackIndex = Math.max(0, roomData.currentTrackIndex - 1);
+      }
+      
+      t.update(roomRef, updates);
+    });
+    
+    res.json({ message: 'Removed from queue' });
+  } catch (error) {
+    res.status(403).json({ message: error.message });
+  }
+};
+
 // ── GET room state (polling endpoint for non-Firestore mode) ──
 const getRoom = async (req, res) => {
   try {
@@ -524,4 +651,4 @@ const getRoom = async (req, res) => {
   }
 };
 
-module.exports = { createRoom, joinRoom, addSong, voteSkip, play, pause, heartbeat, getRoom };
+module.exports = { createRoom, joinRoom, addSong, voteSkip, play, pause, skip, removeFromQueue, heartbeat, getRoom };
