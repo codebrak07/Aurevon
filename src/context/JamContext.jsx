@@ -434,7 +434,14 @@ export const JamProvider = ({ children }) => {
   // ── ADD TO QUEUE (any user can call) ──
   // ══════════════════════════════════════
   const addToQueue = useCallback(async (song) => {
-    if (!roomId) return;
+    if (!roomId) {
+      console.error('[Jam] addToQueue called but roomId is null — user may not be in a room');
+      throw new Error('Not connected to a room. Please rejoin.');
+    }
+
+    if (!song) {
+      throw new Error('No song provided');
+    }
 
     // Local room fallback
     if (roomId.startsWith('local-')) {
@@ -452,18 +459,14 @@ export const JamProvider = ({ children }) => {
     }
 
     // Backend API — any user (host or guest) can add songs
-    try {
-      const headers = await getJamHeaders();
-      const res = await axios.post(API(`/jam/${roomId}/queue`), { song }, { headers });
-      // If backend returns updated room, hydrate immediately
-      if (res.data?.room) {
-        handleRoomSync(res.data.room);
-      }
-      console.log(`[Jam] Song "${song.title}" added to queue`);
-    } catch (error) {
-      console.error('[Jam] Failed to add song to queue:', error.message);
-      throw error;
+    const headers = await getJamHeaders();
+    console.log(`[Jam] Adding "${song.title}" to queue in room ${roomId}`);
+    const res = await axios.post(API(`/jam/${roomId}/queue`), { song }, { headers });
+    // If backend returns updated room, hydrate immediately
+    if (res.data?.room) {
+      handleRoomSync(res.data.room);
     }
+    console.log(`[Jam] ✅ Song "${song.title}" added to queue successfully`);
   }, [roomId, getJamHeaders, handleRoomSync, ensureJamIdentity, updateLocalRoom]);
 
   // ══════════════════════════════

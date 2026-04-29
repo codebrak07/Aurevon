@@ -23,6 +23,8 @@ export default function LiveRoom() {
   const [isSearching, setIsSearching] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(null);
+  const [queueError, setQueueError] = useState(null);
+  const [addingToQueue, setAddingToQueue] = useState(false);
 
   // Track what room track we've already triggered playback for
   const lastPlayedRoomTrackRef = useRef(null);
@@ -82,14 +84,22 @@ export default function LiveRoom() {
 
   // ── Handle adding a song to the shared queue (works for host AND guest) ──
   const handleAddToQueue = useCallback(async (track) => {
+    if (addingToQueue) return; // prevent double-tap on mobile
+    setAddingToQueue(true);
+    setQueueError(null);
     try {
       await addToQueue(track);
       setAddedFeedback(track.title);
       setTimeout(() => setAddedFeedback(null), 2000);
     } catch (err) {
-      console.error('Failed to add to queue', err);
+      console.error('Failed to add to queue:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Failed to add song';
+      setQueueError(msg);
+      setTimeout(() => setQueueError(null), 4000);
+    } finally {
+      setAddingToQueue(false);
     }
-  }, [addToQueue]);
+  }, [addToQueue, addingToQueue]);
 
   // ── Copy room code ──
   const handleCopyCode = useCallback(async () => {
@@ -238,6 +248,21 @@ export default function LiveRoom() {
         )}
       </AnimatePresence>
 
+      {/* Queue error feedback */}
+      <AnimatePresence>
+        {queueError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-red-500/15 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-center font-['Manrope'] text-sm flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">error</span>
+            <span>{queueError}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Player Area */}
         <div className="lg:col-span-2 space-y-6">
@@ -345,11 +370,12 @@ export default function LiveRoom() {
                      {searchResults.tracks.slice(0, 10).map(track => (
                        <button
                          key={track.id}
-                         onClick={() => {
-                           handleAddToQueue(track);
+                         disabled={addingToQueue}
+                         onClick={async () => {
+                           await handleAddToQueue(track);
                            setSearchResults(null);
                          }}
-                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-container-highest)] transition-colors text-left group/item"
+                         className={`flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-container-highest)] transition-colors text-left group/item ${addingToQueue ? 'opacity-50 pointer-events-none' : ''}`}
                        >
                          <img src={track.albumArt} alt="" className="w-8 h-8 rounded object-cover" />
                          <div className="flex-1 overflow-hidden">
