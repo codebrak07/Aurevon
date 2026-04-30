@@ -139,6 +139,29 @@ export async function getAudioFeatures(trackId) {
   return null;
 }
 
+export async function getTrackById(trackId) {
+  if (!trackId) return null;
+  const cacheKey = `track_by_id_v2_${trackId}`;
+  const cached = cacheService.get('search', cacheKey);
+  if (cached) return cached;
+
+  try {
+    const response = await fetch(`https://itunes.apple.com/lookup?id=${trackId}&entity=song`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      const track = mapITunesTrack(data.results[0]);
+      if (track) {
+        cacheService.set('search', cacheKey, track);
+        return track;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getArtistData(artistId) {
   if (!artistId) return null;
   const cached = cacheService.get('artistData', artistId);

@@ -65,6 +65,21 @@ const PlayerBar = memo(function PlayerBar({ onOpenLibrary, onAddToPlaylist }) {
                 >
                   <span className="material-symbols-outlined">{isCurrentLiked ? 'favorite' : 'favorite'}</span>
                 </button>
+
+                <button
+                  className="player-dock__btn"
+                  onClick={() => {
+                    if (currentTrack) {
+                      const url = `${window.location.origin}/listen?song=${currentTrack.id}`;
+                      navigator.clipboard.writeText(url)
+                        .then(() => alert('Link copied to clipboard!'))
+                        .catch(err => console.error('Failed to copy', err));
+                    }
+                  }}
+                  title="Share Song"
+                >
+                  <span className="material-symbols-outlined">share</span>
+                </button>
                 
                 <button
                   className={`player-dock__btn ${queueOpen ? 'is-active' : ''}`}

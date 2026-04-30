@@ -28,6 +28,7 @@ import { JamProvider } from './context/JamContext';
 import ResumeSessionOverlay from './components/ResumeSessionOverlay';
 import AdminPanel from './components/AdminPanel';
 import GlobalDashboard from './components/GlobalDashboard';
+import { getTrackById } from './services/spotifyService';
 import './App.css';
 import './index.css';
 
@@ -60,7 +61,29 @@ function AppContent() {
     openArtistProfile,
     closeArtistProfile,
     user,
+    playTrack,
   } = usePlayer();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const songId = params.get('song');
+    if (songId) {
+      // Clear the param so it doesn't trigger on reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      const playSharedSong = async () => {
+        try {
+          const track = await getTrackById(songId);
+          if (track) {
+            playTrack(track);
+          }
+        } catch (e) {
+          console.error("Failed to load shared song", e);
+        }
+      };
+      playSharedSong();
+    }
+  }, [playTrack]);
 
   const openLibrary = useCallback((tab = 'index') => {
     setLibraryTab(tab);
