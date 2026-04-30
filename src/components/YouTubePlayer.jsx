@@ -12,6 +12,15 @@ const YouTubePlayer = memo(function YouTubePlayer() {
   const initialVideoIdRef = useRef(videoId);
   const initialTimeRef = useRef(currentTime);
 
+  // Update initial refs so that onReady gets the latest videoId if it was changed before player initialized (like via shared links)
+  useEffect(() => {
+    initialVideoIdRef.current = videoId;
+  }, [videoId]);
+
+  useEffect(() => {
+    initialTimeRef.current = currentTime;
+  }, [currentTime]);
+
   // Keep callback ref current without re-creating player
   useEffect(() => {
     onTrackEndRef.current = onTrackEnd;
@@ -62,11 +71,22 @@ const YouTubePlayer = memo(function YouTubePlayer() {
             
             // Session Resumption Logic using the values captured at mount
             if (initialVideoIdRef.current) {
-              // 'Cue' ensures we don't violate autoplay policies on page load
-              event.target.cueVideoById({
-                videoId: initialVideoIdRef.current,
-                startSeconds: initialTimeRef.current || 0
-              });
+              const isSharedSong = window.__aurevonSharedSong === true;
+              
+              if (isSharedSong) {
+                // If it's a shared link, attempt to play automatically
+                event.target.loadVideoById({
+                  videoId: initialVideoIdRef.current,
+                  startSeconds: 0
+                });
+                setPlaying(true);
+              } else {
+                // 'Cue' ensures we don't violate autoplay policies on page load
+                event.target.cueVideoById({
+                  videoId: initialVideoIdRef.current,
+                  startSeconds: initialTimeRef.current || 0
+                });
+              }
             }
           },
           onStateChange: (event) => {

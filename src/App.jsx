@@ -68,6 +68,7 @@ function AppContent() {
     const params = new URLSearchParams(window.location.search);
     const songId = params.get('song');
     if (songId) {
+      window.__aurevonSharedSong = true;
       // Clear the param so it doesn't trigger on reload
       window.history.replaceState({}, document.title, window.location.pathname);
       

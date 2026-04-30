@@ -48,7 +48,7 @@ export default function ShareButton({ type, payload, className = '' }) {
         title="Share"
       >
         <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>
-          {loading ? 'hourglass_empty' : 'ios_share'}
+          {loading ? 'hourglass_empty' : 'send'}
         </span>
       </button>
 
