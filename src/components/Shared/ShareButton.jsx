@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ShareButton({ type, payload, className = '' }) {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleShare = async () => {
+  const handleShare = async (e) => {
+    e.stopPropagation();
     setLoading(true);
     try {
-      const res = await axios.post('/api/share', { type, payload }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('wavify_token')}` }
-      });
-      const { url } = res.data;
+      let url = window.location.href; // Fallback
+      if (type === 'song') {
+        url = `${window.location.origin}/listen?song=${payload.id || payload}`;
+      } else if (type === 'playlist') {
+        url = `${window.location.origin}/playlist?id=${payload.id || payload}`;
+      } else if (type === 'artist') {
+        url = `${window.location.origin}/artist?id=${payload.id || payload}`;
+      } else if (type === 'album') {
+        url = `${window.location.origin}/album?id=${payload.id || payload}`;
+      }
 
       // Use native share if on mobile, else fallback to clipboard
       if (navigator.share && /mobile|android|iphone/i.test(navigator.userAgent)) {
         await navigator.share({
           title: 'Aurevon',
           text: `Check this out on Aurevon:`,
-          url: `https://${url}`,
+          url: url,
         });
       } else {
-        await navigator.clipboard.writeText(`https://${url}`);
+        await navigator.clipboard.writeText(url);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
       }

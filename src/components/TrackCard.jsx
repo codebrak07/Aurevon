@@ -1,12 +1,13 @@
 import { memo, useCallback } from 'react';
 import usePlayer from '../hooks/usePlayer';
+import { useJam } from '../context/JamContext';
 import { formatDuration } from '../utils/mappers';
 import './TrackCard.css';
 
 const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlaylist }) {
   const { 
     playTrack, 
-    addToQueue, 
+    addToQueue: addLocalQueue, 
     currentTrack, 
     setUserInteracted, 
     toggleLike, 
@@ -16,23 +17,39 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
     openArtistProfile,
   } = usePlayer();
 
+  const jamContext = useJam();
+  const currentRoom = jamContext?.currentRoom;
+  const isHost = jamContext?.isHost;
+  const addJamQueue = jamContext?.addToQueue;
+
   const isActive = currentTrack?.id === track.id;
   const isLiked = likedSongs.some((s) => s.id === track.id);
   const isFollowing = followedArtists.includes(track.artist);
 
   const handlePlay = useCallback(() => {
     setUserInteracted();
+    if (currentRoom && isHost && addJamQueue) {
+      addJamQueue(track, { playImmediately: true });
+      return;
+    }
     playTrack(track);
-  }, [track, playTrack, setUserInteracted]);
+  }, [track, playTrack, setUserInteracted, currentRoom, isHost, addJamQueue]);
 
   const handleArtClick = useCallback((e) => {
     e.stopPropagation();
     setUserInteracted();
+    if (currentRoom && isHost && addJamQueue) {
+      addJamQueue(track, { playImmediately: true });
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('openNowPlaying'));
+      }, 50);
+      return;
+    }
     playTrack(track); // Start playing immediately
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('openNowPlaying'));
     }, 50); // slight delay to allow currentTrack to update
-  }, [track, playTrack, setUserInteracted]);
+  }, [track, playTrack, setUserInteracted, currentRoom, isHost, addJamQueue]);
 
   const handleAddToPlaylist = useCallback(
     (e) => {
@@ -55,9 +72,13 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
   const handleAddToQueue = useCallback(
     (e) => {
       e.stopPropagation();
-      addToQueue(track);
+      if (currentRoom && addJamQueue) {
+        addJamQueue(track);
+      } else {
+        addLocalQueue(track);
+      }
     },
-    [track, addToQueue]
+    [track, addLocalQueue, addJamQueue, currentRoom]
   );
 
   const handleFollowArtist = useCallback(

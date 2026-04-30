@@ -141,17 +141,20 @@ export async function getAudioFeatures(trackId) {
 
 export async function getTrackById(trackId) {
   if (!trackId) return null;
-  const cacheKey = `track_by_id_v2_${trackId}`;
+  const cleanId = trackId.toString().replace('apple-', '');
+  const cacheKey = `track_by_id_v2_${cleanId}`;
   const cached = cacheService.get('search', cacheKey);
   if (cached) return cached;
 
   try {
-    const response = await fetch(`https://itunes.apple.com/lookup?id=${trackId}&entity=song`);
+    const response = await fetch(`https://itunes.apple.com/lookup?id=${cleanId}&entity=song`);
     if (!response.ok) return null;
     const data = await response.json();
     if (data.results && data.results.length > 0) {
       const track = mapITunesTrack(data.results[0]);
       if (track) {
+        // preserve the original requested ID (which might have apple-) so that UI isn't confused
+        track.id = trackId; 
         cacheService.set('search', cacheKey, track);
         return track;
       }

@@ -179,23 +179,26 @@ const addSong = async (req, res) => {
   try {
     const userId = req.userId;
     const { roomId } = req.params;
-    const { song } = req.body; 
+    const { song, playImmediately } = req.body; 
 
-    console.log(`🎵 [Jam] addSong request: roomId=${roomId}, userId=${userId}, song="${song?.title}"}`);
+    console.log(`🎵 [Jam] addSong request: roomId=${roomId}, userId=${userId}, song="${song?.title}", playImmediately=${playImmediately}`);
 
     if (!song || !song.title) {
       return res.status(400).json({ message: 'Invalid song data' });
     }
 
+    // Sanitize song object for Firestore (remove undefined values)
+    const sanitizedSong = JSON.parse(JSON.stringify(song));
+    const newSong = { ...sanitizedSong, addedBy: userId, addedAt: new Date().toISOString() };
+
     // Check memory store first
     if (memoryRooms.has(roomId)) {
       const room = memoryRooms.get(roomId);
-      const newSong = { ...song, addedBy: userId, addedAt: new Date().toISOString() };
       room.queue.push(newSong);
       
-      if (room.state === 'waiting' && room.queue.length === 1) {
+      if ((room.state === 'waiting' && room.queue.length === 1) || playImmediately) {
         room.state = 'playing';
-        room.currentTrackIndex = 0;
+        room.currentTrackIndex = room.queue.length - 1;
         room.seekPosition = 0;
         room.startedAt = new Date().toISOString();
       }
@@ -208,31 +211,40 @@ const addSong = async (req, res) => {
     }
     
     const roomRef = db.collection('jamRooms').doc(roomId);
+    let updatedRoomData = null;
     
     await db.runTransaction(async (t) => {
       const doc = await t.get(roomRef);
       if (!doc.exists) throw new Error('Room not found');
       
       const roomData = doc.data();
-      const newSong = { ...song, addedBy: userId, addedAt: new Date().toISOString() };
       
       const updates = {
-        queue: [...roomData.queue, newSong],
+        queue: [...(roomData.queue || []), newSong],
         lastActive: admin.firestore.FieldValue.serverTimestamp()
       };
       
-      // Auto-play
-      if (roomData.state === 'waiting' && roomData.queue.length === 0) {
+      // Auto-play or force play immediately
+      if ((roomData.state === 'waiting' && updates.queue.length === 1) || playImmediately) {
         updates.state = 'playing';
-        updates.currentTrackIndex = 0;
+        updates.currentTrackIndex = updates.queue.length - 1;
         updates.seekPosition = 0;
         updates.startedAt = admin.firestore.FieldValue.serverTimestamp();
       }
       
       t.update(roomRef, updates);
+
+      // Prepare updated data to return immediately
+      updatedRoomData = {
+        ...roomData,
+        ...updates,
+        // Convert serverTimestamp to string just for the response so frontend can hydrate
+        lastActive: new Date().toISOString(),
+        ...(updates.startedAt ? { startedAt: new Date().toISOString() } : {})
+      };
     });
 
-    res.json({ message: 'Song added to queue' });
+    res.json({ message: 'Song added to queue', room: updatedRoomData });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

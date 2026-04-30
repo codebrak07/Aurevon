@@ -440,7 +440,7 @@ export const JamProvider = ({ children }) => {
   // ══════════════════════════════════════
   // ── ADD TO QUEUE (any user can call) ──
   // ══════════════════════════════════════
-  const addToQueue = useCallback(async (song) => {
+  const addToQueue = useCallback(async (song, options = {}) => {
     if (!roomId) {
       console.error('[Jam] addToQueue called but roomId is null — user may not be in a room');
       throw new Error('Not connected to a room. Please rejoin.');
@@ -455,9 +455,9 @@ export const JamProvider = ({ children }) => {
       updateLocalRoom(roomId, (room) => {
         const newSong = { ...song, addedBy: ensureJamIdentity(), addedAt: new Date().toISOString() };
         room.queue = [...(room.queue || []), newSong];
-        if (room.state === 'waiting' && room.queue.length === 1) {
+        if ((room.state === 'waiting' && room.queue.length === 1) || options.playImmediately) {
           room.state = 'playing';
-          room.currentTrackIndex = 0;
+          room.currentTrackIndex = room.queue.length - 1;
         }
         room.lastActive = new Date().toISOString();
         return room;
@@ -468,7 +468,7 @@ export const JamProvider = ({ children }) => {
     // Backend API — any user (host or guest) can add songs
     const headers = await getJamHeaders();
     console.log(`[Jam] Adding "${song.title}" to queue in room ${roomId}`);
-    const res = await axios.post(API(`/jam/${roomId}/queue`), { song }, { headers });
+    const res = await axios.post(API(`/jam/${roomId}/queue`), { song, playImmediately: options.playImmediately }, { headers });
     // If backend returns updated room, hydrate immediately
     if (res.data?.room) {
       handleRoomSync(res.data.room);

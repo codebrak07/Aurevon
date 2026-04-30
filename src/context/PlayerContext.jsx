@@ -1083,7 +1083,7 @@ export function PlayerProvider({ children }) {
     if (!playerRef.current) return;
     try {
       const playerState = playerRef.current.getPlayerState?.();
-      if (playerState === window.YT.PlayerState.PLAYING || stateRef.current.isPlaying) {
+      if (playerState === window.YT.PlayerState.PLAYING || playerState === window.YT.PlayerState.BUFFERING) {
         playerRef.current.pauseVideo();
       } else {
         playerRef.current.playVideo();
