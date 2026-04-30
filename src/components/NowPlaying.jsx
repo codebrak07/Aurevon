@@ -2,6 +2,7 @@ import { useState, memo, useRef, useCallback } from 'react';
 import usePlayer from '../hooks/usePlayer';
 import { formatTime } from '../utils/mappers';
 import LyricsViewer from './LyricsViewer';
+import ShareButton from './Shared/ShareButton';
 import './NowPlaying.css'; // kept for fallback
 
 const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }) {
@@ -225,9 +226,11 @@ const NowPlaying = memo(function NowPlaying({ isOpen, onClose, onAddToPlaylist }
                       </div>
                       <span className="material-symbols-outlined text-on-surface-variant text-[20px]" onClick={() => setVolume(100)}>volume_up</span>
                     </div>
-                    <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
-                      <span className="material-symbols-outlined cursor-pointer text-[22px]">share</span>
-                    </button>
+                    <ShareButton 
+                      type="song" 
+                      payload={currentTrack.id} 
+                      className="text-on-surface-variant hover:text-primary transition-colors active:scale-95 !text-[22px]"
+                    />
                   </footer>
                 </div>
               </>
