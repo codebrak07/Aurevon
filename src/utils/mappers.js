@@ -61,7 +61,8 @@ export function mapITunesTrack(item) {
     spotifyId: String(item.trackId), // Store trackId in spotifyId so the app components don't break
     genres: item.primaryGenreName ? [item.primaryGenreName] : [],
     releaseDate: item.releaseDate || '',
-    isHindiArtist: isHindiArtist
+    isHindiArtist: isHindiArtist,
+    audioUrl: item.previewUrl || ''
   };
 }
 

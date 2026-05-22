@@ -439,6 +439,9 @@ export function PlayerProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const playerRef = useRef(null);
   const silentAudioRef = useRef(null);
+  const nativeAudioRef = useRef(null);
+  const activeEngineRef = useRef('youtube'); // 'youtube' | 'native'
+  const isBackgroundSwitchedRef = useRef(false);
   const timeUpdateRef = useRef(null);
   const prefetchedRef = useRef(null);
   const stateRef = useRef(state);
@@ -835,27 +838,61 @@ export function PlayerProvider({ children }) {
     }
 
     try {
-      // Step 1: Pre-match optimization — check if we have a prefetched ID
-      let vid = null;
-      let ytTitle = null;
-      
-      const ytData = await searchVideoId(track.title, track.artist, track.id);
-      vid = ytData?.videoId;
-      ytTitle = ytData?.title;
-
-      if (!vid) throw new Error('Could not find audio for this track.');
-      
+      const audioUrl = track.audioUrl || track.audio_url;
       const trackToPlay = { ...track };
-      
-      dispatch({ type: 'SET_TRACK', payload: { track: trackToPlay, videoId: vid } });
-      dispatch({ type: 'TRACK_PLAYED', payload: trackToPlay });
+
+      if (audioUrl) {
+        console.log('[Aurevon Player] Direct audio URL found. Routing to Native Audio Player.');
+        activeEngineRef.current = 'native';
+        
+        // Pause YouTube if any
+        if (playerRef.current) {
+          try { playerRef.current.pauseVideo(); } catch {}
+        }
+        
+        dispatch({ type: 'SET_TRACK', payload: { track: trackToPlay, videoId: null } });
+        dispatch({ type: 'TRACK_PLAYED', payload: trackToPlay });
+        
+        if (nativeAudioRef.current) {
+          nativeAudioRef.current.src = audioUrl;
+          nativeAudioRef.current.volume = stateRef.current.volume / 100;
+          nativeAudioRef.current.play().then(() => {
+            dispatch({ type: 'SET_PLAYING', payload: true });
+          }).catch(err => {
+            console.warn('[Native Player] Play failed:', err);
+          });
+        }
+      } else {
+        // YouTube play flow
+        activeEngineRef.current = 'youtube';
+        
+        // Pause Native Audio if any
+        if (nativeAudioRef.current) {
+          try {
+            nativeAudioRef.current.pause();
+            nativeAudioRef.current.src = '';
+          } catch {}
+        }
+
+        let vid = null;
+        let ytTitle = null;
+        
+        const ytData = await searchVideoId(track.title, track.artist, track.id);
+        vid = ytData?.videoId;
+        ytTitle = ytData?.title;
+
+        if (!vid) throw new Error('Could not find audio for this track.');
+        
+        dispatch({ type: 'SET_TRACK', payload: { track: trackToPlay, videoId: vid } });
+        dispatch({ type: 'TRACK_PLAYED', payload: trackToPlay });
+      }
 
       // Step 2: Trigger Pre-fetch for the NEXT track immediately after starting this one
       const { currentIndex, queue, shuffleEnabled, shuffledIndices } = stateRef.current;
       const nextIndex = getNextTrackIndex(currentIndex, queue.length, shuffleEnabled, shuffledIndices);
       if (nextIndex !== -1) {
         const next = queue[nextIndex];
-        // Fetch ahead in background (YouTube Data API quota safe because it's only 1 call per song)
+        // Fetch ahead in background
         searchVideoId(next.title, next.artist, next.id).catch(() => {});
       }
 
@@ -940,15 +977,24 @@ export function PlayerProvider({ children }) {
 
   // ── Time update interval ──
   useEffect(() => {
-    if (state.isPlaying && playerRef.current) {
+    if (state.isPlaying) {
       timeUpdateRef.current = setInterval(() => {
         try {
-          const time = playerRef.current.getCurrentTime();
-          const dur = playerRef.current.getDuration();
-          if (time != null) dispatch({ type: 'SET_CURRENT_TIME', payload: time });
-          if (dur != null && dur > 0) dispatch({ type: 'SET_DURATION', payload: dur });
+          let time = 0;
+          let dur = 0;
 
-          if ('mediaSession' in navigator && time != null && dur != null && dur > 0) {
+          if (activeEngineRef.current === 'native' && nativeAudioRef.current) {
+            time = nativeAudioRef.current.currentTime;
+            dur = nativeAudioRef.current.duration;
+          } else if (activeEngineRef.current === 'youtube' && playerRef.current) {
+            time = playerRef.current.getCurrentTime();
+            dur = playerRef.current.getDuration();
+          }
+
+          if (time != null && !isNaN(time)) dispatch({ type: 'SET_CURRENT_TIME', payload: time });
+          if (dur != null && !isNaN(dur) && dur > 0) dispatch({ type: 'SET_DURATION', payload: dur });
+
+          if ('mediaSession' in navigator && time != null && !isNaN(time) && dur != null && !isNaN(dur) && dur > 0) {
             navigator.mediaSession.setPositionState({
               duration: dur,
               playbackRate: 1,
@@ -1080,27 +1126,46 @@ export function PlayerProvider({ children }) {
   }, [state.currentIndex, state.queue]);
 
   const togglePlay = useCallback(() => {
-    if (!playerRef.current) return;
-    try {
-      const playerState = playerRef.current.getPlayerState?.();
-      if (playerState === window.YT.PlayerState.PLAYING || playerState === window.YT.PlayerState.BUFFERING) {
-        playerRef.current.pauseVideo();
-      } else {
-        playerRef.current.playVideo();
+    const { isPlaying } = stateRef.current;
+    
+    if (activeEngineRef.current === 'native') {
+      if (nativeAudioRef.current) {
+        if (isPlaying) {
+          nativeAudioRef.current.pause();
+          dispatch({ type: 'SET_PLAYING', payload: false });
+        } else {
+          nativeAudioRef.current.play().then(() => {
+            dispatch({ type: 'SET_PLAYING', payload: true });
+          }).catch(err => {
+            console.warn('[Native Player] Play failed:', err);
+          });
+        }
       }
-      // Note: We no longer dispatch TOGGLE_PLAY here. 
-      // We wait for YouTube's onStateChange to update the global isPlaying state.
-      // This prevents the UI from showing the wrong state during transitional periods.
-    } catch (error) {
-      console.error('[Aurevon Player] TogglePlay failed:', error);
+    } else {
+      if (!playerRef.current) return;
+      try {
+        const playerState = playerRef.current.getPlayerState?.();
+        if (playerState === window.YT.PlayerState.PLAYING || playerState === window.YT.PlayerState.BUFFERING) {
+          playerRef.current.pauseVideo();
+        } else {
+          playerRef.current.playVideo();
+        }
+      } catch (error) {
+        console.error('[Aurevon Player] TogglePlay failed:', error);
+      }
     }
   }, []);
 
   const prevTrack = useCallback(async () => {
     const { queue, currentIndex, currentTime } = stateRef.current;
-    if (currentTime > 3 && playerRef.current) {
-      playerRef.current.seekTo(0, true);
-      dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
+    if (currentTime > 3) {
+      if (activeEngineRef.current === 'native' && nativeAudioRef.current) {
+        nativeAudioRef.current.currentTime = 0;
+        dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
+      } else if (activeEngineRef.current === 'youtube' && playerRef.current) {
+        playerRef.current.seekTo(0, true);
+        dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
+      }
       return;
     }
     const prevIndex = currentIndex - 1;
@@ -1133,10 +1198,18 @@ export function PlayerProvider({ children }) {
     if (playerRef.current) {
       try { playerRef.current.setVolume(value); } catch { /* ignore */ }
     }
+    if (nativeAudioRef.current) {
+      try { nativeAudioRef.current.volume = value / 100; } catch { /* ignore */ }
+    }
   }, []);
 
   const seekTo = useCallback((time) => {
-    if (playerRef.current) {
+    if (activeEngineRef.current === 'native' && nativeAudioRef.current) {
+      try {
+        nativeAudioRef.current.currentTime = time;
+        dispatch({ type: 'SET_CURRENT_TIME', payload: time });
+      } catch {}
+    } else if (activeEngineRef.current === 'youtube' && playerRef.current) {
       try {
         playerRef.current.seekTo(time, true);
         dispatch({ type: 'SET_CURRENT_TIME', payload: time });
@@ -1161,6 +1234,12 @@ export function PlayerProvider({ children }) {
       try {
         playerRef.current.pauseVideo();
         playerRef.current.stopVideo(); // Stop buffering
+      } catch { /* ignore */ }
+    }
+    if (nativeAudioRef.current) {
+      try {
+        nativeAudioRef.current.pause();
+        nativeAudioRef.current.src = '';
       } catch { /* ignore */ }
     }
     dispatch({ type: 'SET_PLAYING', payload: false });
@@ -1348,8 +1427,20 @@ export function PlayerProvider({ children }) {
     syncToBackend();
   }, [syncToBackend]);
 
-  const setPlaying = useCallback((isPlaying) => {
-    dispatch({ type: 'SET_PLAYING', payload: isPlaying });
+  const setPlaying = useCallback((playing) => {
+    // If we are in the middle of a background handoff, ignore incoming pause events from YouTube
+    if (isBackgroundSwitchedRef.current && !playing) {
+      console.log('[PlayerContext] Ignoring YouTube pause event during background handoff');
+      return;
+    }
+    
+    // If the document is hidden and a pause event comes from YouTube, check if we should ignore it
+    if (document.visibilityState === 'hidden' && activeEngineRef.current === 'youtube' && !playing) {
+      console.log('[PlayerContext] Ignoring YouTube pause event while document is hidden');
+      return;
+    }
+    
+    dispatch({ type: 'SET_PLAYING', payload: playing });
   }, []);
 
   const value = {
@@ -1425,6 +1516,132 @@ export function PlayerProvider({ children }) {
     };
   }, []);
 
+  // ── Visibility Change Listener for Background Handoff ──
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isHidden = document.visibilityState === 'hidden';
+      const { isPlaying, currentTrack, videoId, currentTime } = stateRef.current;
+      
+      console.log(`[Visibility Change] hidden: ${isHidden}, playing: ${isPlaying}, engine: ${activeEngineRef.current}`);
+      
+      if (isHidden) {
+        // App minimized
+        if (isPlaying && activeEngineRef.current === 'youtube' && currentTrack) {
+          const audioUrl = currentTrack.audioUrl || currentTrack.audio_url;
+          if (audioUrl) {
+            console.log('[Background Handoff] Switching from YouTube to Native Audio preview:', audioUrl);
+            
+            isBackgroundSwitchedRef.current = true;
+            
+            let timeToStart = 0;
+            if (playerRef.current) {
+              try {
+                timeToStart = playerRef.current.getCurrentTime() || 0;
+              } catch {}
+            }
+            if (!timeToStart) timeToStart = currentTime;
+            
+            try {
+              playerRef.current.pauseVideo();
+            } catch {}
+            
+            if (nativeAudioRef.current) {
+              nativeAudioRef.current.src = audioUrl;
+              nativeAudioRef.current.currentTime = timeToStart;
+              nativeAudioRef.current.volume = stateRef.current.volume / 100;
+              nativeAudioRef.current.play().catch(err => {
+                console.warn('[Background Handoff] Failed to start native audio:', err);
+              });
+            }
+            
+            activeEngineRef.current = 'native';
+          }
+        }
+      } else {
+        // App returned to foreground
+        if (isBackgroundSwitchedRef.current && currentTrack) {
+          console.log('[Foreground Handoff] Switching back to YouTube from Native Audio');
+          
+          isBackgroundSwitchedRef.current = false;
+          
+          let timeToStart = 0;
+          if (nativeAudioRef.current) {
+            timeToStart = nativeAudioRef.current.currentTime || 0;
+            nativeAudioRef.current.pause();
+            nativeAudioRef.current.src = '';
+          }
+          
+          activeEngineRef.current = 'youtube';
+          
+          if (playerRef.current && videoId) {
+            try {
+              playerRef.current.loadVideoById({
+                videoId: videoId,
+                startSeconds: timeToStart
+              });
+              playerRef.current.setVolume(stateRef.current.volume);
+              playerRef.current.playVideo();
+            } catch (err) {
+              console.error('[Foreground Handoff] Failed to resume YouTube:', err);
+            }
+          }
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // ── Native Audio Event Listeners ──
+  useEffect(() => {
+    const audio = nativeAudioRef.current;
+    if (!audio) return;
+
+    const onPlay = () => {
+      if (activeEngineRef.current === 'native') {
+        dispatch({ type: 'SET_PLAYING', payload: true });
+      }
+    };
+
+    const onPause = () => {
+      if (activeEngineRef.current === 'native') {
+        if (!isBackgroundSwitchedRef.current) {
+          dispatch({ type: 'SET_PLAYING', payload: false });
+        }
+      }
+    };
+
+    const onEnded = () => {
+      if (activeEngineRef.current === 'native') {
+        onTrackEnd();
+      }
+    };
+
+    const onError = (e) => {
+      if (activeEngineRef.current === 'native') {
+        console.error('[Native Audio] Error event:', e);
+        dispatch({
+          type: 'SET_ERROR',
+          payload: { type: 'playback', message: 'Direct audio stream failed to play.' },
+        });
+        setTimeout(() => nextTrack(), 1500);
+      }
+    };
+
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('error', onError);
+
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('error', onError);
+    };
+  }, [onTrackEnd, nextTrack]);
+
   // ── Media Session API (Background Streaming & Controls) ──
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
@@ -1449,7 +1666,6 @@ export function PlayerProvider({ children }) {
 
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
-    // Update silent audio element to keep background session alive on mobile
     if (silentAudioRef.current) {
       if (isPlaying) {
         silentAudioRef.current.play().catch(() => {});
@@ -1457,7 +1673,6 @@ export function PlayerProvider({ children }) {
         silentAudioRef.current.pause();
       }
     }
-
 
     const actionHandlers = [
       ['play', togglePlay],
@@ -1473,7 +1688,7 @@ export function PlayerProvider({ children }) {
       try {
         navigator.mediaSession.setActionHandler(action, handler);
       } catch (error) {
-        // console.warn(`The media session action "${action}" is not supported yet.`);
+        // ignore
       }
     }
 
@@ -1495,6 +1710,12 @@ export function PlayerProvider({ children }) {
         src={SILENT_MP3}
         loop
         muted={false}
+        style={{ display: 'none' }}
+        preload="auto"
+      />
+      {/* Hidden native audio element for playing direct audio URLs and background fallback */}
+      <audio
+        ref={nativeAudioRef}
         style={{ display: 'none' }}
         preload="auto"
       />
