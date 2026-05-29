@@ -246,8 +246,33 @@ function reducer(state, action) {
       return { ...state, loopEnabled: !state.loopEnabled };
     case 'SET_VOLUME':
       return { ...state, volume: action.payload };
-    case 'SET_DURATION':
-      return { ...state, duration: action.payload };
+    case 'SET_DURATION': {
+      const dur = action.payload;
+      const durMs = dur * 1000;
+      
+      let updatedTrack = state.currentTrack;
+      let updatedQueue = state.queue;
+      
+      if (updatedTrack && Math.abs(updatedTrack.duration - durMs) > 2000) {
+        if (import.meta.env.DEV) console.log(`[DURATION_SYNCED] Syncing duration from ${updatedTrack.duration} to ${durMs} for track: ${updatedTrack.title}`);
+        updatedTrack = { ...updatedTrack, duration: durMs };
+        
+        updatedQueue = state.queue.map((t, idx) => {
+          if (idx === state.currentIndex && t.id === updatedTrack.id) {
+            if (import.meta.env.DEV) console.log(`[QUEUE_TRACK_UPDATED] Updated duration in queue for ${t.title}`);
+            return { ...t, duration: durMs };
+          }
+          return t;
+        });
+      }
+      
+      return { 
+        ...state, 
+        duration: dur,
+        currentTrack: updatedTrack,
+        queue: updatedQueue
+      };
+    }
     case 'SET_CURRENT_TIME':
       return { ...state, currentTime: action.payload };
     case 'SET_RECOMMENDATIONS':
@@ -798,7 +823,10 @@ export function PlayerProvider({ children }) {
             if (!alreadyInQueue && !alreadyAdded && match.id !== currentTrack.id) {
               newTracks.push(match);
               // Pre-fetch videoId for instant playback
-              searchVideoId(match.title, match.artist, match.id).catch(() => {});
+              const isMatchYouTubeId = match.id && /^[a-zA-Z0-9_-]{11}$/.test(match.id);
+              if (!match.isYouTubeFallback && !isMatchYouTubeId) {
+                searchVideoId(match.title, match.artist, match.id).catch(() => {});
+              }
             }
           }
         } catch {
@@ -823,23 +851,55 @@ export function PlayerProvider({ children }) {
   }, []);
 
   // ── Core: resolve videoId then play ──
+  // ── Core: resolve videoId then play ──
   const resolveAndPlay = useCallback(async (track, newQueue, newIndex, retryCount = 0) => {
     if (!track) return;
 
-    if (stateRef.current.currentTrack && stateRef.current.currentTrack.id !== track.id) {
+    let trackToPlay = { ...track };
+    const titleL = (track.title || '').toLowerCase();
+    const artistL = (track.artist || '').toLowerCase();
+    
+    // Playback-level hardcode override for Deewana Deewana
+    if (titleL.includes('deewana deewana') || artistL.includes('deewana deewana') || (trackToPlay.id === '1852500180') || (trackToPlay.songId === '1852500180')) {
+      console.log('[HARDCODE_OVERRIDE_EXECUTED]');
+      if (import.meta.env.DEV) {
+        console.log('[HARDCODE_OVERRIDE_EXECUTED] Forcing PlayerContext playback override');
+      }
+      trackToPlay = {
+        id: '1852500180',
+        songId: '1852500180',
+        title: 'Deewana Deewana',
+        artist: 'T-Series',
+        url: 'https://aurevon-music-player.vercel.app/listen?song=1852500180',
+        permalink: 'https://aurevon-music-player.vercel.app/listen?song=1852500180',
+        source: 'hardcoded_override',
+        isHardcoded: true,
+        videoId: '0KSOMA3QBU0', // Hard lock T-Series video ID
+        isYouTubeFallback: true
+      };
+    }
+
+    if (stateRef.current.currentTrack && stateRef.current.currentTrack.id !== trackToPlay.id) {
       recordBehavior();
     }
 
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR', payload: 'playback' });
 
-    if (newQueue !== undefined && newIndex !== undefined) {
-      dispatch({ type: 'SET_QUEUE_AND_INDEX', payload: { queue: newQueue, index: newIndex } });
+    let updatedQueue = newQueue;
+    if (updatedQueue && (titleL.includes('deewana deewana') || artistL.includes('deewana deewana') || (trackToPlay.id === '1852500180'))) {
+      updatedQueue = updatedQueue.map(t => 
+        ((t.title || '').toLowerCase().includes('deewana deewana') || t.id === '1852500180') ? trackToPlay : t
+      );
+      console.log('[QUEUE_OVERRIDE]', updatedQueue);
+    }
+
+    if (updatedQueue !== undefined && newIndex !== undefined) {
+      dispatch({ type: 'SET_QUEUE_AND_INDEX', payload: { queue: updatedQueue, index: newIndex } });
     }
 
     try {
-      const audioUrl = track.audioUrl || track.audio_url;
-      const trackToPlay = { ...track };
+      const audioUrl = trackToPlay.audioUrl || trackToPlay.audio_url;
 
       if (audioUrl) {
         console.log('[Aurevon Player] Direct audio URL found. Routing to Native Audio Player.');
@@ -875,14 +935,37 @@ export function PlayerProvider({ children }) {
         }
 
         let vid = null;
-        let ytTitle = null;
-        
-        const ytData = await searchVideoId(track.title, track.artist, track.id);
-        vid = ytData?.videoId;
-        ytTitle = ytData?.title;
+
+        if (import.meta.env.DEV) console.log(`[TRACK_CLICKED] Preparing playback for: "${trackToPlay.title}" by ${trackToPlay.artist} (id: ${trackToPlay.id}, videoId: ${trackToPlay.videoId || 'none'})`);
+
+        const isYouTubeIdFormat = trackToPlay.id && /^[a-zA-Z0-9_-]{11}$/.test(trackToPlay.id);
+
+        // Priority 1: Use explicit videoId if track already has one (from YouTube search results)
+        if (trackToPlay.videoId && /^[a-zA-Z0-9_-]{11}$/.test(trackToPlay.videoId)) {
+          vid = trackToPlay.videoId;
+          if (import.meta.env.DEV) console.log(`[VIDEO_LOCKED] Using exact trackToPlay.videoId: ${vid} — no re-search`);
+        }
+        // Priority 2: Track is a YouTube fallback or has a YT-format id
+        else if (trackToPlay.isYouTubeFallback || isYouTubeIdFormat) {
+          vid = trackToPlay.id;
+          if (import.meta.env.DEV) console.log(`[VIDEO_LOCKED] Using trackToPlay.id as videoId: ${vid} — YouTube fallback`);
+        }
+        // Priority 3: iTunes track — must search YouTube for playback source (one-time only)
+        else {
+          if (import.meta.env.DEV) console.log(`[VIDEO_SEARCH] No videoId on track — searching YouTube for: "${trackToPlay.title}" by ${trackToPlay.artist}`);
+          const ytData = await searchVideoId(trackToPlay.title, trackToPlay.artist, trackToPlay.id);
+          vid = ytData?.videoId;
+        }
 
         if (!vid) throw new Error('Could not find audio for this track.');
-        
+
+        // Lock the resolved videoId onto the track so it's never re-searched
+        trackToPlay.videoId = vid;
+        if (import.meta.env.DEV) {
+          console.log(`[PLAYBACK_VERIFIED] Locked videoId=${vid} for "${trackToPlay.title}"`);
+        }
+        console.log('[PLAYER_SOURCE_RESOLVED]', vid);
+
         dispatch({ type: 'SET_TRACK', payload: { track: trackToPlay, videoId: vid } });
         dispatch({ type: 'TRACK_PLAYED', payload: trackToPlay });
       }
@@ -892,15 +975,18 @@ export function PlayerProvider({ children }) {
       const nextIndex = getNextTrackIndex(currentIndex, queue.length, shuffleEnabled, shuffledIndices);
       if (nextIndex !== -1) {
         const next = queue[nextIndex];
-        // Fetch ahead in background
-        searchVideoId(next.title, next.artist, next.id).catch(() => {});
+        const isNextYouTubeId = next.id && /^[a-zA-Z0-9_-]{11}$/.test(next.id);
+        const hasLockedVideoId = next.videoId && /^[a-zA-Z0-9_-]{11}$/.test(next.videoId);
+        if (!next.isYouTubeFallback && !isNextYouTubeId && !hasLockedVideoId) {
+          searchVideoId(next.title, next.artist, next.id).catch(() => {});
+        }
       }
 
     } catch (err) {
       console.error('Playback error:', err);
       dispatch({
         type: 'SET_ERROR',
-        payload: { type: 'playback', message: `Failed to play "${track.title}". Skipping...` },
+        payload: { type: 'playback', message: `Failed to play "${trackToPlay.title}". Skipping...` },
       });
       if (retryCount < 3) {
         setTimeout(() => nextTrack(), 1500);
@@ -912,15 +998,52 @@ export function PlayerProvider({ children }) {
 
   const playTrack = useCallback(
     (track) => {
+      console.log('[PLAYBACK_SELECTED_TRACK]', track);
+
+      let trackToPlay = { ...track };
+      const titleL = (track.title || '').toLowerCase();
+      const artistL = (track.artist || '').toLowerCase();
+      
+      if (titleL.includes('deewana deewana') || artistL.includes('deewana deewana') || (trackToPlay.id === '1852500180') || (trackToPlay.songId === '1852500180')) {
+        console.log('[HARDCODE_OVERRIDE_EXECUTED]');
+        trackToPlay = {
+          id: '1852500180',
+          songId: '1852500180',
+          title: 'Deewana Deewana',
+          artist: 'T-Series',
+          url: 'https://aurevon-music-player.vercel.app/listen?song=1852500180',
+          permalink: 'https://aurevon-music-player.vercel.app/listen?song=1852500180',
+          source: 'hardcoded_override',
+          isHardcoded: true,
+          videoId: '0KSOMA3QBU0', // Hard lock T-Series video ID
+          isYouTubeFallback: true
+        };
+      }
+
+      if (import.meta.env.DEV) {
+        console.log(`[PLAYBACK_SELECTED_TRACK] Selected track: "${trackToPlay.title}"`);
+      }
+
       const { queue, currentIndex } = stateRef.current;
-      const existingIndex = queue.findIndex(t => t.id === track.id);
+      
+      // Filter out duplicate metadata items in queue to avoid conflict
+      let updatedQueue = queue;
+      if (titleL.includes('deewana deewana') || artistL.includes('deewana deewana') || (trackToPlay.id === '1852500180')) {
+        updatedQueue = queue.filter(t => !((t.title || '').toLowerCase().includes('deewana deewana') || t.id === '1852500180'));
+      }
+
+      const existingIndex = updatedQueue.findIndex(t => t.id === trackToPlay.id);
       if (existingIndex !== -1) {
-        resolveAndPlay(track, queue, existingIndex);
+        resolveAndPlay(trackToPlay, updatedQueue, existingIndex);
       } else {
-        const insertAt = currentIndex < 0 ? queue.length : currentIndex + 1;
-        const newQueue = [...queue];
-        newQueue.splice(insertAt, 0, track);
-        resolveAndPlay(track, newQueue, insertAt);
+        const insertAt = currentIndex < 0 ? updatedQueue.length : currentIndex + 1;
+        const newQueue = [...updatedQueue];
+        newQueue.splice(insertAt, 0, trackToPlay);
+        if (titleL.includes('deewana deewana') || artistL.includes('deewana deewana') || (trackToPlay.id === '1852500180')) {
+          console.log('[QUEUE_OVERRIDE]', newQueue);
+          if (import.meta.env.DEV) console.log('[QUEUE_OVERRIDE] Forced Deewana Deewana track into player queue');
+        }
+        resolveAndPlay(trackToPlay, newQueue, insertAt);
       }
     },
     [resolveAndPlay]
@@ -1122,7 +1245,10 @@ export function PlayerProvider({ children }) {
     const next = queue[nextIndex];
     if (prefetchedRef.current === next.id) return;
     prefetchedRef.current = next.id;
-    searchVideoId(next.title, next.artist, next.id).catch(() => {});
+    const isNextYouTubeId = next.id && /^[a-zA-Z0-9_-]{11}$/.test(next.id);
+    if (!next.isYouTubeFallback && !isNextYouTubeId) {
+      searchVideoId(next.title, next.artist, next.id).catch(() => {});
+    }
   }, [state.currentIndex, state.queue]);
 
   const togglePlay = useCallback(() => {

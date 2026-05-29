@@ -1,3 +1,5 @@
+import { normalizeTrack, normalizeArtist } from './TrackNormalizer';
+
 export function mapSpotifyTrack(item) {
   if (!item) return null;
   return {
@@ -23,8 +25,6 @@ export function mapSpotifyTrack(item) {
 
 export function mapITunesTrack(item) {
   if (!item) return null;
-  const hqArtwork = item.artworkUrl100?.replace('100x100bb', '600x600bb') || '';
-  const lowArtwork = item.artworkUrl100?.replace('100x100bb', '300x300bb') || '';
 
   // Detection for Hindi Artists to prevent auto-translation issues
   const HINDI_ARTISTS = [
@@ -49,43 +49,15 @@ export function mapITunesTrack(item) {
     return null;
   }
   
-  return {
-    id: String(item.trackId),
-    title: item.trackName || '',
-    artist: item.artistName || 'Unknown Artist',
-    artistId: String(item.artistId || ''),
-    album: item.collectionName || '',
-    albumArt: hqArtwork,
-    albumArtSmall: lowArtwork,
-    duration: item.trackTimeMillis || 0,
-    spotifyId: String(item.trackId), // Store trackId in spotifyId so the app components don't break
-    genres: item.primaryGenreName ? [item.primaryGenreName] : [],
-    releaseDate: item.releaseDate || '',
-    isHindiArtist: isHindiArtist,
-    audioUrl: item.previewUrl || ''
-  };
+  return normalizeTrack(item, 'itunes');
 }
 
 export function mapITunesArtist(item) {
-  if (!item) return null;
-  return {
-    id: String(item.artistId),
-    name: item.artistName || 'Unknown Artist',
-    type: 'artist',
-    genre: item.primaryGenreName || '',
-    artistLink: item.artistLinkUrl || '',
-    image: `https://ui-avatars.com/api/?name=${encodeURIComponent(item.artistName)}&background=random&color=fff&size=512` // Fallback since iTunes doesn't provide artist images directly in search
-  };
+  return normalizeArtist(item, 'itunes');
 }
 
 export function mapYouTubeResult(item) {
-  if (!item) return null;
-  return {
-    videoId: typeof item.id === 'object' ? item.id.videoId : item.id,
-    title: item.snippet?.title || '',
-    thumbnail: item.snippet?.thumbnails?.default?.url || '',
-    channelTitle: item.snippet?.channelTitle || '',
-  };
+  return normalizeTrack(item, 'youtube');
 }
 
 export function formatTime(seconds) {

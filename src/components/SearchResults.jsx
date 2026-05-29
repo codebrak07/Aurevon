@@ -32,6 +32,7 @@ export default function SearchResults({ results, isLoading, error, onAddToPlayli
   }
 
   const { tracks = [], artists = [] } = results || {};
+if (import.meta.env.DEV) console.log(`[RESULTS_RENDERED] Rendering ${tracks.length} tracks, ${artists.length} artists`);
   if (tracks.length === 0 && artists.length === 0) return null;
 
   // Only show the top (first) artist match as requested

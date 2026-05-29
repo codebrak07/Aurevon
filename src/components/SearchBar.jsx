@@ -30,6 +30,10 @@ export default function SearchBar({ onResults = noop, onLoading = noop, onError 
         searchArtists(searchQuery)
       ]);
       
+      if (import.meta.env.DEV) {
+        console.log(`[RESULTS_RECEIVED_BY_COMPONENT] SearchBar received ${trackResults?.length || 0} tracks`);
+      }
+
       onResults({ 
         tracks: trackResults, 
         artists: artistResults 
