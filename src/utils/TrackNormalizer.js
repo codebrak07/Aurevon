@@ -4,16 +4,49 @@
  * into a single unified Track interface.
  */
 
-// Helper to clean YouTube titles
-function sanitizeYouTubeTitle(title) {
-  if (!title) return '';
-  return title
+// Helper to parse YouTube titles into Title and Artist
+function parseYouTubeTitleAndArtist(rawTitle, channelTitle) {
+  if (!rawTitle) return { title: '', artist: channelTitle };
+
+  // Remove common YouTube clutter
+  const cleanRaw = rawTitle
     .replace(/\[.*?\]/g, '') // Remove everything inside brackets [Official Music Video], [Lyrics], etc.
     .replace(/\(.*?\)/g, '') // Remove everything inside parenthesis (Official Video), (Audio)
     .replace(/\{.*?\}/g, '') // Remove curly braces
     .replace(/\|.*/, '') // Remove everything after a pipe |
-    .replace(/-.*/, '') // Frequently used as "Artist - Title", but we just want the first part or clean up
     .trim();
+
+  // Look for any hyphen-like separator (hyphen with spaces, en-dash, em-dash)
+  // Standard hyphen '-' must have at least one space around it to prevent splitting words like Spider-Man or hip-hop.
+  const separatorRegex = /\s+-\s*|\s*-\s+|\s*[–—]\s*/;
+  if (separatorRegex.test(cleanRaw)) {
+    const parts = cleanRaw.split(separatorRegex);
+    if (parts.length >= 2) {
+      const part0 = parts[0].trim();
+      const part1 = parts.slice(1).join(' - ').trim();
+
+      const chL = channelTitle.toLowerCase();
+      // Remove common suffixes to perform a fuzzy match against channel title
+      const cleanCh = chL.replace('vevo', '').replace('official', '').replace('music', '').replace('channel', '').trim();
+      const p0L = part0.toLowerCase();
+      const p1L = part1.toLowerCase();
+
+      // Check if channel title is closer to part0 or part1
+      const isP0Artist = cleanCh && (chL.includes(p0L) || p0L.includes(cleanCh));
+      const isP1Artist = cleanCh && (chL.includes(p1L) || p1L.includes(cleanCh));
+
+      if (isP0Artist && !isP1Artist) {
+        return { title: part1, artist: part0 };
+      } else if (isP1Artist && !isP0Artist) {
+        return { title: part0, artist: part1 };
+      } else {
+        // Fallback: Default to Artist - Title format, so Title is the second part
+        return { title: part1 || part0, artist: part0 || channelTitle };
+      }
+    }
+  }
+
+  return { title: cleanRaw, artist: channelTitle };
 }
 
 function parseYouTubeDuration(duration) {
@@ -79,15 +112,14 @@ export function normalizeTrack(rawItem, source) {
     const rawTitle = item.snippet?.title || '';
     const channelTitle = item.snippet?.channelTitle || '';
     
-    // Better title extraction if channel name is part of the title
-    let cleanTitle = sanitizeYouTubeTitle(rawTitle);
-    if (!cleanTitle) cleanTitle = rawTitle; // Fallback if regex stripped everything
+    // Better title extraction by separating artist and song name
+    const parsed = parseYouTubeTitleAndArtist(rawTitle, channelTitle);
 
     return {
       ...baseTrack,
       id: videoId, // Use videoId as the unified ID
-      title: cleanTitle,
-      artist: channelTitle, // Using channel title as artist
+      title: parsed.title || rawTitle,
+      artist: parsed.artist || channelTitle,
       album: 'YouTube',
       albumArt: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
       albumArtSmall: item.snippet?.thumbnails?.default?.url || '',
