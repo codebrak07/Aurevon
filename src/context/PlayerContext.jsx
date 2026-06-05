@@ -1200,10 +1200,10 @@ export function PlayerProvider({ children }) {
             const mapped = related.map(r => ({
               id: r.videoId,
               title: r.title,
-              artist: r.channelTitle,
+              artist: r.artist,
               album: 'Recommended',
-              albumArt: r.thumbnail,
-              albumArtSmall: r.thumbnail,
+              albumArt: r.albumArt,
+              albumArtSmall: r.albumArtSmall,
               duration: 0,
               spotifyId: '',
               artistId: '',

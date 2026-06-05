@@ -46,7 +46,10 @@ const NewReleases = memo(function NewReleases() {
 
         if (foundRelease) {
           // Improve thumbnail quality (YouTube maxres)
-          const hqArt = foundRelease.thumbnail.replace('default.jpg', 'maxresdefault.jpg');
+          const artUrl = foundRelease.albumArt || foundRelease.albumArtSmall || '';
+          const hqArt = artUrl
+            ? artUrl.replace('default.jpg', 'maxresdefault.jpg').replace('hqdefault.jpg', 'maxresdefault.jpg')
+            : '';
           
           setFeatured({
             label: 'NEW RELEASE',
@@ -76,7 +79,7 @@ const NewReleases = memo(function NewReleases() {
       title: track.title,
       artist: track.channelTitle || track.artist,
       desc: `Currently trending worldwide. Don't miss this hit!`,
-      image: track.thumbnail,
+      image: track.albumArt || track.albumArtSmall || '',
       track: track 
     });
     setIsPersonalized(false);

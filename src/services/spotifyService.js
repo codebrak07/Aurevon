@@ -446,6 +446,10 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
   const normTitle = title.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
   const normQuery = originalQuery.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
 
+  // Channel trust scoring — stronger differential so labels outrank random uploads
+  const highTrust = ['t-series', 'sony music', 'zee music', 'saregama', 'tips official', 'lahari music', 'ytmusic', 'official', 'yrf', 'eros now', 'speed records', 'desi melodies', 'vevo', 'universal music', 'warner music', 'atlantic records', 'republic records'];
+  const isHighTrust = highTrust.some(ct => artist.includes(ct));
+
   // Positive scoring based on query match. Reduced for ambiguous queries to allow contextual/ost signals to rank higher.
   if (queryWords.every(w => normTitle.includes(w) || artist.includes(w) || album.includes(w))) {
     score += isAmbiguous ? 20 : 50;
@@ -526,9 +530,6 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
   if (title.includes('full song') || title.includes('full audio')) score += 15;
   if (title.includes('lyrical') || title.includes('lyrics video')) score += 5;
 
-  // Channel trust scoring — stronger differential so labels outrank random uploads
-  const highTrust = ['t-series', 'sony music', 'zee music', 'saregama', 'tips official', 'lahari music', 'ytmusic', 'official', 'yrf', 'eros now', 'speed records', 'desi melodies', 'vevo', 'universal music', 'warner music', 'atlantic records', 'republic records'];
-  const isHighTrust = highTrust.some(ct => artist.includes(ct));
   if (isHighTrust) {
     score += 30;
     if (isAmbiguous) {
