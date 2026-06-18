@@ -110,12 +110,10 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
             if (parent) {
               parent.innerHTML = '';
               window.google.accounts.id.renderButton(parent, {
+                type: 'icon',
                 theme: 'filled_black',
                 size: 'large',
-                shape: 'pill',
-                text: 'signin_with',
-                logo_alignment: 'left',
-                width: Math.min(parent.offsetWidth || 280, 320)
+                shape: 'circle'
               });
 
               setTimeout(() => {
@@ -357,15 +355,6 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                                     </div>
                                 )}
                                 <div id="google-signin-btn" className="profile-google-card__slot"></div>
-                                <button
-                                    type="button"
-                                    onClick={triggerGooglePrompt}
-                                    className="profile-google-card__manual"
-                                    disabled={googlePrompting}
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">login</span>
-                                    {googlePrompting ? 'Opening Google...' : 'Continue with Google'}
-                                </button>
                                 {showGoogleFallback && (
                                     <div className="profile-google-card__fallback">
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-white">Google Sign-In Unavailable</p>
