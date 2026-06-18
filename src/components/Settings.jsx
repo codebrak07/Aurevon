@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import usePlayer from '../hooks/usePlayer';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth as firebaseAuth } from '../config/firebase';
@@ -20,6 +21,30 @@ export default function Settings() {
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
   const [loginError, setLoginError] = useState(null);
   const [googlePrompting, setGooglePrompting] = useState(false);
+
+  const buttonX = useMotionValue(0);
+  const buttonY = useMotionValue(0);
+  const springConfig = { damping: 12, stiffness: 120, mass: 0.8 };
+  const springX = useSpring(buttonX, springConfig);
+  const springY = useSpring(buttonY, springConfig);
+
+  const handlePointerMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const centerX = rect.left + width / 2;
+    const centerY = rect.top + height / 2;
+    const distanceX = e.clientX - centerX;
+    const distanceY = e.clientY - centerY;
+    
+    buttonX.set(distanceX * 0.25);
+    buttonY.set(distanceY * 0.25);
+  };
+
+  const handlePointerLeave = () => {
+    buttonX.set(0);
+    buttonY.set(0);
+  };
 
   const handleGoogleSignIn = async () => {
     setGooglePrompting(true);
@@ -282,16 +307,21 @@ export default function Settings() {
                 <p className="setting-desc">Use your existing account to sync likes, playlists, and profile settings.</p>
               </div>
             </div>
-            <div className="settings-google-slot w-full flex justify-center">
-              <button
+            <div className="premium-google-btn-wrapper w-full flex justify-center mt-2">
+              <motion.button
+                style={{ x: springX, y: springY }}
+                onPointerMove={handlePointerMove}
+                onPointerLeave={handlePointerLeave}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={googlePrompting}
-                className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 hover:bg-gray-100 transition-all focus:outline-none disabled:opacity-50"
+                className="premium-google-btn"
                 title="Sign in with Google"
               >
                 {googlePrompting ? (
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <svg className="w-6 h-6" viewBox="0 0 24 24">
                     <path
@@ -312,7 +342,8 @@ export default function Settings() {
                     />
                   </svg>
                 )}
-              </button>
+              </motion.button>
+              <div className="premium-google-btn-glow" />
             </div>
           </div>
         </section>

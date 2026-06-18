@@ -165,3 +165,150 @@
     border-radius: 10px;
   }
 }
+
+/* ── Living Audio Aura ── */
+.profile-modal-identity-avatar-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 160px;
+  height: 160px;
+}
+
+.audio-aura-layer {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  filter: blur(28px);
+  opacity: 0.55;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aura-glow-1 {
+  background: radial-gradient(circle, rgba(211, 148, 255, 0.8) 0%, rgba(114, 254, 143, 0) 70%);
+  animation: aura-rotate-clockwise 12s linear infinite, aura-breathe 6s ease-in-out infinite;
+}
+
+.aura-glow-2 {
+  background: radial-gradient(circle, rgba(114, 254, 143, 0.7) 0%, rgba(66, 133, 244, 0) 70%);
+  animation: aura-rotate-counter 16s linear infinite, aura-breathe-alt 8s ease-in-out infinite;
+}
+
+.aura-glow-3 {
+  background: radial-gradient(circle, rgba(66, 133, 244, 0.6) 0%, rgba(211, 148, 255, 0) 70%);
+  animation: aura-rotate-clockwise 20s linear infinite, aura-breathe-slow 10s ease-in-out infinite;
+}
+
+/* Audio reactive speed increases when playing */
+.audio-aura-layer.playing.aura-glow-1 {
+  opacity: 0.85;
+  inset: 4px;
+  filter: blur(20px);
+  animation-duration: 6s, 3s;
+}
+
+.audio-aura-layer.playing.aura-glow-2 {
+  opacity: 0.75;
+  inset: 6px;
+  filter: blur(22px);
+  animation-duration: 8s, 4s;
+}
+
+.audio-aura-layer.playing.aura-glow-3 {
+  opacity: 0.7;
+  inset: 8px;
+  filter: blur(24px);
+  animation-duration: 10s, 5s;
+}
+
+/* ── Aura Keyframe Animations ── */
+@keyframes aura-rotate-clockwise {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes aura-rotate-counter {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes aura-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.12); opacity: 0.75; }
+}
+
+@keyframes aura-breathe-alt {
+  0%, 100% { transform: scale(1.05); opacity: 0.6; }
+  50% { transform: scale(0.95); opacity: 0.4; }
+}
+
+@keyframes aura-breathe-slow {
+  0%, 100% { transform: scale(0.98); opacity: 0.45; }
+  50% { transform: scale(1.08); opacity: 0.65; }
+}
+
+/* ── Premium Google Sign-In Button ── */
+.premium-google-btn-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.premium-google-btn-glow {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+  filter: blur(12px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-google-btn-wrapper:hover .premium-google-btn-glow {
+  opacity: 1;
+}
+
+.premium-google-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 24px -1px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  z-index: 2;
+  transition: 
+    background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-google-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 8px 32px -1px rgba(0, 0, 0, 0.5),
+    0 0 16px 2px rgba(255, 255, 255, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.premium-google-btn:active {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 2px 8px -1px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+}

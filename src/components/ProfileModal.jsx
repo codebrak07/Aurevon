@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import usePlayer from '../hooks/usePlayer';
 import { searchArtists } from '../services/spotifyService';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -15,7 +16,8 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
     logout, 
     user, 
     authStatus, 
-    isSyncing 
+    isSyncing,
+    isPlaying
   } = usePlayer();
   
   const [activeView, setActiveView] = useState('main'); // 'main' or 'following'
@@ -27,6 +29,30 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
   const [googlePrompting, setGooglePrompting] = useState(false);
   
   const fileInputRef = useRef(null);
+
+  const buttonX = useMotionValue(0);
+  const buttonY = useMotionValue(0);
+  const springConfig = { damping: 12, stiffness: 120, mass: 0.8 };
+  const springX = useSpring(buttonX, springConfig);
+  const springY = useSpring(buttonY, springConfig);
+
+  const handlePointerMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const centerX = rect.left + width / 2;
+    const centerY = rect.top + height / 2;
+    const distanceX = e.clientX - centerX;
+    const distanceY = e.clientY - centerY;
+    
+    buttonX.set(distanceX * 0.25);
+    buttonY.set(distanceY * 0.25);
+  };
+
+  const handlePointerLeave = () => {
+    buttonX.set(0);
+    buttonY.set(0);
+  };
 
   const handleGoogleSignIn = async () => {
     setGooglePrompting(true);
@@ -142,7 +168,8 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
         onClick={onClose}
       />
       <div className="profile-modal-container">
-        <div className="profile-modal-main">
+        {authStatus === 'authenticated' ? (
+          <div className="profile-modal-main">
             {/* Background Glow */}
             <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#d394ff]/20 blur-[100px] pointer-events-none"></div>
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-[#72fe8f]/10 blur-[100px] pointer-events-none"></div>
@@ -157,37 +184,39 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
 
             {activeView === 'main' ? (
                 <div className="relative z-10 w-full flex flex-col items-center">
-                    {/* Identity Plate */}
-                    <div 
-                        className={`profile-modal-identity-avatar relative w-36 h-36 mb-6 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#d394ff] to-[#72fe8f] ${authStatus === 'authenticated' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
-                        onClick={handleAvatarClick}
-                    >
-                        <div className="w-full h-full rounded-full bg-[#12121a] p-1 relative overflow-hidden group">
-                            {displayImage ? (
-                                <img 
-                                    src={displayImage} 
-                                    alt="" 
-                                    className="w-full h-full object-cover rounded-full" 
-                                    referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = ''; // Fallback to placeholder logic
-                                        e.target.parentElement.innerHTML = '<div class="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]"><span class="material-symbols-outlined text-6xl">person</span></div>';
-                                    }}
-                                />
-                            ) : (
-                                <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]">
-                                    <span className="material-symbols-outlined text-6xl">person</span>
-                                </div>
-                            )}
+                    {/* Identity Plate with Aura */}
+                    <div className="profile-modal-identity-avatar-wrapper mb-6">
+                      <div className={`audio-aura-layer aura-glow-1 ${isPlaying ? 'playing' : ''}`} />
+                      <div className={`audio-aura-layer aura-glow-2 ${isPlaying ? 'playing' : ''}`} />
+                      <div className={`audio-aura-layer aura-glow-3 ${isPlaying ? 'playing' : ''}`} />
+                      
+                      <div 
+                          className="relative w-32 h-32 rounded-full p-1 bg-[#12121a] overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
+                          onClick={handleAvatarClick}
+                      >
+                          {displayImage ? (
+                              <img 
+                                  src={displayImage} 
+                                  alt="" 
+                                  className="w-full h-full object-cover rounded-full" 
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = '';
+                                      e.target.parentElement.innerHTML = '<div class="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]"><span class="material-symbols-outlined text-6xl">person</span></div>';
+                                  }}
+                              />
+                          ) : (
+                              <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center text-[#d394ff]">
+                                  <span className="material-symbols-outlined text-6xl">person</span>
+                              </div>
+                          )}
 
-                            {/* Camera Overlay */}
-                            {authStatus === 'authenticated' && (
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
-                                </div>
-                            )}
-                        </div>
+                          {/* Camera Overlay */}
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                          </div>
+                      </div>
                     </div>
 
                     <input 
@@ -200,11 +229,11 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
 
                     <h2 className="profile-modal-title text-3xl font-black text-white mb-1 font-['Epilogue'] tracking-tight">{displayName}</h2>
                     <p className="profile-modal-username text-sm text-[#d394ff] mb-6 font-['Manrope'] font-bold opacity-80 letter-spacing-tight">
-                        {user?.username ? `@${user.username}` : (authStatus === 'authenticated' ? '@no_handle' : 'Guest Mode')}
+                        {user?.username ? `@${user.username}` : '@no_handle'}
                     </p>
 
                     {/* Username Action */}
-                    {!user?.username && authStatus === 'authenticated' && (
+                    {!user?.username && (
                         <button 
                             onClick={(e) => { e.stopPropagation(); handleOpenSettings(); }}
                             className="mb-10 px-6 py-2 rounded-full bg-[#d394ff]/10 border border-[#d394ff]/30 text-[#d394ff] text-[10px] font-black uppercase tracking-widest hover:bg-[#d394ff] hover:text-black transition-all"
@@ -234,54 +263,6 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                     </div>
 
                     <div className="profile-modal-actions w-full space-y-4 mb-10">
-                        {authStatus !== 'authenticated' && (
-                            <div className="profile-google-card">
-                                <div className="profile-google-card__head">
-                                    <span className="material-symbols-outlined">login</span>
-                                    <div>
-                                        <p className="profile-google-card__title">Sign in with Google</p>
-                                        <p className="profile-google-card__desc">Sync your likes, playlists, and profile on every device.</p>
-                                    </div>
-                                </div>
-                                {loginError && (
-                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20 text-center">
-                                        {loginError}
-                                    </div>
-                                )}
-                                <div className="profile-google-card__slot">
-                                    <button
-                                        onClick={handleGoogleSignIn}
-                                        disabled={googlePrompting}
-                                        className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 hover:bg-gray-100 transition-all focus:outline-none disabled:opacity-50"
-                                        title="Sign in with Google"
-                                    >
-                                        {googlePrompting ? (
-                                            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                                <path
-                                                    fill="#4285F4"
-                                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                                />
-                                                <path
-                                                    fill="#34A853"
-                                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                                />
-                                                <path
-                                                    fill="#FBBC05"
-                                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                                                />
-                                                <path
-                                                    fill="#EA4335"
-                                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                                                />
-                                            </svg>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
                         <button 
                             onClick={handleOpenSettings}
                             className="profile-modal-action-btn w-full py-5 rounded-[1.25rem] font-black tracking-widest uppercase text-[10px] bg-white/5 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center gap-3 border border-white/10"
@@ -290,23 +271,21 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                             Account Settings
                         </button>
 
-                        {authStatus === 'authenticated' ? (
-                            <div className="bg-white/5 rounded-[1.25rem] p-6 border border-white/10 w-full backdrop-blur-sm">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2 text-[#72fe8f]">
-                                        <span className="material-symbols-outlined text-sm">verified</span>
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">Logged In</span>
-                                    </div>
-                                    <button onClick={logout} className="text-[9px] text-red-400 font-black uppercase tracking-widest">Sign Out</button>
+                        <div className="bg-white/5 rounded-[1.25rem] p-6 border border-white/10 w-full backdrop-blur-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2 text-[#72fe8f]">
+                                    <span className="material-symbols-outlined text-sm">verified</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em]">Logged In</span>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#72fe8f] shadow-[0_0_10px_#72fe8f]"></div>
-                                    <span className="text-[10px] text-[#acaab1] font-bold uppercase tracking-tighter">
-                                        {isSyncing ? 'Syncing your data...' : 'Your data is synced'}
-                                    </span>
-                                </div>
+                                <button onClick={logout} className="text-[9px] text-red-400 font-black uppercase tracking-widest">Sign Out</button>
                             </div>
-                        ) : null}
+                            <div className="flex items-center gap-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#72fe8f] shadow-[0_0_10px_#72fe8f]"></div>
+                                <span className="text-[10px] text-[#acaab1] font-bold uppercase tracking-tighter">
+                                    {isSyncing ? 'Syncing your data...' : 'Your data is synced'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     <button 
@@ -395,7 +374,193 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                     </div>
                 </div>
             )}
-        </div>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              ease: [0.16, 1, 0.3, 1]
+            }}
+            className="profile-modal-main flex flex-col items-center justify-center text-center overflow-hidden relative"
+          >
+            {/* Background Glow awakening */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.8, ease: "easeOut" }}
+              className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
+            >
+              <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#d394ff]/15 blur-[120px]"></div>
+              <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#72fe8f]/10 blur-[120px]"></div>
+              
+              {/* Aurora particles emerge */}
+              <motion.div 
+                className="absolute top-1/4 left-1/3 w-32 h-32 rounded-full bg-[#4285F4]/10 blur-[60px]"
+                animate={{
+                  x: [0, 20, -15, 0],
+                  y: [0, -30, 15, 0],
+                }}
+                transition={{
+                  duration: 12,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <motion.div 
+                className="absolute bottom-1/4 right-1/3 w-36 h-36 rounded-full bg-[#72fe8f]/5 blur-[70px]"
+                animate={{
+                  x: [0, -25, 20, 0],
+                  y: [0, 25, -20, 0],
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
+
+            {/* Close Button */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                className="profile-modal-close z-10"
+                title="Close Entry"
+            >
+                <span className="material-symbols-outlined text-3xl">close</span>
+            </button>
+
+            <div className="relative z-10 w-full flex flex-col items-center mt-4">
+              {/* Aurevon symbol appears and breathes */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 0.9, scale: [1, 1.04, 1] }}
+                transition={{
+                  opacity: { delay: 0.4, duration: 0.8 },
+                  scale: {
+                    repeat: Infinity,
+                    duration: 4,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="mb-8"
+              >
+                <svg className="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 50 C 20 30, 80 30, 80 50 C 80 70, 20 70, 20 50 Z" stroke="url(#logo-grad)" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M35 50 C 35 40, 65 40, 65 50 C 65 60, 35 60, 35 50 Z" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+                  <circle cx="50" cy="50" r="4" fill="#72fe8f" />
+                  <defs>
+                    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#d394ff" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#72fe8f" stopOpacity="0.8" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </motion.div>
+
+              {/* Profile Card & Avatar Materialization */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="profile-modal-identity-avatar-wrapper mb-8"
+              >
+                <div className={`audio-aura-layer aura-glow-1 ${isPlaying ? 'playing' : ''}`} />
+                <div className={`audio-aura-layer aura-glow-2 ${isPlaying ? 'playing' : ''}`} />
+                <div className={`audio-aura-layer aura-glow-3 ${isPlaying ? 'playing' : ''}`} />
+                
+                <div className="relative w-32 h-32 rounded-full p-1 bg-white/5 border border-white/10 backdrop-blur-xl overflow-hidden flex items-center justify-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]">
+                  <span className="material-symbols-outlined text-6xl text-[#d394ff] opacity-80">person</span>
+                </div>
+              </motion.div>
+
+              {/* Typography Redesign */}
+              <motion.h2 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1, duration: 0.6, ease: "easeOut" }}
+                className="text-4xl font-extrabold text-white tracking-tight mb-2 font-headline"
+              >
+                Guest
+              </motion.h2>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.55 }}
+                transition={{ delay: 1.3, duration: 0.6 }}
+                className="text-sm font-medium text-white/70 font-body mb-6"
+              >
+                Listening without identity
+              </motion.p>
+
+              {/* Exploring Aurevon tag */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.5, duration: 0.6, ease: "easeOut" }}
+                className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-2 mb-10"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#72fe8f] animate-pulse"></span>
+                <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Exploring Aurevon</span>
+              </motion.div>
+
+              {/* Google Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="premium-google-btn-wrapper"
+              >
+                <motion.button
+                  style={{ x: springX, y: springY }}
+                  onPointerMove={handlePointerMove}
+                  onPointerLeave={handlePointerLeave}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleGoogleSignIn}
+                  disabled={googlePrompting}
+                  className="premium-google-btn"
+                  title="Sign in with Google"
+                >
+                  {googlePrompting ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-6 h-6" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      />
+                    </svg>
+                  )}
+                </motion.button>
+                <div className="premium-google-btn-glow" />
+              </motion.div>
+
+              {loginError && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-6 text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20"
+                >
+                  {loginError}
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </div>
     </>
   );
