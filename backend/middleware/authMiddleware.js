@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const { admin } = require('../config/firebase-admin');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -8,12 +9,23 @@ const authMiddleware = (req, res, next) => {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 
+  // 1. Try Firebase Admin verification first
+  if (admin && admin.apps && admin.apps.length > 0) {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.userId = decodedToken.uid;
+      return next();
+    } catch (error) {
+      console.warn('[Auth Middleware] Firebase verification failed, falling back to local JWT check:', error.message);
+    }
+  }
+
+  // 2. Fallback to local JWT check (for development/testing mock modes)
   try {
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'secret_key'
     );
-    // Standardize to req.userId for consistency across controllers
     req.userId = decoded.userId;
     next();
   } catch (error) {
@@ -21,13 +33,23 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-const optionalAuthMiddleware = (req, res, next) => {
+const optionalAuthMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   const guestId = req.headers['x-guest-id'];
 
-  // 1. Try JWT authentication first
+  // 1. Try Firebase/JWT verification if token is present
   if (token) {
+    if (admin && admin.apps && admin.apps.length > 0) {
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        req.userId = decodedToken.uid;
+        return next();
+      } catch (error) {
+        console.warn('[Auth Middleware] Optional Firebase verification failed, checking JWT fallback...');
+      }
+    }
+
     try {
       const decoded = jwt.verify(
         token,
@@ -36,19 +58,11 @@ const optionalAuthMiddleware = (req, res, next) => {
       req.userId = decoded.userId;
       return next();
     } catch (error) {
-      // JWT failed — but don't hard-fail yet.
-      // If there's also a guest ID, use that as fallback.
       console.warn(`[Auth] JWT verification failed: ${error.message}. Checking guest ID fallback.`);
-      if (guestId) {
-        req.userId = guestId;
-        return next();
-      }
-      // No fallback available
-      return res.status(401).json({ message: 'Token is not valid and no guest ID provided' });
     }
   }
 
-  // 2. Guest ID authentication
+  // 2. Guest ID fallback
   if (guestId) {
     req.userId = guestId;
     return next();

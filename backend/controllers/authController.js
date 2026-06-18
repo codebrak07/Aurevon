@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { readData, writeData } = require('../data/db');
 const axios = require('axios');
+const { admin } = require('../config/firebase-admin');
 
 
 const signup = async (req, res) => {
@@ -183,8 +184,86 @@ const googleLogin = async (req, res) => {
   }
 };
 
+const firebaseLogin = async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(400).json({ message: 'Missing Authorization Token' });
+    }
+
+    if (!admin || !admin.apps.length) {
+      return res.status(500).json({ message: 'Firebase Admin not initialized' });
+    }
+
+    console.log('[Auth] Verifying Firebase ID Token...');
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const { uid, email, name, picture: avatarUrl } = decodedToken;
+
+    const data = await readData();
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = data.users.find(u => u.id === uid || u.email.toLowerCase().trim() === normalizedEmail);
+
+    if (!user) {
+      user = {
+        id: uid,
+        googleId: uid,
+        username: name || email.split('@')[0],
+        fullName: name || '',
+        email: normalizedEmail,
+        avatarUrl: avatarUrl || null,
+        followedArtists: [],
+        likedSongs: [],
+        playlists: [],
+        recentlyPlayed: [],
+        preferences: {},
+        createdAt: new Date().toISOString()
+      };
+      data.users.push(user);
+      await writeData(data);
+    } else {
+      let changed = false;
+      if (user.id !== uid) {
+        user.id = uid;
+        changed = true;
+      }
+      if (user.avatarUrl !== avatarUrl) {
+        user.avatarUrl = avatarUrl;
+        changed = true;
+      }
+      if (user.username !== name && name) {
+        user.username = name;
+        changed = true;
+      }
+      if (changed) {
+        await writeData(data);
+      }
+    }
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        fullName: user.fullName || user.username,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        followedArtists: user.followedArtists || [],
+        likedSongs: user.likedSongs || [],
+        playlists: user.playlists || [],
+        recentlyPlayed: user.recentlyPlayed || []
+      }
+    });
+  } catch (error) {
+    console.error('[Auth] Firebase login failed:', error);
+    res.status(500).json({ message: 'Firebase login verification failed', error: error.message });
+  }
+};
+
 module.exports = {
   signup,
   login,
-  googleLogin
+  googleLogin,
+  firebaseLogin
 };

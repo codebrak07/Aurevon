@@ -1,15 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import usePlayer from '../hooks/usePlayer';
 import { searchArtists } from '../services/spotifyService';
-import { getGoogleOriginIssue } from '../utils/googleAuth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth as firebaseAuth } from '../config/firebase';
 import './ProfileModal.css';
-
-const getGsiState = () => {
-  if (!window.__aurevonGsiState) {
-    window.__aurevonGsiState = { initialized: false };
-  }
-  return window.__aurevonGsiState;
-};
 
 export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtistSelect }) {
   const { 
@@ -30,126 +24,26 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
   const [artistMetadata, setArtistMetadata] = useState({}); // { [artistName]: artistObj }
   const [loginError, setLoginError] = useState(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
-  const [showGoogleFallback, setShowGoogleFallback] = useState(false);
   const [googlePrompting, setGooglePrompting] = useState(false);
   
   const fileInputRef = useRef(null);
-  const gsiInitialized = useRef(false);
 
-  const triggerGooglePrompt = () => {
-    const originIssue = getGoogleOriginIssue();
-    if (originIssue) {
-      setLoginError(originIssue);
-      setShowGoogleFallback(true);
-      return;
-    }
-
-    if (!window.google?.accounts?.id) {
-      setLoginError('Google Sign-In is still loading. Please try again in a moment.');
-      setShowGoogleFallback(true);
-      return;
-    }
-
+  const handleGoogleSignIn = async () => {
     setGooglePrompting(true);
+    setLoginError(null);
     try {
-      window.google.accounts.id.prompt((notification) => {
-        const notDisplayed = notification?.isNotDisplayed?.();
-        const skipped = notification?.isSkippedMoment?.();
-        const dismissed = notification?.isDismissedMoment?.();
-
-        if (notDisplayed || skipped || dismissed) {
-          setShowGoogleFallback(true);
-        }
-        setGooglePrompting(false);
-      });
-    } catch (error) {
-      console.error('Google prompt failed:', error);
-      setLoginError('Could not open Google Sign-In. Please try again.');
-      setShowGoogleFallback(true);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const idToken = await result.user.getIdToken(true);
+      await loginWithGoogle(idToken);
+    } catch (err) {
+      console.error('Firebase Google Sign-In failed:', err);
+      setLoginError(err.message || 'Google Sign-In failed. Please try again.');
+    } finally {
       setGooglePrompting(false);
     }
   };
-
-  // Manual Google Login Integration (GIS)
-  useEffect(() => {
-    if (isOpen && authStatus !== 'authenticated') {
-      const initGoogle = () => {
-        const originIssue = getGoogleOriginIssue();
-        if (originIssue) {
-          setLoginError(originIssue);
-          setShowGoogleFallback(true);
-          return;
-        }
-
-        if (window.google && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
-          try {
-            // Only initialize once per session to avoid GIS warnings
-            const gsiState = getGsiState();
-            if (!gsiInitialized.current && !gsiState.initialized) {
-              window.google.accounts.id.initialize({
-                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-                itp_support: true,
-                callback: async (res) => {
-                  if (res.credential) {
-                    setLoginError(null);
-                    try {
-                      await loginWithGoogle(res.credential);
-                    } catch (err) {
-                      setLoginError(err.response?.data?.message || 'Login failed. Please try again.');
-                    }
-                  }
-                }
-              });
-              gsiInitialized.current = true;
-              gsiState.initialized = true;
-            } else if (gsiState.initialized) {
-              gsiInitialized.current = true;
-            }
-            
-            const parent = document.getElementById('google-signin-btn');
-            if (parent) {
-              parent.innerHTML = '';
-              window.google.accounts.id.renderButton(parent, {
-                type: 'icon',
-                theme: 'filled_black',
-                size: 'large',
-                shape: 'circle'
-              });
-
-              setTimeout(() => {
-                const visibleIframe = parent.querySelector('iframe, div[role="button"]');
-                const failedToRender = !visibleIframe || parent.getBoundingClientRect().height < 40;
-                setShowGoogleFallback(failedToRender);
-                if (failedToRender && !loginError) {
-                  setLoginError('Google button did not render inside the profile modal. You can still use the backup sign-in button below.');
-                }
-              }, 350);
-            }
-          } catch (err) {
-            console.error('GIS Error:', err);
-            setShowGoogleFallback(true);
-          }
-        } else {
-          setShowGoogleFallback(true);
-        }
-      };
-
-      // Wait for GIS script to load if it hasn't already
-      if (!window.google) {
-        const interval = setInterval(() => {
-          if (window.google) {
-            initGoogle();
-            clearInterval(interval);
-          }
-        }, 100);
-        return () => clearInterval(interval);
-      } else {
-        // Small timeout to allow the modal animation and container rendering to finish
-        const timeout = setTimeout(initGoogle, 200);
-        return () => clearTimeout(timeout);
-      }
-    }
-  }, [isOpen, authStatus, loginError, loginWithGoogle]);
 
   useEffect(() => {
     if (isOpen && activeView === 'following' && (followedArtists?.length || 0) > 0) {
@@ -350,19 +244,41 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                                     </div>
                                 </div>
                                 {loginError && (
-                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20">
+                                    <div className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20 text-center">
                                         {loginError}
                                     </div>
                                 )}
-                                <div id="google-signin-btn" className="profile-google-card__slot"></div>
-                                {showGoogleFallback && (
-                                    <div className="profile-google-card__fallback">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-white">Google Sign-In Unavailable</p>
-                                        <p className="mt-1 text-[11px] text-[#acaab1]">
-                                            {loginError || `Authorize ${window.location.origin} in Google Cloud Console for this client ID.`}
-                                        </p>
-                                    </div>
-                                )}
+                                <div className="profile-google-card__slot">
+                                    <button
+                                        onClick={handleGoogleSignIn}
+                                        disabled={googlePrompting}
+                                        className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 hover:bg-gray-100 transition-all focus:outline-none disabled:opacity-50"
+                                        title="Sign in with Google"
+                                    >
+                                        {googlePrompting ? (
+                                            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                        ) : (
+                                            <svg className="w-6 h-6" viewBox="0 0 24 24">
+                                                <path
+                                                    fill="#4285F4"
+                                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                                />
+                                                <path
+                                                    fill="#34A853"
+                                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                                />
+                                                <path
+                                                    fill="#FBBC05"
+                                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                                                />
+                                                <path
+                                                    fill="#EA4335"
+                                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                                                />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         )}
 

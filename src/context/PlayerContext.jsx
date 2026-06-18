@@ -6,6 +6,7 @@ import { searchTracks, getArtistFullData, searchArtists } from '../services/spot
 import { API } from '../config/api';
 import playbackPersistence from '../services/playbackPersistence';
 import SILENT_MP3 from '../utils/silent';
+import { auth as firebaseAuth } from '../config/firebase';
 
 export const PlayerContext = createContext(null);
 
@@ -640,11 +641,41 @@ export function PlayerProvider({ children }) {
     }
   }, []); // eslint-disable-line
 
+  // Listen for Firebase Auth changes to automatically refresh expired tokens
+  useEffect(() => {
+    const unsubscribe = firebaseAuth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          console.log('🔄 [Firebase Auth] Auto-refreshing session...');
+          const freshToken = await firebaseUser.getIdToken(true);
+          
+          const res = await axiosInstance.post('/auth/firebase-login', {}, {
+            headers: { Authorization: `Bearer ${freshToken}` }
+          });
+          const { token, user } = res.data;
+          
+          dispatch({ type: 'AUTH_SUCCESS', payload: { token, user } });
+        } catch (err) {
+          console.error('[Firebase Auth] Auto-refresh login failed:', err);
+        }
+      } else {
+        // If logged out from Firebase, sign out from player context
+        if (stateRef.current.token) {
+          dispatch({ type: 'AUTH_LOGOUT' });
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const loginWithGoogle = async (idToken) => {
     dispatch({ type: 'SET_MAGIC_LOADING', payload: true });
     try {
-      console.log(`🚀 [API Request]: POST ${API_BASE}/auth/google`);
-      const res = await axiosInstance.post('/auth/google', { idToken });
+      console.log(`🚀 [API Request]: POST ${API_BASE}/auth/firebase-login`);
+      const res = await axiosInstance.post('/auth/firebase-login', {}, {
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
       const { token, user } = res.data;
 
       // Smart Merge logic
@@ -700,9 +731,7 @@ export function PlayerProvider({ children }) {
     localStorage.removeItem('wavify_token');
     
     // Sign out of Firebase
-    import('../config/firebase').then(({ auth }) => {
-      auth.signOut();
-    }).catch(err => console.error('[Firebase] Signout error:', err));
+    firebaseAuth.signOut().catch(err => console.error('[Firebase] Signout error:', err));
     
     // Disable auto-select so user can switch accounts next time
     if (window.google) {
