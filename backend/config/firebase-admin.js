@@ -19,7 +19,23 @@ let db = {
 };
 
 try {
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: process.env.FIREBASE_PROJECT_ID || 'aurevon-07',
+          storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'aurevon-07.firebasestorage.app',
+        });
+      }
+      db = admin.firestore();
+      auth = admin.auth();
+      console.log('✅ [Firebase Admin] Initialized with Service Account from ENV');
+    } catch (err) {
+      console.error('❌ [Firebase Admin] Failed to initialize with ENV Service Account:', err.message);
+    }
+  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.applicationDefault(),
@@ -29,7 +45,7 @@ try {
     }
     db = admin.firestore();
     auth = admin.auth();
-    console.log('✅ [Firebase Admin] Initialized with Service Account');
+    console.log('✅ [Firebase Admin] Initialized with Service Account File');
   } else {
     console.warn('⚠️ [Firebase Admin] GOOGLE_APPLICATION_CREDENTIALS not found. Running with Mocks.');
   }
