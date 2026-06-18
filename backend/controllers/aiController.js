@@ -196,10 +196,26 @@ const magicSeeds = async (req, res) => {
   }
 }
 
+const topMixes = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    let result;
+    try {
+      result = await callGemini(prompt);
+    } catch (e) {
+      result = await callGroq(prompt, 'Return JSON array of strings');
+    }
+    res.json(ensureArray(result));
+  } catch (error) {
+    res.status(500).json({ message: 'Top mixes failed' });
+  }
+};
+
 module.exports = {
   refinePrompt,
   getRecommendations,
   smartShuffle,
   magicSeeds,
-  magicVibeV2
+  magicVibeV2,
+  topMixes
 };
