@@ -48,6 +48,36 @@
               ]
             }
           ]
+        },
+        {
+          "id": "classified-love-songs-f85870f3",
+          "name": "Love Songs",
+          "tracks": [
+            {
+              "id": "1743852427",
+              "title": "Love Me Not",
+              "artist": "Ravyn Lenae",
+              "artistId": "1044417443",
+              "album": "Bird's Eye",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+              "duration": 213467,
+              "spotifyId": "1743852427",
+              "genres": [
+                "R&B/Soul"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "classified-sad-songs-8ccf21d9",
+          "name": "Sad Songs",
+          "tracks": []
+        },
+        {
+          "id": "classified-angry-songs-431b37c1",
+          "name": "Angry Songs",
+          "tracks": []
         }
       ],
       "recentlyPlayed": [],
@@ -132,6 +162,65 @@
               ]
             }
           ]
+        },
+        {
+          "id": "classified-love-songs-e92f543c",
+          "name": "Love Songs",
+          "tracks": [
+            {
+              "id": "1111703146",
+              "title": "Raat Bhar",
+              "artist": "Arijit Singh & Shreya Ghoshal",
+              "artistId": "484568188",
+              "album": "Heropanti (Original Motion Picture Soundtrack)",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+              "duration": 325582,
+              "spotifyId": "1111703146",
+              "genres": [
+                "Bollywood"
+              ]
+            },
+            {
+              "id": "1743852427",
+              "title": "Love Me Not",
+              "artist": "Ravyn Lenae",
+              "artistId": "1044417443",
+              "album": "Bird's Eye",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/07/8c/6c/078c6c94-d38d-0451-d57b-23e957b569f8/075679660893.jpg/300x300bb.jpg",
+              "duration": 213467,
+              "spotifyId": "1743852427",
+              "genres": [
+                "R&B/Soul"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "classified-sad-songs-25d66a6e",
+          "name": "Sad Songs",
+          "tracks": [
+            {
+              "id": "1731057886",
+              "title": "If We Being Rëal",
+              "artist": "Yeat",
+              "artistId": "1318094493",
+              "album": "2093",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b1/69/86/b169862a-cdb8-6a0a-8359-03e86921f306/24UMGIM13668.rgb.jpg/300x300bb.jpg",
+              "duration": 172500,
+              "spotifyId": "1731057886",
+              "genres": [
+                "Hip-Hop/Rap"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "classified-angry-songs-e3acf963",
+          "name": "Angry Songs",
+          "tracks": []
         }
       ],
       "recentlyPlayed": [
@@ -460,6 +549,36 @@
           "id": "1",
           "name": "My Favorites",
           "tracks": []
+        },
+        {
+          "id": "classified-love-songs-34bdf021",
+          "name": "Love Songs",
+          "tracks": [
+            {
+              "id": "1111703146",
+              "title": "Raat Bhar",
+              "artist": "Arijit Singh & Shreya Ghoshal",
+              "artistId": "484568188",
+              "album": "Heropanti (Original Motion Picture Soundtrack)",
+              "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/600x600bb.jpg",
+              "albumArtSmall": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3f/e1/dd/3fe1dd34-e0bb-3285-38c5-f58dba4db008/8902894355759_cover.jpg/300x300bb.jpg",
+              "duration": 325582,
+              "spotifyId": "1111703146",
+              "genres": [
+                "Bollywood"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "classified-sad-songs-c0c38c2f",
+          "name": "Sad Songs",
+          "tracks": []
+        },
+        {
+          "id": "classified-angry-songs-43e074c5",
+          "name": "Angry Songs",
+          "tracks": []
         }
       ],
       "recentlyPlayed": [],
@@ -473,7 +592,23 @@
       "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIdJOH6KI3-E8y1gzeV_AqKS2srX8XdgrhkeyOgU1TIHCY1kg=s96-c",
       "followedArtists": [],
       "likedSongs": [],
-      "playlists": [],
+      "playlists": [
+        {
+          "id": "classified-love-songs-2876c9c5",
+          "name": "Love Songs",
+          "tracks": []
+        },
+        {
+          "id": "classified-sad-songs-1b971612",
+          "name": "Sad Songs",
+          "tracks": []
+        },
+        {
+          "id": "classified-angry-songs-d078b30d",
+          "name": "Angry Songs",
+          "tracks": []
+        }
+      ],
       "recentlyPlayed": [],
       "preferences": {},
       "createdAt": "2026-04-23T11:27:24.293Z"

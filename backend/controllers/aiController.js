@@ -49,6 +49,20 @@ function cleanJSON(text) {
   }
 }
 
+function ensureArray(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (data && typeof data === 'object') {
+    for (const key of Object.keys(data)) {
+      if (Array.isArray(data[key])) {
+        return data[key];
+      }
+    }
+  }
+  return [];
+}
+
 async function callGemini(prompt) {
   if (GEMINI_KEYS.length === 0) throw new Error('No Gemini API keys available');
   const url = getGeminiUrl();
@@ -128,7 +142,7 @@ const magicVibeV2 = async (req, res) => {
       result = await callGroq(prompt, "You are a professional Music Vibe DJ. Respond with JSON array.");
     }
 
-    res.json(result);
+    res.json(ensureArray(result));
   } catch (error) {
     console.error('[AI] MagicVibeV2 error:', error.message);
     res.status(500).json({ message: 'Failed to generate vibe playlist' });
@@ -176,7 +190,7 @@ const magicSeeds = async (req, res) => {
     } catch (e) {
       result = await callGroq(prompt, systemPrompt);
     }
-    res.json(result);
+    res.json(ensureArray(result));
   } catch (error) {
     res.status(500).json({ message: 'Magic seeds generation failed' });
   }

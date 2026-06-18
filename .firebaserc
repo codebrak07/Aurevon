@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "aurevon-07"
+  },
   "targets": {},
   "etags": {}
 }
