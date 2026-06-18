@@ -100,7 +100,7 @@ const refinePrompt = async (req, res) => {
     const systemPrompt = `You are a professional music producer and lyricist. 
 Take a simple idea and turn it into a Suno AI prompt.
 Respond with ONLY JSON: { "title": "...", "tags": "...", "prompt": "..." }`;
-    
+
     let result = await callGroq(`Refine this song idea: "${idea}"`, systemPrompt);
     res.json(result);
   } catch (error) {
@@ -115,7 +115,7 @@ Respond with ONLY JSON: { "title": "...", "tags": "...", "prompt": "..." }`;
 const magicVibeV2 = async (req, res) => {
   try {
     const { mood, genre, language, referenceSongs } = req.body;
-    
+
     const prompt = `Act as a world-class AI DJ with real-time access to global musical trends and internet search knowledge.
     Create a highly personalized "vibe" playlist based on these criteria:
     - Target Mood: ${mood || 'Any'}
@@ -183,7 +183,7 @@ const magicSeeds = async (req, res) => {
   try {
     const { prompt } = req.body;
     const systemPrompt = "You are a musical vibe expert. Given a mood or memory, provide 5 specific song queries (Artist - Title) that represent that feeling. Return ONLY a JSON array of strings.";
-    
+
     let result;
     try {
       result = await callGemini(`${systemPrompt}\n\n${prompt}`);
