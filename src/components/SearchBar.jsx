@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import useDebounce from '../hooks/useDebounce';
-import { searchTracks, searchArtists } from '../services/spotifyService';
+import { searchTracks, searchArtists } from '../services/musicService';
 
 const noop = () => {};
 

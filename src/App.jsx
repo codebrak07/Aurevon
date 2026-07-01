@@ -28,7 +28,7 @@ import { JamProvider } from './context/JamContext';
 import ResumeSessionOverlay from './components/ResumeSessionOverlay';
 import AdminPanel from './components/AdminPanel';
 import GlobalDashboard from './components/GlobalDashboard';
-import { getTrackById } from './services/spotifyService';
+import { getTrackById } from './services/musicService';
 import { Analytics } from "@vercel/analytics/react";
 import './App.css';
 import './index.css';

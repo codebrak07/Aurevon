@@ -1,6 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import usePlayer from '../hooks/usePlayer';
-import { getArtistTopTracks } from '../services/spotifyService';
+import { getArtistTopTracks } from '../services/musicService';
 import './ArtistProfileModal.css';
 
 const ArtistProfileModal = memo(function ArtistProfileModal({ artist, isOpen, onClose }) {

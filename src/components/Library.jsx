@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
-import { searchArtists } from '../services/spotifyService';
+import { searchArtists } from '../services/musicService';
 import TrackCard from './TrackCard';
 import './Library.css';
 

@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
-import { searchTracks } from '../services/spotifyService';
+import { searchTracks } from '../services/musicService';
 import './HomeGreeting.css';
 
 const quickCards = [

@@ -2,7 +2,7 @@ import { createContext, useReducer, useCallback, useRef, useEffect } from 'react
 import axios from 'axios';
 import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
-import { searchTracks, getArtistFullData, searchArtists } from '../services/spotifyService';
+import { searchTracks, getArtistFullData, searchArtists } from '../services/musicService';
 import { API } from '../config/api';
 import playbackPersistence from '../services/playbackPersistence';
 import SILENT_MP3 from '../utils/silent';
@@ -839,7 +839,7 @@ export function PlayerProvider({ children }) {
         throw new Error('AI did not return usable search queries.');
       }
 
-      // Convert queries → Spotify tracks → queue
+      // Convert queries → catalog tracks → queue
       const newTracks = [];
       for (const query of queries) {
         try {

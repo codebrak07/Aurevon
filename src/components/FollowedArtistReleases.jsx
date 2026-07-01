@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getArtistLatestTracks } from '../services/spotifyService';
+import { getArtistLatestTracks } from '../services/musicService';
 import TrackCard from './TrackCard';
 import './FollowedArtistReleases.css';
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import usePlayer from '../hooks/usePlayer';
-import { searchArtists } from '../services/spotifyService';
+import { searchArtists } from '../services/musicService';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth as firebaseAuth } from '../config/firebase';
 import './ProfileModal.css';
