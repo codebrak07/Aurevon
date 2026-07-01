@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/banner.png" width="100%" alt="Aurevon Banner">
-</p>
-
 # Aurevon
 
 An open-source music streaming platform focused on listener-first experiences.
@@ -24,11 +20,6 @@ Unlike traditional streaming services, Aurevon is built around one principle:
 
 **Live app:** [aurevonmusic.vercel.app](https://aurevonmusic.vercel.app) &nbsp;•&nbsp; **Repo:** [github.com/codebrak07/Aurevon](https://github.com/codebrak07/Aurevon)
 
----
-
-## Demo
-
-![Demo](docs/demo.gif)
 
 ---
 
@@ -86,20 +77,6 @@ Aurevon exists to prove that a music platform can be full-featured, collaborativ
 - The codebase itself is open for anyone to learn from, fork, or build on
 
 Aurevon isn't trying to be "another Spotify." It's trying to be what a listener-first platform looks like when the listener is actually the priority.
-
----
-
-## Screenshots
-
-<!-- Replace the placeholders below with actual screenshots or GIFs -->
-
-| Home & Magic Vibe AI | Now Playing |
-|---|---|
-| ![Home screen placeholder](docs/screenshots/home.png) | ![Player screen placeholder](docs/screenshots/player.png) |
-
-| Global Charts | Jam Rooms |
-|---|---|
-| ![Charts screen placeholder](docs/screenshots/charts.png) | ![Jam room placeholder](docs/screenshots/jam.png) |
 
 ---
 
