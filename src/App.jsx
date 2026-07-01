@@ -219,7 +219,7 @@ function AppContent() {
               {activeNavTab === 'home' && (
                 <>
                   {/* Greeting + Quick Access Grid */}
-                  <HomeGreeting />
+                  <HomeGreeting onOpenLibrary={openLibrary} />
 
                   {/* Magic Vibe AI (Hero) */}
                   <MagicVibe />

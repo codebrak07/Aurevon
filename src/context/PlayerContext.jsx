@@ -1432,6 +1432,14 @@ export function PlayerProvider({ children }) {
     syncToBackend();
   }, [syncToBackend]);
 
+  const playPlaylist = useCallback((tracks) => {
+    if (!tracks || tracks.length === 0) return;
+    setUserInteracted();
+    dispatch({ type: 'SET_QUEUE_AND_INDEX', payload: { queue: tracks, index: 0 } });
+    resolveAndPlay(tracks[0], tracks, 0);
+  }, [resolveAndPlay, setUserInteracted]);
+
+
   const toggleFollowArtist = useCallback((artistName) => {
     dispatch({ type: 'TOGGLE_FOLLOW_ARTIST', payload: artistName });
     syncToBackend();
@@ -1623,6 +1631,7 @@ export function PlayerProvider({ children }) {
     createPlaylist,
     addToPlaylist,
     deletePlaylist,
+    playPlaylist,
     startMagicVibe,
     triggerAiShuffle,
     updateUserProfile,

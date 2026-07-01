@@ -1,5 +1,6 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
+import { searchTracks } from '../services/spotifyService';
 import './HomeGreeting.css';
 
 const quickCards = [
@@ -28,24 +29,127 @@ function getGreeting() {
   return 'Good Evening';
 }
 
-const HomeGreeting = memo(function HomeGreeting() {
-  const { user } = usePlayer();
+const HomeGreeting = memo(function HomeGreeting({ onOpenLibrary }) {
+  const { 
+    user, 
+    likedSongs, 
+    playlists, 
+    createPlaylist, 
+    addToPlaylist, 
+    playPlaylist 
+  } = usePlayer();
+  
+  const [loadingCard, setLoadingCard] = useState(null);
   const name = user?.username ? `, ${user.username}` : '';
+
+  const handleCardClick = async (card) => {
+    if (loadingCard) return;
+
+    if (card.title === 'Liked Songs') {
+      if (onOpenLibrary) onOpenLibrary('liked');
+      return;
+    }
+
+    const matchedPlaylist = playlists.find(p => p.name.toLowerCase() === card.title.toLowerCase());
+    if (matchedPlaylist) {
+      if (onOpenLibrary) onOpenLibrary(matchedPlaylist.id);
+      return;
+    }
+
+    setLoadingCard(card.title);
+    try {
+      let searchQuery = '';
+      if (card.title === 'Techno Bunker') searchQuery = 'techno electronic';
+      else if (card.title === 'Chill Lofi') searchQuery = 'chill lofi hip hop';
+      else if (card.title === 'Daily Mix 1') searchQuery = 'top hits pop';
+      else searchQuery = card.title;
+
+      const tracks = await searchTracks(searchQuery);
+      if (tracks && tracks.length > 0) {
+        const newPlaylist = createPlaylist(card.title);
+        for (const track of tracks.slice(0, 10)) {
+          addToPlaylist(newPlaylist.id, track);
+        }
+        if (onOpenLibrary) onOpenLibrary(newPlaylist.id);
+      }
+    } catch (error) {
+      console.error('Failed to create and populate playlist:', error);
+    } finally {
+      setLoadingCard(null);
+    }
+  };
+
+  const handlePlayClick = async (e, card) => {
+    e.stopPropagation();
+    if (loadingCard) return;
+
+    if (card.title === 'Liked Songs') {
+      if (likedSongs && likedSongs.length > 0) {
+        playPlaylist(likedSongs);
+      }
+      return;
+    }
+
+    const matchedPlaylist = playlists.find(p => p.name.toLowerCase() === card.title.toLowerCase());
+    if (matchedPlaylist && matchedPlaylist.tracks?.length > 0) {
+      playPlaylist(matchedPlaylist.tracks);
+      return;
+    }
+
+    setLoadingCard(card.title);
+    try {
+      let searchQuery = '';
+      if (card.title === 'Techno Bunker') searchQuery = 'techno electronic';
+      else if (card.title === 'Chill Lofi') searchQuery = 'chill lofi hip hop';
+      else if (card.title === 'Daily Mix 1') searchQuery = 'top hits pop';
+      else searchQuery = card.title;
+
+      const tracks = await searchTracks(searchQuery);
+      if (tracks && tracks.length > 0) {
+        let targetPlaylist = matchedPlaylist;
+        if (!targetPlaylist) {
+          targetPlaylist = createPlaylist(card.title);
+        }
+        for (const track of tracks.slice(0, 10)) {
+          addToPlaylist(targetPlaylist.id, track);
+        }
+        playPlaylist(tracks.slice(0, 10));
+      }
+    } catch (error) {
+      console.error('Failed to create/play playlist:', error);
+    } finally {
+      setLoadingCard(null);
+    }
+  };
 
   return (
     <section className="home-greeting">
       <h2 className="home-greeting__title">{getGreeting()}{name}</h2>
       <div className="home-greeting__grid">
         {quickCards.map((card) => (
-          <div key={card.title} className="quick-card group">
+          <div 
+            key={card.title} 
+            className={`quick-card group cursor-pointer transition-all active:scale-98 ${loadingCard === card.title ? 'opacity-70 pointer-events-none' : ''}`}
+            onClick={() => handleCardClick(card)}
+          >
             <div className="quick-card__art">
               <img src={card.image} alt={card.title} loading="lazy" />
             </div>
             <div className="quick-card__body">
               <span className="quick-card__name">{card.title}</span>
-              <button className="quick-card__play" aria-label={`Play ${card.title}`}>
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-              </button>
+              {loadingCard === card.title ? (
+                <div className="quick-card__spinner flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 border border-primary/40">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <button 
+                  className="quick-card__play" 
+                  aria-label={`Play ${card.title}`}
+                  onClick={(e) => handlePlayClick(e, card)}
+                >
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -55,3 +159,4 @@ const HomeGreeting = memo(function HomeGreeting() {
 });
 
 export default HomeGreeting;
+
