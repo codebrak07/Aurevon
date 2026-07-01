@@ -28,8 +28,8 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
 
   const handlePlay = useCallback(() => {
     setUserInteracted();
-    if (currentRoom && isHost && addJamQueue) {
-      addJamQueue(track, { playImmediately: true });
+    if (currentRoom && addJamQueue) {
+      addJamQueue(track, { playImmediately: isHost });
       return;
     }
     playTrack(track);
@@ -38,11 +38,13 @@ const TrackCard = memo(function TrackCard({ track, showAdd = true, onAddToPlayli
   const handleArtClick = useCallback((e) => {
     e.stopPropagation();
     setUserInteracted();
-    if (currentRoom && isHost && addJamQueue) {
-      addJamQueue(track, { playImmediately: true });
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('openNowPlaying'));
-      }, 50);
+    if (currentRoom && addJamQueue) {
+      addJamQueue(track, { playImmediately: isHost });
+      if (isHost) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openNowPlaying'));
+        }, 50);
+      }
       return;
     }
     playTrack(track); // Start playing immediately
