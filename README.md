@@ -18,7 +18,7 @@ Unlike traditional streaming services, Aurevon is built around one principle:
 [![Stars](https://img.shields.io/github/stars/codebrak07/Aurevon?style=social)](https://github.com/codebrak07/Aurevon/stargazers)
 [![Issues](https://img.shields.io/github/issues/codebrak07/Aurevon)](https://github.com/codebrak07/Aurevon/issues)
 
-**Live app:** [aurevonmusic.vercel.app](https://aurevonmusic.vercel.app) &nbsp;•&nbsp; **Repo:** [github.com/codebrak07/Aurevon](https://github.com/codebrak07/Aurevon)
+**Live app:** [aurevonmusic.vercel.app](https://aurevonmusic.vercel.app) &nbsp;•&nbsp;
 
 
 ---
@@ -38,7 +38,6 @@ Every architectural decision is measured against these principles.
 
 ## Table of Contents
 
-- [Demo](#demo)
 - [Core Philosophy](#core-philosophy)
 - [Vision](#vision)
 - [Screenshots](#screenshots)
