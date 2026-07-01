@@ -38,17 +38,17 @@ function isAmbiguousQuery(query) {
   const clean = query.trim().toLowerCase();
   const words = clean.split(/\s+/).filter(Boolean);
   if (words.length === 0) return false;
-  
+
   // 1-3 common words
   const isShort = words.length <= 3;
-  
+
   // Repeated words (e.g. deewana deewana)
   const hasDuplicates = new Set(words).size < words.length;
-  
+
   // Check for obvious artist/movie/context keywords
   const contextKeywords = ['ost', 'soundtrack', 'music', 'film', 'movie', 'show', 'serial', 'singer', 'official', 'lyrical', 'lyrics', 'remix', 'by', 'cover', 'theme', 'version', 'song'];
   const hasContextKeyword = words.some(w => contextKeywords.includes(w));
-  
+
   // Ambiguous if short or contains duplicates, and lacks specific context keywords
   return (isShort || hasDuplicates) && !hasContextKeyword;
 }
@@ -181,20 +181,20 @@ function scoreFallbackResult(item, originalQuery, isAmbiguous = false) {
   // Legacy generic match penalty for ambiguous queries
   const isOldUpload = !item.snippet?.publishedAt || (new Date().getFullYear() - new Date(item.snippet.publishedAt).getFullYear() > 3);
   if (isAmbiguous) {
-    const hasAnyContext = hasSoundtrackIndicator || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video');
-    
+    const hasAnyContext = hasSoundtrackIndicator ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video');
+
     if (!hasAnyContext && !isLabel && isOldUpload) {
       score -= 75; // Heavy penalty for legacy generic/unrelated songs
       if (import.meta.env.DEV) console.log(`[LEGACY_GENERIC_PENALTY] Aggressively penalized legacy generic candidate: "${title}" (-75)`);
@@ -203,19 +203,19 @@ function scoreFallbackResult(item, originalQuery, isAmbiguous = false) {
 
   // Archive Dilution Penalty
   if (isAmbiguous) {
-    const hasAnyContext = hasSoundtrackIndicator || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video');
+    const hasAnyContext = hasSoundtrackIndicator ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video');
     if (allWordsMatch && !hasAnyContext && !isLabel && isOldUpload) {
       score -= 80;
       if (import.meta.env.DEV) {
@@ -226,20 +226,20 @@ function scoreFallbackResult(item, originalQuery, isAmbiguous = false) {
 
   // Hard demotion for generic title collisions (TITLE_COLLISION_SUPPRESSED)
   if (isAmbiguous) {
-    const hasAnyContext = hasSoundtrackIndicator || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video') ||
-                          title.includes('jukebox');
+    const hasAnyContext = hasSoundtrackIndicator ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video') ||
+      title.includes('jukebox');
     if (allWordsMatch && !hasAnyContext && !isLabel && !isOfficialWhitelist && isOldUpload) {
       score -= 250; // Hard demotion
       if (import.meta.env.DEV) {
@@ -250,9 +250,9 @@ function scoreFallbackResult(item, originalQuery, isAmbiguous = false) {
 
   // Fix 30 second preview / short clip pollution
   const isPreviewOrTeaser = title.includes('preview') || title.includes('teaser') || title.includes('promo') ||
-                             title.includes('snippet') || title.includes('short') || title.includes('shorts') ||
-                             title.includes('reel') || title.includes('status') || title.includes('30 sec') || title.includes('15 sec') ||
-                             title.includes('clip') || title.includes('30s') || title.includes('15s');
+    title.includes('snippet') || title.includes('short') || title.includes('shorts') ||
+    title.includes('reel') || title.includes('status') || title.includes('30 sec') || title.includes('15 sec') ||
+    title.includes('clip') || title.includes('30s') || title.includes('15s');
   if (isPreviewOrTeaser) {
     const penalty = isLabel ? 60 : 100; // Aggressive demotion (up to -100)
     score -= penalty;
@@ -298,7 +298,7 @@ async function fallbackSearch(query, signal) {
 
   // 1. Multi-Stage Query Expansion with parallel contextual variants
   const queriesToTry = [cleanQuery];
-  
+
   if (isAmbiguous) {
     if (import.meta.env.DEV) {
       console.log(`[TARGETED_INTENT_EXPANSION] Building intent-driven search variants for: "${cleanQuery}"`);
@@ -354,7 +354,7 @@ async function fallbackSearch(query, signal) {
         response = await fetchYouTubeParams(params, signal);
         data = response && response.ok ? await response.json() : null;
       }
-      
+
       const items = data?.items || [];
       // Tag retrieved items with the expansion query that retrieved it
       items.forEach(item => {
@@ -399,13 +399,13 @@ async function fallbackSearch(query, signal) {
   if (isAmbiguous) {
     const soundtrackOrOfficial = [];
     const otherCandidates = [];
-    
+
     uniqueItems.forEach(item => {
       const t = (item.snippet?.title || '').toLowerCase();
       const ch = (item.snippet?.channelTitle || '').toLowerCase();
       const hasContext = t.includes('ost') || t.includes('soundtrack') || t.includes('official') || t.includes('movie') || t.includes('film') || t.includes('lyrical') || t.includes('song') || t.includes('jukebox');
       const isOfficialLabel = ['t-series', 'sony', 'zee', 'saregama', 'tips', 'yrf', 'universal', 'warner'].some(l => ch.includes(l));
-      
+
       if (hasContext || isOfficialLabel) {
         soundtrackOrOfficial.push(item);
       } else {
@@ -578,21 +578,21 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
 
   // Legacy generic match penalty for ambiguous queries
   if (isAmbiguous) {
-    const hasAnyContext = isOST || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video');
+    const hasAnyContext = isOST ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video');
     const isOld = !track.releaseDate || (new Date().getFullYear() - new Date(track.releaseDate).getFullYear() > 3);
-    
+
     if (!hasAnyContext && !isHighTrust && isOld) {
       score -= 75; // Aggressive penalty
       if (import.meta.env.DEV) console.log(`[LEGACY_GENERIC_PENALTY] Unified aggressive penalty for legacy generic match: "${track.title}" (-75)`);
@@ -601,21 +601,21 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
 
   // Archive Dilution Penalty
   if (isAmbiguous) {
-    const hasAnyContext = isOST || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video');
+    const hasAnyContext = isOST ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video');
     const isOld = !track.releaseDate || (new Date().getFullYear() - new Date(track.releaseDate).getFullYear() > 3);
-    
+
     const queryInTitle = queryWords.every(w => normTitle.includes(w));
     if (queryInTitle && !hasAnyContext && !isHighTrust && isOld) {
       score -= 80;
@@ -627,20 +627,20 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
 
   // Hard demotion for generic title collisions (TITLE_COLLISION_SUPPRESSED)
   if (isAmbiguous) {
-    const hasAnyContext = isOST || 
-                          title.includes('from') || 
-                          title.includes('movie') || 
-                          title.includes('film') || 
-                          title.includes('series') || 
-                          title.includes('show') || 
-                          title.includes('full song') || 
-                          title.includes('full audio') || 
-                          title.includes('lyrical') || 
-                          title.includes('lyrics video') ||
-                          title.includes('official') ||
-                          title.includes('audio') ||
-                          title.includes('music video') ||
-                          title.includes('jukebox');
+    const hasAnyContext = isOST ||
+      title.includes('from') ||
+      title.includes('movie') ||
+      title.includes('film') ||
+      title.includes('series') ||
+      title.includes('show') ||
+      title.includes('full song') ||
+      title.includes('full audio') ||
+      title.includes('lyrical') ||
+      title.includes('lyrics video') ||
+      title.includes('official') ||
+      title.includes('audio') ||
+      title.includes('music video') ||
+      title.includes('jukebox');
     const isOld = !track.releaseDate || (new Date().getFullYear() - new Date(track.releaseDate).getFullYear() > 3);
     const queryInTitle = queryWords.every(w => normTitle.includes(w));
     if (queryInTitle && !hasAnyContext && !isHighTrust && !isOfficialWhitelist && isOld) {
@@ -653,9 +653,9 @@ function scoreUnifiedResult(track, originalQuery, isAmbiguous = false) {
 
   // Fix 30 second preview / short clip pollution (SHORT_CLIP_REJECTED)
   const isPreviewOrTeaser = title.includes('preview') || title.includes('teaser') || title.includes('promo') ||
-                             title.includes('snippet') || title.includes('short') || title.includes('shorts') ||
-                             title.includes('reel') || title.includes('status') || title.includes('30 sec') || title.includes('15 sec') ||
-                             title.includes('clip') || title.includes('30s') || title.includes('15s');
+    title.includes('snippet') || title.includes('short') || title.includes('shorts') ||
+    title.includes('reel') || title.includes('status') || title.includes('30 sec') || title.includes('15 sec') ||
+    title.includes('clip') || title.includes('30s') || title.includes('15s');
   const isShortDuration = track.duration && track.duration < 90000;
   if (isPreviewOrTeaser || isShortDuration) {
     const penalty = isAmbiguous ? 500 : (isHighTrust ? 60 : 100);
@@ -817,7 +817,7 @@ export async function searchTracks(query, signal) {
       for (const t of topSlice) {
         const normT = (t.title || '').toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
         const count = seenTitles.get(normT) || 0;
-        
+
         // If ambiguous search, allow at most 1 duplicate (total 2) in the top slice, else only 0 duplicates
         const maxAllowed = isAmbiguous ? 2 : 1;
         if (count >= maxAllowed) {
@@ -846,7 +846,7 @@ export async function searchTracks(query, signal) {
         'sony music',
         'vevo',
       ];
-      
+
       const isGoodResult = (t) => {
         const titleL = (t.title || '').toLowerCase();
         const artistL = (t.artist || '').toLowerCase();
@@ -855,7 +855,7 @@ export async function searchTracks(query, signal) {
         const isFull = titleL.includes('full song') || titleL.includes('full audio') || (t.duration && t.duration >= 120000);
         return isOfficial || isOST || isFull;
       };
-      
+
       const topTrack = finalTracks[0];
       if (!isGoodResult(topTrack)) {
         // Find the first good result lower in the list and swap it to the top
@@ -928,13 +928,29 @@ export async function searchTracks(query, signal) {
     );
   }
 
+  const exactMatches = finalTracks.filter(t => {
+    const titleL = (t.title || '').toLowerCase().trim();
+    const normT = titleL.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+    const normQ = normalizedQueryFinal.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+    return normT === normQ || titleL === normalizedQueryFinal;
+  });
+
+  const otherTracks = finalTracks.filter(t => {
+    const titleL = (t.title || '').toLowerCase().trim();
+    const normT = titleL.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+    const normQ = normalizedQueryFinal.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+    return normT !== normQ && titleL !== normalizedQueryFinal;
+  });
+
+  finalTracks = [...exactMatches, ...otherTracks];
+
   console.log('[FINAL_SORTED_RESULTS]', finalTracks);
 
   // Keep hybridScore for debugging trace in UI
   if (import.meta.env.DEV) console.log(`[RESULTS_SENT_TO_STATE] sending ${finalTracks.length} tracks to UI`);
 
   cacheService.set('search', cacheKey, finalTracks);
-  
+
   // FINAL RETURN
   return finalTracks;
 }

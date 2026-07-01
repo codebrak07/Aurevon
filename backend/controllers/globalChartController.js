@@ -34,7 +34,7 @@ const getGlobalDashboard = async (req, res) => {
     }
 
     // Parallel Fetch from Apple Music RSS
-    const fetchPromises = Object.keys(COUNTRIES).map(code => 
+    const fetchPromises = Object.keys(COUNTRIES).map(code =>
       axios.get(`https://rss.marketingtools.apple.com/api/v2/${code}/music/most-played/100/songs.json`)
         .then(res => ({ code, data: res.data.feed.results }))
         .catch(err => {
@@ -44,7 +44,7 @@ const getGlobalDashboard = async (req, res) => {
     );
 
     const results = await Promise.all(fetchPromises);
-    
+
     // Aggregator & Mapper
     const allTracks = [];
     const trackMap = new Map();
@@ -53,7 +53,7 @@ const getGlobalDashboard = async (req, res) => {
       data.forEach((item, index) => {
         const countryInfo = COUNTRIES[code];
         const trackId = item.id;
-        
+
         if (!trackMap.has(trackId)) {
           const track = {
             id: `apple-${trackId}`,
@@ -118,7 +118,7 @@ const getGlobalDashboard = async (req, res) => {
           else if (g.includes('hip-hop') || g.includes('rap')) track.vibe = 'sigma';
           else if (g.includes('lo-fi') || g.includes('chill')) track.vibe = 'late-night';
           else if (g.includes('r&b') || g.includes('soul')) track.vibe = 'soft-life';
-          else track.vibe = 'late-night'; 
+          else track.vibe = 'late-night';
         } else {
           // Normalize AI response just in case
           track.vibe = track.vibe.toLowerCase().replace(/\s+/g, '-');

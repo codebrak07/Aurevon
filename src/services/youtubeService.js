@@ -29,17 +29,17 @@ async function fetchWithFallback(url, params) {
   for (let i = 0; i < UNIQUE_KEYS.length; i++) {
     let attemptIndex = (currentKeyIndex + i) % UNIQUE_KEYS.length;
     params.set('key', UNIQUE_KEYS[attemptIndex]);
-    
+
     try {
       response = await fetch(`${url}?${params}`);
       if (response.ok) {
         currentKeyIndex = attemptIndex;
         return response;
       }
-      
+
       const errorData = await response.json().catch(() => ({}));
       console.warn(`[YouTube API] Key ${attemptIndex} failed with status ${response.status}:`, errorData.error?.message || 'Unknown error');
-      
+
       // If it's not a quota or auth error, don't bother trying other keys
       if (response.status !== 403 && response.status !== 429) {
         return response;
@@ -123,7 +123,7 @@ export async function searchVideoId(trackTitle, artistName, trackId) {
 
   const cleanTitle = trackTitle.replace(/[^\w\s]/gi, '').trim();
   const cleanArtist = artistName ? artistName.replace(/[^\w\s]/gi, '').trim() : '';
-  
+
   // Strategy 1: Specific
   const queries = [
     `${cleanTitle} ${cleanArtist} official audio`,
@@ -151,7 +151,7 @@ export async function searchVideoId(trackTitle, artistName, trackId) {
       items = data?.items || [];
       if (items.length > 0) break;
     }
-    
+
     // If specific music category failed, try without it
     params.delete('videoCategoryId');
     const fallbackResponse = await fetchWithFallback(SEARCH_URL, params);
@@ -181,9 +181,9 @@ export async function searchVideoId(trackTitle, artistName, trackId) {
     cacheService.set('videoMap', trackId, mapped.videoId);
   }
 
-  return { 
-    videoId: mapped?.videoId || null, 
-    title: best?.snippet?.title || null 
+  return {
+    videoId: mapped?.videoId || null,
+    title: best?.snippet?.title || null
   };
 }
 
@@ -226,7 +226,7 @@ export async function getTrendingSongs() {
     if (!response?.ok) return [];
     const data = await response.json();
     const results = (data.items || []).map(mapYouTubeResult).filter(Boolean);
-    cacheService.set('aiSuggestions', cacheKey, results); 
+    cacheService.set('aiSuggestions', cacheKey, results);
     return results;
   } catch {
     return [];
