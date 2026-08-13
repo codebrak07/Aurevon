@@ -2,17 +2,28 @@ import { useEffect, useRef, memo } from 'react';
 import usePlayer from '../hooks/usePlayer';
 
 const YouTubePlayer = memo(function YouTubePlayer() {
-  const { videoId, currentTime, setPlayerRef, onTrackEnd, setPlayerReady, setUserInteracted, volume, setPlaying } =
-    usePlayer();
+  const {
+    videoId,
+    currentTime,
+    setPlayerRef,
+    setPrebufferPlayerRef,
+    onTrackEnd,
+    setPlayerReady,
+    setUserInteracted,
+    volume,
+    setPlaying
+  } = usePlayer();
+
   const containerRef = useRef(null);
-  const playerInstanceRef = useRef(null);
+  const prebufferContainerRef = useRef(null);
+  const primaryPlayerRef = useRef(null);
+  const secondaryPlayerRef = useRef(null);
   const isInitializedRef = useRef(false);
   const onTrackEndRef = useRef(onTrackEnd);
-  // Using refs for initial sync values to avoid stale closures in the 1-time initPlayer effect
+  
   const initialVideoIdRef = useRef(videoId);
   const initialTimeRef = useRef(currentTime);
 
-  // Update initial refs so that onReady gets the latest videoId if it was changed before player initialized (like via shared links)
   useEffect(() => {
     initialVideoIdRef.current = videoId;
   }, [videoId]);
@@ -21,7 +32,6 @@ const YouTubePlayer = memo(function YouTubePlayer() {
     initialTimeRef.current = currentTime;
   }, [currentTime]);
 
-  // Keep callback ref current without re-creating player
   useEffect(() => {
     onTrackEndRef.current = onTrackEnd;
   }, [onTrackEnd]);
@@ -43,45 +53,44 @@ const YouTubePlayer = memo(function YouTubePlayer() {
       });
     };
 
+    const commonPlayerVars = {
+      autoplay: 0,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      iv_load_policy: 3,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0,
+      playsinline: 1,
+      origin: window.location.origin,
+    };
+
     const initPlayer = async () => {
       await loadAPI();
       if (isInitializedRef.current) return;
       isInitializedRef.current = true;
 
-      playerInstanceRef.current = new window.YT.Player(containerRef.current, {
+      // Initialize Primary Player
+      primaryPlayerRef.current = new window.YT.Player(containerRef.current, {
         height: '0',
         width: '0',
-        playerVars: {
-          autoplay: 0, // Control manually based on session state
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          playsinline: 1,
-          origin: window.location.origin,
-        },
+        playerVars: commonPlayerVars,
         events: {
           onReady: (event) => {
             setPlayerRef(event.target);
             setPlayerReady();
             event.target.setVolume(volume);
-            
-            // Session Resumption Logic using the values captured at mount
+
             if (initialVideoIdRef.current) {
               const isSharedSong = window.__aurevonSharedSong === true;
-              
               if (isSharedSong) {
-                // If it's a shared link, attempt to play automatically
                 event.target.loadVideoById({
                   videoId: initialVideoIdRef.current,
                   startSeconds: 0
                 });
                 setPlaying(true);
               } else {
-                // 'Cue' ensures we don't violate autoplay policies on page load
                 event.target.cueVideoById({
                   videoId: initialVideoIdRef.current,
                   startSeconds: initialTimeRef.current || 0
@@ -91,55 +100,57 @@ const YouTubePlayer = memo(function YouTubePlayer() {
           },
           onStateChange: (event) => {
             const state = event.data;
-            
-            // Handle End of Track
             if (state === window.YT.PlayerState.ENDED) {
               onTrackEndRef.current();
               return;
             }
-
-            // Sync global playing state with YouTube's internal state
             if (state === window.YT.PlayerState.PLAYING) {
               setUserInteracted();
               setPlaying(true);
             } else if (state === window.YT.PlayerState.PAUSED || state === window.YT.PlayerState.BUFFERING) {
-              // We keep it 'true' during buffering to show active UI, but false on explicit pause
               setPlaying(state === window.YT.PlayerState.BUFFERING || state === window.YT.PlayerState.PLAYING);
             } else if (state === window.YT.PlayerState.CUED) {
               setPlaying(false);
             }
           },
           onError: (event) => {
-            const errorCodes = {
-                2: 'Invalid parameter',
-                5: 'HTML5 player error',
-                100: 'Video not found/removed',
-                101: 'Embedded playback restricted',
-                150: 'Embedded playback restricted'
-            };
-            console.error(`[Aurevon Player] Error ${event.data}: ${errorCodes[event.data] || 'Unknown error'}`);
-            
-            // Embedded playback restrictions should not force a 0-second skip loop.
             if ([101, 150].includes(event.data)) {
-                setPlaying(false);
-                console.warn('[Aurevon Player] Embedded playback is restricted for this track. Staying on the current item.');
-                return;
+              setPlaying(false);
+              return;
             }
-
             if (event.data === 100) {
-                console.warn('[Aurevon Player] Auto-skipping unavailable content...');
-                onTrackEndRef.current();
+              onTrackEndRef.current();
             }
+          },
+        },
+      });
+
+      // Initialize Secondary Pre-buffer Player
+      secondaryPlayerRef.current = new window.YT.Player(prebufferContainerRef.current, {
+        height: '0',
+        width: '0',
+        playerVars: commonPlayerVars,
+        events: {
+          onReady: (event) => {
+            if (setPrebufferPlayerRef) {
+              setPrebufferPlayerRef(event.target);
+            }
+            event.target.setVolume(0); // Mute pre-buffer instance
+          },
+          onStateChange: (event) => {
+            const state = event.data;
+            if (state === window.YT.PlayerState.ENDED) {
+              onTrackEndRef.current();
+            }
+          },
+          onError: (event) => {
+            console.warn('[Pre-buffer Player] Error event:', event.data);
           },
         },
       });
     };
 
     initPlayer();
-
-    return () => {
-      // Don't destroy on unmount — player persists
-    };
   }, []);
 
   return (
@@ -155,8 +166,10 @@ const YouTubePlayer = memo(function YouTubePlayer() {
       }}
     >
       <div ref={containerRef} id="youtube-player" />
+      <div ref={prebufferContainerRef} id="youtube-prebuffer-player" />
     </div>
   );
 });
 
 export default YouTubePlayer;
+
