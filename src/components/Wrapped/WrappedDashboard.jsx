@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePlayer from '../../hooks/usePlayer';
+import AurevonMoments from '../AurevonMoments';
 import './WrappedDashboard.css';
 
 const MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', { month: 'short' });
@@ -379,6 +380,9 @@ export default function WrappedDashboard({ onClose }) {
                    <h4>Top Genre</h4>
                    <p>{stats.topGenre}</p>
                 </div>
+             </div>
+             <div className="mt-6 text-left">
+                <AurevonMoments />
              </div>
           </motion.div>
         );

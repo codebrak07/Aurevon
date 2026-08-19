@@ -1,10 +1,23 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
+import WhyThisSongModal from './WhyThisSongModal';
 import './QueuePanel.css';
 
 const QueuePanel = memo(function QueuePanel({ isOpen, onClose }) {
-  const { queue, currentIndex, currentTrack, removeFromQueue, clearQueue, playTrack, setUserInteracted } =
-    usePlayer();
+  const {
+    queue,
+    currentIndex,
+    currentTrack,
+    removeFromQueue,
+    clearQueue,
+    playTrack,
+    setUserInteracted,
+    smartPicks = [],
+    dismissSmartPick,
+    enqueueSmartPick,
+  } = usePlayer();
+
+  const [selectedWhyTrack, setSelectedWhyTrack] = useState(null);
 
   // Prevent body scroll when panel is open
   useEffect(() => {
@@ -46,6 +59,11 @@ const QueuePanel = memo(function QueuePanel({ isOpen, onClose }) {
         </div>
 
         <div className="queue-panel__list">
+          <div className="queue-section-header">
+            <span className="queue-section-tag">UP NEXT QUEUE</span>
+            <h4 className="queue-section-title">UP NEXT</h4>
+          </div>
+
           {queue.length === 0 ? (
             <div className="queue-panel__empty">
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -107,8 +125,76 @@ const QueuePanel = memo(function QueuePanel({ isOpen, onClose }) {
               </div>
             ))
           )}
+
+          {/* Intelligent Picks Section */}
+          {smartPicks.length > 0 && (
+            <div className="smart-picks-section">
+              <div className="queue-section-header smart-picks-header">
+                <span className="queue-section-tag">AUREVON PICKS</span>
+                <h4 className="queue-section-title">AUREVON'S PICKS</h4>
+              </div>
+
+              {smartPicks.map((track, sIdx) => (
+                <div
+                  key={`smart-pick-${track.id || track.title}-${sIdx}`}
+                  className="queue-item smart-pick-item"
+                  onClick={() => {
+                    setUserInteracted();
+                    playTrack(track);
+                  }}
+                >
+                  <img
+                    className="queue-item__art"
+                    src={track.albumArt || track.cover || '/aurevon.jpg'}
+                    alt={track.title}
+                  />
+
+                  <div className="queue-item__info">
+                    <div className="smart-pick-title-row">
+                      <span className="queue-item__title">{track.title}</span>
+                    </div>
+                    <span className="queue-item__artist">{track.artist || track.artistName}</span>
+                  </div>
+
+                  <div className="smart-pick-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className="smart-why-btn"
+                      title="Why this song?"
+                      onClick={() => setSelectedWhyTrack(track)}
+                    >
+                      Why?
+                    </button>
+
+                    <button
+                      className="smart-add-btn"
+                      title="Add to Up Next"
+                      onClick={() => enqueueSmartPick(sIdx)}
+                    >
+                      <span className="material-symbols-outlined">add</span>
+                    </button>
+
+                    <button
+                      className="queue-item__remove"
+                      title="Dismiss pick"
+                      onClick={() => dismissSmartPick(sIdx)}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      <WhyThisSongModal
+        track={selectedWhyTrack}
+        isOpen={Boolean(selectedWhyTrack)}
+        onClose={() => setSelectedWhyTrack(null)}
+      />
     </>
   );
 });

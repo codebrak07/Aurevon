@@ -3,6 +3,7 @@ import axios from 'axios';
 import { searchVideoId, getRelatedVideos } from '../services/youtubeService';
 import { generateSmartShuffle, getSmartRecommendations, generateMagicSeeds } from '../services/aiService';
 import { searchTracks, getArtistFullData, searchArtists } from '../services/musicService';
+import { generateSmartQueuePicks } from '../services/intelligenceService';
 import { API } from '../config/api';
 import playbackPersistence from '../services/playbackPersistence';
 import SILENT_MP3 from '../utils/silent';
@@ -216,10 +217,27 @@ const initialState = {
   },
   selectedArtist: null,
   artistProfileOpen: false,
+  smartPicks: [],
 };
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'SET_SMART_PICKS':
+      return { ...state, smartPicks: action.payload };
+    case 'DISMISS_SMART_PICK':
+      return {
+        ...state,
+        smartPicks: state.smartPicks.filter((_, idx) => idx !== action.payload),
+      };
+    case 'ENQUEUE_SMART_PICK': {
+      const pick = state.smartPicks[action.payload];
+      if (!pick) return state;
+      return {
+        ...state,
+        queue: [...state.queue, pick],
+        smartPicks: state.smartPicks.filter((_, idx) => idx !== action.payload),
+      };
+    }
     case 'SET_TRACK':
       return {
         ...state,
@@ -483,6 +501,17 @@ export function PlayerProvider({ children }) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  // Auto-replenish Smart Queue picks on track change
+  useEffect(() => {
+    if (state.currentTrack) {
+      generateSmartQueuePicks(stateRef.current, state.currentTrack, 5)
+        .then((picks) => {
+          dispatch({ type: 'SET_SMART_PICKS', payload: picks });
+        })
+        .catch((err) => console.warn('[SmartQueue] Pick generation error:', err));
+    }
+  }, [state.currentTrack?.id || state.currentTrack?.title]);
 
   // Persist liked songs
   useEffect(() => {
@@ -1719,6 +1748,23 @@ export function PlayerProvider({ children }) {
     dispatch({ type: 'SET_PLAYING', payload: playing });
   }, [getActivePlayer]);
 
+  const fetchSmartQueuePicks = useCallback(async () => {
+    try {
+      const picks = await generateSmartQueuePicks(stateRef.current, stateRef.current.currentTrack, 5);
+      dispatch({ type: 'SET_SMART_PICKS', payload: picks });
+    } catch (err) {
+      console.warn('[SmartQueue] Failed to generate smart picks:', err);
+    }
+  }, []);
+
+  const dismissSmartPick = useCallback((index) => {
+    dispatch({ type: 'DISMISS_SMART_PICK', payload: index });
+  }, []);
+
+  const enqueueSmartPick = useCallback((index) => {
+    dispatch({ type: 'ENQUEUE_SMART_PICK', payload: index });
+  }, []);
+
   const value = {
     ...state,
     playTrack,
@@ -1733,6 +1779,9 @@ export function PlayerProvider({ children }) {
     addToQueue,
     removeFromQueue,
     clearQueue,
+    fetchSmartQueuePicks,
+    dismissSmartPick,
+    enqueueSmartPick,
     onTrackEnd,
     setPlayerRef,
     setPrebufferPlayerRef,

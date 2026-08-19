@@ -4,6 +4,8 @@ import usePlayer from '../hooks/usePlayer';
 import { searchArtists } from '../services/musicService';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth as firebaseAuth } from '../config/firebase';
+import AurevonMoments from './AurevonMoments';
+import MusicMatchModal from './MusicMatchModal';
 import './ProfileModal.css';
 
 export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtistSelect }) {
@@ -27,6 +29,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
   const [loginError, setLoginError] = useState(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [googlePrompting, setGooglePrompting] = useState(false);
+  const [isMatchOpen, setIsMatchOpen] = useState(false);
   
   const fileInputRef = useRef(null);
 
@@ -262,7 +265,15 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                         </button>
                     </div>
 
-                    <div className="profile-modal-actions w-full space-y-4 mb-10">
+                    <div className="profile-modal-actions w-full space-y-4 mb-6">
+                        <button 
+                            onClick={() => setIsMatchOpen(true)}
+                            className="profile-modal-action-btn w-full py-4 rounded-[1.25rem] font-black tracking-widest uppercase text-[10px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500 hover:to-purple-500 text-white transition-all flex items-center justify-center gap-3 border border-cyan-500/30"
+                        >
+                            <span className="material-symbols-outlined text-xl">insights</span>
+                            Music Match Engine
+                        </button>
+
                         <button 
                             onClick={handleOpenSettings}
                             className="profile-modal-action-btn w-full py-5 rounded-[1.25rem] font-black tracking-widest uppercase text-[10px] bg-white/5 hover:bg-white text-white hover:text-black transition-all flex items-center justify-center gap-3 border border-white/10"
@@ -288,9 +299,14 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
                         </div>
                     </div>
 
+                    {/* Aurevon Moments Listening Memories */}
+                    <div className="w-full">
+                      <AurevonMoments />
+                    </div>
+
                     <button 
                         onClick={onClose}
-                        className="text-[10px] text-[#acaab1] hover:text-white uppercase font-black tracking-[0.4em] transition-all"
+                        className="text-[10px] text-[#acaab1] hover:text-white uppercase font-black tracking-[0.4em] transition-all mt-4 mb-2"
                     >
                         Close
                     </button>
@@ -562,6 +578,11 @@ export default function ProfileModal({ isOpen, onClose, onOpenSettings, onArtist
           </motion.div>
         )}
       </div>
+
+      <MusicMatchModal
+        isOpen={isMatchOpen}
+        onClose={() => setIsMatchOpen(false)}
+      />
     </>
   );
 }

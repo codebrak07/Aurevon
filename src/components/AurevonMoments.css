@@ -1,0 +1,146 @@
+.moments-container {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.moments-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.moments-tag {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: #06b6d4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moments-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0;
+}
+
+.moments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .moments-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+  }
+
+  .moment-card {
+    grid-column: span 12;
+  }
+
+  .moment-card:nth-child(odd) {
+    grid-column: span 7;
+  }
+
+  .moment-card:nth-child(even) {
+    grid-column: span 5;
+    margin-top: 12px;
+  }
+
+  .moment-card:nth-child(3n) {
+    grid-column: span 12;
+    margin-top: 0;
+  }
+}
+
+.moments-empty-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.moments-empty-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.moment-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--accent-color, #8b5cf6);
+  border-radius: 14px;
+  padding: 18px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.moment-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.moment-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.moment-type-badge {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: var(--accent-color, #8b5cf6);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.moment-date {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.moment-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px 0;
+}
+
+.moment-card-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 14px 0;
+}
+
+.moment-card-stats {
+  display: flex;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.moment-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.moment-stat-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.moment-stat-lbl {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}

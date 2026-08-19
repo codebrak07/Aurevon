@@ -1,14 +1,17 @@
 import { useState, useEffect, memo } from 'react';
 import usePlayer from '../hooks/usePlayer';
 import { getArtistTopTracks } from '../services/musicService';
+import { getArtistUserAffinity } from '../services/intelligenceService';
 import './ArtistProfileModal.css';
 
 const ArtistProfileModal = memo(function ArtistProfileModal({ artist, isOpen, onClose }) {
-  const { playTrack, followedArtists, toggleFollowArtist, setUserInteracted } = usePlayer();
+  const playerState = usePlayer();
+  const { playTrack, followedArtists, toggleFollowArtist, setUserInteracted } = playerState;
   const [topTracks, setTopTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const isFollowed = followedArtists.includes(artist.name);
+  const userAffinity = isOpen && artist.name ? getArtistUserAffinity(artist.name, playerState) : null;
 
   useEffect(() => {
     if (isOpen && artist.id) {
@@ -84,6 +87,38 @@ const ArtistProfileModal = memo(function ArtistProfileModal({ artist, isOpen, on
             </div>
           </div>
         </header>
+
+        {/* Personalized Artist Intelligence Section */}
+        {userAffinity && (
+          <section className="artist-affinity-section">
+            <div className="affinity-header">
+              <span className="affinity-tag">YOUR LISTENING</span>
+              <h3 className="affinity-heading">PERSONAL AFFINITY</h3>
+            </div>
+
+            <div className="affinity-insight-card">
+              <span className="material-symbols-outlined insight-icon">auto_awesome</span>
+              <p className="insight-text">{userAffinity.editorialInsight}</p>
+            </div>
+
+            {userAffinity.hasHistory && (
+              <div className="affinity-stats-grid">
+                <div className="affinity-stat-card">
+                  <span className="stat-val">{userAffinity.playCount}</span>
+                  <span className="stat-lbl">Plays</span>
+                </div>
+                <div className="affinity-stat-card">
+                  <span className="stat-val">{userAffinity.totalMinutesListened}m</span>
+                  <span className="stat-lbl">Time Listened</span>
+                </div>
+                <div className="affinity-stat-card">
+                  <span className="stat-val">{userAffinity.playlistCount}</span>
+                  <span className="stat-lbl">In Playlists</span>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="artist-top-tracks">
           <h3 className="tracks-heading">Top 10 Tracks</h3>

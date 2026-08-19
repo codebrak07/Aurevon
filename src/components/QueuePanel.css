@@ -284,3 +284,90 @@
   width: 14px;
   height: 14px;
 }
+
+/* ── Smart Queue & Section Headers ── */
+.queue-section-header {
+  padding: 16px 20px 8px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.queue-section-tag {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: #a78bfa;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.queue-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.smart-picks-section {
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.smart-picks-header .queue-section-tag {
+  color: #06b6d4;
+}
+
+.smart-pick-item {
+  border-left: 2px solid rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.02);
+}
+
+.smart-pick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.smart-why-btn {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.smart-why-btn:hover {
+  background: rgba(167, 139, 250, 0.3);
+  color: #fff;
+}
+
+.smart-add-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.smart-add-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.smart-add-btn span {
+  font-size: 16px;
+}
+
